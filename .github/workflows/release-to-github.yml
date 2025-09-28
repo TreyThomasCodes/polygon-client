@@ -1,4 +1,4 @@
-name: Release Package to GitHub
+name: Release to GitHub
 
 on:
   workflow_dispatch:
