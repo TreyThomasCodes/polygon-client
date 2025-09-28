@@ -1,5 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <UserSecretsId>864d12d1-5d77-4125-9bc8-577aea8820d0</UserSecretsId>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  
   <ItemGroup>
     <ProjectReference Include="..\..\src\TTC.Polygon.Models\TTC.Polygon.Models.csproj" />
     <ProjectReference Include="..\..\src\TTC.Polygon.RestClient\TTC.Polygon.RestClient.csproj" />
@@ -14,13 +24,5 @@
     <PackageReference Include="Serilog.Extensions.Hosting" />
     <PackageReference Include="Serilog.Sinks.Console" />
   </ItemGroup>
-
-  <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <UserSecretsId>864d12d1-5d77-4125-9bc8-577aea8820d0</UserSecretsId>
-  </PropertyGroup>
 
 </Project>
