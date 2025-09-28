@@ -20,6 +20,9 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "etc", "etc", "{DDC37703-C94C-4821-A83F-E1DBD0B9DCC1}"
 	ProjectSection(SolutionItems) = preProject
 		README.md = README.md
+		.github\workflows\release-to-github.yml = .github\workflows\release-to-github.yml
+		.github\workflows\release-to-nuget.yml = .github\workflows\release-to-nuget.yml
+		version.json = version.json
 	EndProjectSection
 EndProject
 Global
