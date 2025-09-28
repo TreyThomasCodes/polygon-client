@@ -13,11 +13,13 @@
     <Description>A reusable .NET library for connecting to and retrieving stock data from the Polygon.io REST API</Description>
     <PackageTags>polygon;stock;market;api;finance;trading</PackageTags>
     <RepositoryUrl>https://github.com/TreyThomasCodes/polygon-client</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/TreyThomasCodes/polygon-client</PackageProjectUrl>
     <Authors>Trey Thomas</Authors>
     <Product>Polygon REST Client</Product>
     <Copyright>Copyright © Trey Thomas $(Year)</Copyright>
     <PackageLicenseExpression>MPL-2.0</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0|AnyCPU'">
