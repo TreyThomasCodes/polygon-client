@@ -22,6 +22,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "etc", "etc", "{DDC37703-C94
 		README.md = README.md
 		.github\workflows\release-to-github.yml = .github\workflows\release-to-github.yml
 		.github\workflows\release-to-nuget.yml = .github\workflows\release-to-nuget.yml
+		version.json = version.json
 	EndProjectSection
 EndProject
 Global
