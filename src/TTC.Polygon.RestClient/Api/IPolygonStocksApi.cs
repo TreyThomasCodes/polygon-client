@@ -137,7 +137,7 @@ public interface IPolygonStocksApi
     /// <param name="cancellationToken">A cancellation token to cancel the operation.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains a response with a list of market snapshots for all tickers.</returns>
     [Get("/v2/snapshot/locale/us/markets/stocks/tickers")]
-    Task<PolygonResponse<List<StockSnapshot>>> GetSnapshotAllTickersAsync(
+    Task<PolygonResponse<List<StockSnapshot>>> GetMarketSnapshotAsync(
         [Query("include_otc")] bool? includeOtc = null,
         CancellationToken cancellationToken = default);
 
@@ -148,7 +148,7 @@ public interface IPolygonStocksApi
     /// <param name="cancellationToken">A cancellation token to cancel the operation.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains a response with the market snapshot for the specified ticker.</returns>
     [Get("/v2/snapshot/locale/us/markets/stocks/tickers/{ticker}")]
-    Task<PolygonResponse<StockSnapshot>> GetSnapshotTickerAsync(
+    Task<StockSnapshotResponse> GetSnapshotAsync(
         string ticker,
         CancellationToken cancellationToken = default);
 }

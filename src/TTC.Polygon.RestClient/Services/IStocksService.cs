@@ -137,7 +137,7 @@ public interface IStocksService
     /// <param name="includeOtc">Whether to include over-the-counter (OTC) securities in the results.</param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
     /// <returns>A task that represents the asynchronous operation, containing a list of ticker snapshots.</returns>
-    Task<PolygonResponse<List<StockSnapshot>>> GetSnapshotAllTickersAsync(
+    Task<PolygonResponse<List<StockSnapshot>>> GetMarketSnapshotAsync(
         bool? includeOtc = null,
         CancellationToken cancellationToken = default);
 
@@ -148,7 +148,7 @@ public interface IStocksService
     /// <param name="ticker">The stock ticker symbol (e.g., "AAPL", "MSFT").</param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
     /// <returns>A task that represents the asynchronous operation, containing the ticker snapshot.</returns>
-    Task<PolygonResponse<StockSnapshot>> GetSnapshotTickerAsync(
+    Task<StockSnapshotResponse> GetSnapshotAsync(
         string ticker,
         CancellationToken cancellationToken = default);
 }
