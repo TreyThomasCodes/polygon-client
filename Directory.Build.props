@@ -3,4 +3,7 @@
 	<ItemGroup>
 	  <PackageReference Include="DotNet.ReproducibleBuilds" />
 	</ItemGroup>
+	<PropertyGroup>
+		<EnablePackageValidation>true</EnablePackageValidation>
+	</PropertyGroup>
 </Project>
