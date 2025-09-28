@@ -13,15 +13,11 @@
     <Description>A reusable .NET library for connecting to and retrieving stock data from the Polygon.io REST API</Description>
     <PackageTags>polygon;stock;market;api;finance;trading</PackageTags>
     <RepositoryUrl>https://github.com/TreyThomasCodes/polygon-client</RepositoryUrl>
-    <PackageProjectUrl>https://github.com/your-repo/TTC.Polygon</PackageProjectUrl>
     <Authors>Trey Thomas</Authors>
     <Product>Polygon REST Client</Product>
     <Copyright>Copyright © Trey Thomas $(Year)</Copyright>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageLicenseExpression>MPL-2.0</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <Version>0.0.1</Version>
-    <AssemblyVersion>0.0.1</AssemblyVersion>
-    <FileVersion>0.0.1</FileVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0|AnyCPU'">
@@ -51,6 +47,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\TTC.Polygon.Models\TTC.Polygon.Models.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- PropertyGroup necessary references -->
+    <None Include="..\..\LICENSE" Pack="true" PackagePath="LICENSE" />
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
 </Project>
