@@ -77,4 +77,13 @@ public interface IPolygonReferenceApi
     /// <returns>A task that represents the asynchronous operation. The task result contains the current market status information.</returns>
     [Get("/v1/marketstatus/now")]
     Task<MarketStatus> GetMarketStatusAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Retrieves a list of all ticker types supported by Polygon.io.
+    /// Returns information about different security types including their codes, descriptions, asset classes, and locales.
+    /// </summary>
+    /// <param name="cancellationToken">A cancellation token to cancel the operation.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains a response with a list of ticker types.</returns>
+    [Get("/v3/reference/tickers/types")]
+    Task<TickerTypesResponse> GetTickerTypesAsync(CancellationToken cancellationToken = default);
 }

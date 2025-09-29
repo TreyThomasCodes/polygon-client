@@ -76,4 +76,13 @@ public interface IReferenceDataService
     /// <param name="cancellationToken">Token to cancel the operation.</param>
     /// <returns>A task that represents the asynchronous operation, containing the current market status information.</returns>
     Task<MarketStatus> GetMarketStatusAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Retrieves a list of all ticker types supported by Polygon.io.
+    /// Returns information about different security types including their codes, descriptions, asset classes, and locales.
+    /// Examples include "CS" for Common Stock, "ETF" for Exchange Traded Fund, "PFD" for Preferred Stock.
+    /// </summary>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>A task that represents the asynchronous operation, containing a response with a list of ticker types.</returns>
+    Task<TickerTypesResponse> GetTickerTypesAsync(CancellationToken cancellationToken = default);
 }
