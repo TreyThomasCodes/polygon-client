@@ -207,7 +207,7 @@ public class StocksServiceTests
 
         // Act & Assert
         var actualException = await Assert.ThrowsAsync<HttpRequestException>(
-            () => _service.GetSnapshotAsync(ticker));
+            () => _service.GetSnapshotAsync(ticker, TestContext.Current.CancellationToken));
         Assert.Equal(expectedException.Message, actualException.Message);
     }
 

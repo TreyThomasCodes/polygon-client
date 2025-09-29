@@ -80,4 +80,10 @@ public class ReferenceDataService : IReferenceDataService
     {
         return _api.GetMarketStatusAsync(cancellationToken);
     }
+
+    /// <inheritdoc />
+    public Task<TickerTypesResponse> GetTickerTypesAsync(CancellationToken cancellationToken = default)
+    {
+        return _api.GetTickerTypesAsync(cancellationToken);
+    }
 }
