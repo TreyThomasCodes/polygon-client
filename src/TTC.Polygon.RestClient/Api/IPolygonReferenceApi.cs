@@ -86,4 +86,28 @@ public interface IPolygonReferenceApi
     /// <returns>A task that represents the asynchronous operation. The task result contains a response with a list of ticker types.</returns>
     [Get("/v3/reference/tickers/types")]
     Task<TickerTypesResponse> GetTickerTypesAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Retrieves a unified list of trade and quote conditions from various market data providers.
+    /// These conditions provide context for market data events and affect calculations of trading metrics like high, low, open, close, and volume.
+    /// </summary>
+    /// <param name="assetClass">Filter conditions by asset class. Common values include "stocks", "options", "crypto", "fx".</param>
+    /// <param name="dataType">Filter conditions by data type. Common values include "trade", "quote".</param>
+    /// <param name="id">Filter by condition ID. Can be a single ID or comma-separated list of IDs.</param>
+    /// <param name="sipMapping">Filter by SIP mapping. Specify the mapping type (e.g., "CTA", "UTP", "FINRA_TDDS").</param>
+    /// <param name="order">Sort order for the results. Valid values are "asc" (ascending) or "desc" (descending). Default is "asc".</param>
+    /// <param name="limit">Limit the number of results returned. Maximum value is 1000. Default is 10.</param>
+    /// <param name="sort">Field to sort by. Common values include "asset_class", "data_type", "id", "type", "name". Default is "asset_class".</param>
+    /// <param name="cancellationToken">A cancellation token to cancel the operation.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains a response with a list of condition codes.</returns>
+    [Get("/v3/reference/conditions")]
+    Task<PolygonResponse<List<ConditionCode>>> GetConditionCodesAsync(
+        [Query("asset_class")] string? assetClass = null,
+        [Query("data_type")] string? dataType = null,
+        [Query] string? id = null,
+        [Query("sip_mapping")] string? sipMapping = null,
+        [Query] string? order = null,
+        [Query] int? limit = null,
+        [Query] string? sort = null,
+        CancellationToken cancellationToken = default);
 }

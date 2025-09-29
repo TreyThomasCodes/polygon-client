@@ -86,4 +86,26 @@ public class ReferenceDataService : IReferenceDataService
     {
         return _api.GetTickerTypesAsync(cancellationToken);
     }
+
+    /// <inheritdoc />
+    public Task<PolygonResponse<List<ConditionCode>>> GetConditionCodesAsync(
+        string? assetClass = null,
+        string? dataType = null,
+        string? id = null,
+        string? sipMapping = null,
+        string? order = null,
+        int? limit = null,
+        string? sort = null,
+        CancellationToken cancellationToken = default)
+    {
+        return _api.GetConditionCodesAsync(
+            assetClass,
+            dataType,
+            id,
+            sipMapping,
+            order,
+            limit,
+            sort,
+            cancellationToken);
+    }
 }
