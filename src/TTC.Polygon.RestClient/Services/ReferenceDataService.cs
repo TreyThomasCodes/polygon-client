@@ -108,4 +108,13 @@ public class ReferenceDataService : IReferenceDataService
             sort,
             cancellationToken);
     }
+
+    /// <inheritdoc />
+    public Task<PolygonResponse<List<Exchange>>> GetExchangesAsync(
+        string? assetClass = null,
+        string? locale = null,
+        CancellationToken cancellationToken = default)
+    {
+        return _api.GetExchangesAsync(assetClass, locale, cancellationToken);
+    }
 }

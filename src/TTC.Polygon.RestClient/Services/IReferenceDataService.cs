@@ -109,4 +109,18 @@ public interface IReferenceDataService
         int? limit = null,
         string? sort = null,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Retrieves a comprehensive list of exchanges and market centers from Polygon.io.
+    /// Returns information about trading venues including exchanges, trade reporting facilities (TRFs),
+    /// securities information processors (SIPs), and other market-related entities.
+    /// </summary>
+    /// <param name="assetClass">Filter exchanges by asset class. Common values include "stocks", "options", "crypto", "fx".</param>
+    /// <param name="locale">Filter exchanges by locale. Common values include "us" for United States exchanges, "global" for international exchanges.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>A task that represents the asynchronous operation, containing a response with a list of exchanges.</returns>
+    Task<PolygonResponse<List<Exchange>>> GetExchangesAsync(
+        string? assetClass = null,
+        string? locale = null,
+        CancellationToken cancellationToken = default);
 }
