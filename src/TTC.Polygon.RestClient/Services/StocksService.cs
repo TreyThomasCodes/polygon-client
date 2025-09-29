@@ -127,18 +127,18 @@ public class StocksService : IStocksService
     }
 
     /// <inheritdoc />
-    public Task<PolygonResponse<List<StockSnapshot>>> GetSnapshotAllTickersAsync(
+    public Task<PolygonResponse<List<StockSnapshot>>> GetMarketSnapshotAsync(
         bool? includeOtc = null,
         CancellationToken cancellationToken = default)
     {
-        return _api.GetSnapshotAllTickersAsync(includeOtc, cancellationToken);
+        return _api.GetMarketSnapshotAsync(includeOtc, cancellationToken);
     }
 
     /// <inheritdoc />
-    public Task<PolygonResponse<StockSnapshot>> GetSnapshotTickerAsync(
+    public Task<StockSnapshotResponse> GetSnapshotAsync(
         string ticker,
         CancellationToken cancellationToken = default)
     {
-        return _api.GetSnapshotTickerAsync(ticker, cancellationToken);
+        return _api.GetSnapshotAsync(ticker, cancellationToken);
     }
 }

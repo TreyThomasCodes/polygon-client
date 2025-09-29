@@ -20,6 +20,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "etc", "etc", "{DDC37703-C94C-4821-A83F-E1DBD0B9DCC1}"
 	ProjectSection(SolutionItems) = preProject
 		.github\dependabot.yml = .github\dependabot.yml
+		Directory.Build.props = Directory.Build.props
 		.github\workflows\Publish.yml = .github\workflows\Publish.yml
 		README.md = README.md
 	EndProjectSection

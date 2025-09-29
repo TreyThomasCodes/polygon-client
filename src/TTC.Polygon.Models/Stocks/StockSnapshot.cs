@@ -69,6 +69,20 @@ public class StockSnapshot
     public long? Updated { get; set; }
 
     /// <summary>
+    /// Gets or sets the percentage change from the previous day's close.
+    /// Represents the price change as a percentage.
+    /// </summary>
+    [JsonPropertyName("todaysChangePerc")]
+    public decimal? TodaysChangePerc { get; set; }
+
+    /// <summary>
+    /// Gets or sets the absolute change from the previous day's close.
+    /// Represents the price change in currency units.
+    /// </summary>
+    [JsonPropertyName("todaysChange")]
+    public decimal? TodaysChange { get; set; }
+
+    /// <summary>
     /// Gets the updated timestamp converted to Eastern Time.
     /// Returns null if Updated is null.
     /// </summary>
@@ -323,6 +337,13 @@ public class MinuteData
     public decimal? VolumeWeightedAveragePrice { get; set; }
 
     /// <summary>
+    /// Gets or sets the number of transactions in the minute period.
+    /// The total count of individual trades that occurred during the minute.
+    /// </summary>
+    [JsonPropertyName("n")]
+    public int? TransactionCount { get; set; }
+
+    /// <summary>
     /// Gets the timestamp converted to Eastern Time.
     /// Returns null if Timestamp is null.
     /// </summary>
@@ -387,4 +408,32 @@ public class PreviousDayData
     /// </summary>
     [JsonPropertyName("vw")]
     public decimal? VolumeWeightedAveragePrice { get; set; }
+}
+
+/// <summary>
+/// Represents the response from the individual ticker snapshot API endpoint.
+/// Contains the snapshot data wrapped in a specific response format.
+/// </summary>
+public class StockSnapshotResponse
+{
+    /// <summary>
+    /// Gets or sets the ticker snapshot data.
+    /// Contains all market data for the specific ticker symbol.
+    /// </summary>
+    [JsonPropertyName("ticker")]
+    public StockSnapshot? Ticker { get; set; }
+
+    /// <summary>
+    /// Gets or sets the status of the API response.
+    /// Indicates whether the request was successful.
+    /// </summary>
+    [JsonPropertyName("status")]
+    public string? Status { get; set; }
+
+    /// <summary>
+    /// Gets or sets the unique identifier for this API request.
+    /// Can be used for debugging and request tracking purposes.
+    /// </summary>
+    [JsonPropertyName("request_id")]
+    public string? RequestId { get; set; }
 }
