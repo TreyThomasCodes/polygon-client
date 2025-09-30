@@ -151,4 +151,15 @@ public interface IPolygonStocksApi
     Task<StockSnapshotResponse> GetSnapshotAsync(
         string ticker,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Retrieves the most recent trade for a specific stock ticker. Returns detailed information about the last executed trade including price, size, exchange, and timing data.
+    /// </summary>
+    /// <param name="ticker">The ticker symbol for which to retrieve the last trade (e.g., "AAPL", "MSFT").</param>
+    /// <param name="cancellationToken">A cancellation token to cancel the operation.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains a response with the most recent trade data for the specified ticker.</returns>
+    [Get("/v2/last/trade/{ticker}")]
+    Task<PolygonResponse<StockTrade>> GetLastTradeAsync(
+        string ticker,
+        CancellationToken cancellationToken = default);
 }

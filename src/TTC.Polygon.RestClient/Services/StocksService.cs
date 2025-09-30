@@ -141,4 +141,12 @@ public class StocksService : IStocksService
     {
         return _api.GetSnapshotAsync(ticker, cancellationToken);
     }
+
+    /// <inheritdoc />
+    public Task<PolygonResponse<StockTrade>> GetLastTradeAsync(
+        string ticker,
+        CancellationToken cancellationToken = default)
+    {
+        return _api.GetLastTradeAsync(ticker, cancellationToken);
+    }
 }
