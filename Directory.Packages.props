@@ -32,8 +32,8 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageVersion>
-    <PackageVersion Include="DotNet.ReproducibleBuilds" Version="1.2.25">
-      <PrivateAssets>all</PrivateAssets>
-    </PackageVersion>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageVersion Include="DotNet.ReproducibleBuilds" Version="1.2.39" PrivateAssets="All"/>
   </ItemGroup>
 </Project>
