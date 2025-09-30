@@ -106,7 +106,7 @@ public class ConditionCodesIntegrationTests : IDisposable
 
             Assert.NotNull(conditionCode.AssetClass);
             Assert.NotEmpty(conditionCode.AssetClass);
-            // Note: API may return conditions for multiple asset classes even when filtered
+            Assert.Equal("stocks", conditionCode.AssetClass);
 
             // Verify SIP mapping structure
             Assert.NotNull(conditionCode.SipMapping);

@@ -38,10 +38,10 @@ public interface IPolygonReferenceApi
     [Get("/v3/reference/tickers")]
     Task<PolygonResponse<List<StockTicker>>> GetTickersAsync(
         [Query] string? ticker = null,
-        [Query("ticker.gt")] string? tickerGt = null,
-        [Query("ticker.gte")] string? tickerGte = null,
-        [Query("ticker.lt")] string? tickerLt = null,
-        [Query("ticker.lte")] string? tickerLte = null,
+        [Query][AliasAs("ticker.gt")] string? tickerGt = null,
+        [Query][AliasAs("ticker.gte")] string? tickerGte = null,
+        [Query][AliasAs("ticker.lt")] string? tickerLt = null,
+        [Query][AliasAs("ticker.lte")] string? tickerLte = null,
         [Query] string? type = null,
         [Query] string? market = null,
         [Query] string? exchange = null,
@@ -102,10 +102,10 @@ public interface IPolygonReferenceApi
     /// <returns>A task that represents the asynchronous operation. The task result contains a response with a list of condition codes.</returns>
     [Get("/v3/reference/conditions")]
     Task<PolygonResponse<List<ConditionCode>>> GetConditionCodesAsync(
-        [Query("asset_class")] string? assetClass = null,
-        [Query("data_type")] string? dataType = null,
+        [Query][AliasAs("asset_class")] string? assetClass = null,
+        [Query][AliasAs("data_type")] string? dataType = null,
         [Query] string? id = null,
-        [Query("sip_mapping")] string? sipMapping = null,
+        [Query][AliasAs("sip_mapping")] string? sipMapping = null,
         [Query] string? order = null,
         [Query] int? limit = null,
         [Query] string? sort = null,

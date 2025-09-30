@@ -62,7 +62,7 @@ public interface IPolygonStocksApi
     Task<PolygonResponse<List<StockBar>>> GetGroupedDailyAsync(
         string date,
         [Query] bool? adjusted = null,
-        [Query("include_otc")] bool? includeOtc = null,
+        [Query][AliasAs("include_otc")] bool? includeOtc = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -97,10 +97,10 @@ public interface IPolygonStocksApi
     Task<PolygonResponse<List<StockTrade>>> GetTradesAsync(
         string ticker,
         [Query] string? timestamp = null,
-        [Query("timestamp.gte")] string? timestampGte = null,
-        [Query("timestamp.gt")] string? timestampGt = null,
-        [Query("timestamp.lte")] string? timestampLte = null,
-        [Query("timestamp.lt")] string? timestampLt = null,
+        [Query][AliasAs("timestamp.gte")] string? timestampGte = null,
+        [Query][AliasAs("timestamp.gt")] string? timestampGt = null,
+        [Query][AliasAs("timestamp.lte")] string? timestampLte = null,
+        [Query][AliasAs("timestamp.lt")] string? timestampLt = null,
         [Query] int? limit = null,
         [Query] string? sort = null,
         CancellationToken cancellationToken = default);
@@ -122,10 +122,10 @@ public interface IPolygonStocksApi
     Task<PolygonResponse<List<StockQuote>>> GetQuotesAsync(
         string ticker,
         [Query] string? timestamp = null,
-        [Query("timestamp.gte")] string? timestampGte = null,
-        [Query("timestamp.gt")] string? timestampGt = null,
-        [Query("timestamp.lte")] string? timestampLte = null,
-        [Query("timestamp.lt")] string? timestampLt = null,
+        [Query][AliasAs("timestamp.gte")] string? timestampGte = null,
+        [Query][AliasAs("timestamp.gt")] string? timestampGt = null,
+        [Query][AliasAs("timestamp.lte")] string? timestampLte = null,
+        [Query][AliasAs("timestamp.lt")] string? timestampLt = null,
         [Query] int? limit = null,
         [Query] string? sort = null,
         CancellationToken cancellationToken = default);
@@ -138,7 +138,7 @@ public interface IPolygonStocksApi
     /// <returns>A task that represents the asynchronous operation. The task result contains a response with a list of market snapshots for all tickers.</returns>
     [Get("/v2/snapshot/locale/us/markets/stocks/tickers")]
     Task<PolygonResponse<List<StockSnapshot>>> GetMarketSnapshotAsync(
-        [Query("include_otc")] bool? includeOtc = null,
+        [Query][AliasAs("include_otc")] bool? includeOtc = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>
