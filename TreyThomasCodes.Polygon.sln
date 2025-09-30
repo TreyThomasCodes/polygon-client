@@ -1,0 +1,71 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36518.9
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TreyThomasCodes.Polygon.Models", "src\TreyThomasCodes.Polygon.Models\TreyThomasCodes.Polygon.Models.csproj", "{2FABB104-5BBA-4BED-B9DD-52DFB7DECA60}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TreyThomasCodes.Polygon.Models.Tests", "tests\TreyThomasCodes.Polygon.Models.Tests\TTC.Polygon.Models.Tests.csproj", "{281C45C1-1A83-41A9-9B2C-91142024F498}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TreyThomasCodes.Polygon.TestApp", "tests\TreyThomasCodes.Polygon.TestApp\TTC.Polygon.TestApp.csproj", "{ABF65F3E-79F1-810F-EE99-E9885999E149}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TreyThomasCodes.Polygon.IntegrationTests", "tests\TreyThomasCodes.Polygon.IntegrationTests\TTC.Polygon.IntegrationTests.csproj", "{1A249048-5FE6-41C4-9AC6-2321E382354F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TreyThomasCodes.Polygon.RestClient.Tests", "tests\TreyThomasCodes.Polygon.RestClient.Tests\TTC.Polygon.RestClient.Tests.csproj", "{667C68CA-DC28-2292-5491-A00D484C8E4D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TreyThomasCodes.Polygon.RestClient", "src\TreyThomasCodes.Polygon.RestClient\TreyThomasCodes.Polygon.RestClient.csproj", "{FCDE1864-A591-E509-2943-B037A8A94141}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "etc", "etc", "{DDC37703-C94C-4821-A83F-E1DBD0B9DCC1}"
+	ProjectSection(SolutionItems) = preProject
+		.github\dependabot.yml = .github\dependabot.yml
+		Directory.Build.props = Directory.Build.props
+		.github\workflows\Publish.yml = .github\workflows\Publish.yml
+		README.md = README.md
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2FABB104-5BBA-4BED-B9DD-52DFB7DECA60}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2FABB104-5BBA-4BED-B9DD-52DFB7DECA60}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2FABB104-5BBA-4BED-B9DD-52DFB7DECA60}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2FABB104-5BBA-4BED-B9DD-52DFB7DECA60}.Release|Any CPU.Build.0 = Release|Any CPU
+		{281C45C1-1A83-41A9-9B2C-91142024F498}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{281C45C1-1A83-41A9-9B2C-91142024F498}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{281C45C1-1A83-41A9-9B2C-91142024F498}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{281C45C1-1A83-41A9-9B2C-91142024F498}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ABF65F3E-79F1-810F-EE99-E9885999E149}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ABF65F3E-79F1-810F-EE99-E9885999E149}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ABF65F3E-79F1-810F-EE99-E9885999E149}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ABF65F3E-79F1-810F-EE99-E9885999E149}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1A249048-5FE6-41C4-9AC6-2321E382354F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1A249048-5FE6-41C4-9AC6-2321E382354F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1A249048-5FE6-41C4-9AC6-2321E382354F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1A249048-5FE6-41C4-9AC6-2321E382354F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{667C68CA-DC28-2292-5491-A00D484C8E4D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{667C68CA-DC28-2292-5491-A00D484C8E4D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{667C68CA-DC28-2292-5491-A00D484C8E4D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{667C68CA-DC28-2292-5491-A00D484C8E4D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FCDE1864-A591-E509-2943-B037A8A94141}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FCDE1864-A591-E509-2943-B037A8A94141}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FCDE1864-A591-E509-2943-B037A8A94141}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FCDE1864-A591-E509-2943-B037A8A94141}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{281C45C1-1A83-41A9-9B2C-91142024F498} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{ABF65F3E-79F1-810F-EE99-E9885999E149} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{1A249048-5FE6-41C4-9AC6-2321E382354F} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{667C68CA-DC28-2292-5491-A00D484C8E4D} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C8025262-6575-40B4-8510-02CD8B3839F6}
+	EndGlobalSection
+EndGlobal
