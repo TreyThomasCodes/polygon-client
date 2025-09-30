@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <UserSecretsId>864d12d1-5d77-4125-9bc8-577aea8820d0</UserSecretsId>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\TreyThomasCodes.Polygon.Models\TreyThomasCodes.Polygon.Models.csproj" />
+    <ProjectReference Include="..\..\src\TreyThomasCodes.Polygon.RestClient\TreyThomasCodes.Polygon.RestClient.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="NodaTime" />
+    <PackageReference Include="Serilog" />
+    <PackageReference Include="Serilog.Exceptions.Refit" />
+    <PackageReference Include="Serilog.Extensions.Hosting" />
+    <PackageReference Include="Serilog.Sinks.Console" />
+  </ItemGroup>
+
+</Project>

@@ -1,11 +1,11 @@
-# TTC.Polygon - .NET Client Library for Polygon.io
+# TreyThomasCodes.Polygon - .NET Client Library for Polygon.io
 
 A reusable .NET 8+ library for connecting to and retrieving data from the Polygon.io API.
 
 ## Installation
 
 ```bash
-dotnet add package TTC.Polygon.RestClient
+dotnet add package TreyThomasCodes.Polygon.RestClient
 ```
 
 ## Quick Start
@@ -32,7 +32,7 @@ Add the Polygon configuration to your `appsettings.json`:
 Register the client in your `Program.cs` or `Startup.cs`:
 
 ```csharp
-using TTC.Polygon.RestClient;
+using TreyThomasCodes.Polygon.RestClient;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -43,7 +43,7 @@ builder.Services.AddPolygonClient(builder.Configuration);
 #### Option B: Using API Key Directly
 
 ```csharp
-using TTC.Polygon.RestClient;
+using TreyThomasCodes.Polygon.RestClient;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -54,7 +54,7 @@ builder.Services.AddPolygonClient("your-api-key-here");
 #### Option C: Using Configuration Action
 
 ```csharp
-using TTC.Polygon.RestClient;
+using TreyThomasCodes.Polygon.RestClient;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -73,7 +73,7 @@ builder.Services.AddPolygonClient(options =>
 Once registered, inject `IPolygonClient` into your services or controllers:
 
 ```csharp
-using TTC.Polygon.RestClient.Services;
+using TreyThomasCodes.Polygon.RestClient.Services;
 
 public class StockDataService
 {
