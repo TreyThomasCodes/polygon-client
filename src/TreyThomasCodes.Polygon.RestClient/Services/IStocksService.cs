@@ -18,22 +18,22 @@ public interface IStocksService
     /// </summary>
     /// <param name="ticker">The stock ticker symbol (e.g., "AAPL", "MSFT").</param>
     /// <param name="multiplier">The size of the timespan multiplier (e.g., 1 for 1 minute, 5 for 5 minutes).</param>
-    /// <param name="timespan">The size of the time window. Valid values: minute, hour, day, week, month, quarter, year.</param>
+    /// <param name="timespan">The size of the time window.</param>
     /// <param name="from">The start date for the aggregate window (YYYY-MM-DD format).</param>
     /// <param name="to">The end date for the aggregate window (YYYY-MM-DD format).</param>
     /// <param name="adjusted">Whether the results should be adjusted for stock splits and dividends.</param>
-    /// <param name="sort">Sort order: "asc" (ascending) or "desc" (descending).</param>
+    /// <param name="sort">Sort order.</param>
     /// <param name="limit">The maximum number of results to return (max 50,000).</param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
     /// <returns>A task that represents the asynchronous operation, containing a list of aggregate records.</returns>
     Task<PolygonResponse<List<StockBar>>> GetBarsAsync(
         string ticker,
         int multiplier,
-        string timespan,
+        AggregateInterval timespan,
         string from,
         string to,
         bool? adjusted = null,
-        string? sort = null,
+        SortOrder? sort = null,
         int? limit = null,
         CancellationToken cancellationToken = default);
 

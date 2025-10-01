@@ -34,7 +34,7 @@ public class ReferenceDataService : IReferenceDataService
         string? tickerLt = null,
         string? tickerLte = null,
         string? type = null,
-        string? market = null,
+        Market? market = null,
         string? exchange = null,
         string? cusip = null,
         string? cik = null,
@@ -42,7 +42,7 @@ public class ReferenceDataService : IReferenceDataService
         string? search = null,
         bool? active = null,
         string? sort = null,
-        string? order = null,
+        SortOrder? order = null,
         int? limit = null,
         CancellationToken cancellationToken = default)
     {
@@ -89,11 +89,11 @@ public class ReferenceDataService : IReferenceDataService
 
     /// <inheritdoc />
     public Task<PolygonResponse<List<ConditionCode>>> GetConditionCodesAsync(
-        string? assetClass = null,
-        string? dataType = null,
+        AssetClass? assetClass = null,
+        DataType? dataType = null,
         string? id = null,
-        string? sipMapping = null,
-        string? order = null,
+        SipMappingType? sipMapping = null,
+        SortOrder? order = null,
         int? limit = null,
         string? sort = null,
         CancellationToken cancellationToken = default)
@@ -111,8 +111,8 @@ public class ReferenceDataService : IReferenceDataService
 
     /// <inheritdoc />
     public Task<PolygonResponse<List<Exchange>>> GetExchangesAsync(
-        string? assetClass = null,
-        string? locale = null,
+        AssetClass? assetClass = null,
+        Locale? locale = null,
         CancellationToken cancellationToken = default)
     {
         return _api.GetExchangesAsync(assetClass, locale, cancellationToken);

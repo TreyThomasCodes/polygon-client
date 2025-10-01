@@ -513,11 +513,11 @@ public class ReferenceDataServiceTests
         };
 
         _mockApi.Setup(x => x.GetConditionCodesAsync(
+                It.IsAny<AssetClass?>(),
+                It.IsAny<DataType?>(),
                 It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<string>(),
+                It.IsAny<SipMappingType?>(),
+                It.IsAny<SortOrder?>(),
                 It.IsAny<int?>(),
                 It.IsAny<string>(),
                 It.IsAny<CancellationToken>()))
@@ -525,8 +525,8 @@ public class ReferenceDataServiceTests
 
         // Act
         var result = await _service.GetConditionCodesAsync(
-            assetClass: "stocks",
-            order: "asc",
+            assetClass: AssetClass.Stocks,
+            order: SortOrder.Ascending,
             limit: 10,
             sort: "asset_class",
             cancellationToken: TestContext.Current.CancellationToken);
@@ -553,11 +553,11 @@ public class ReferenceDataServiceTests
         Assert.Contains("trade", firstCondition.DataTypes);
 
         _mockApi.Verify(x => x.GetConditionCodesAsync(
-            "stocks",
+            AssetClass.Stocks,
             null,
             null,
             null,
-            "asc",
+            SortOrder.Ascending,
             10,
             "asset_class",
             It.IsAny<CancellationToken>()), Times.Once);
@@ -579,11 +579,11 @@ public class ReferenceDataServiceTests
         };
 
         _mockApi.Setup(x => x.GetConditionCodesAsync(
+                It.IsAny<AssetClass?>(),
+                It.IsAny<DataType?>(),
                 It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<string>(),
+                It.IsAny<SipMappingType?>(),
+                It.IsAny<SortOrder?>(),
                 It.IsAny<int?>(),
                 It.IsAny<string>(),
                 It.IsAny<CancellationToken>()))
@@ -591,22 +591,22 @@ public class ReferenceDataServiceTests
 
         // Act
         await _service.GetConditionCodesAsync(
-            assetClass: "stocks",
-            dataType: "trade",
+            assetClass: AssetClass.Stocks,
+            dataType: DataType.Trade,
             id: "1,2,3",
-            sipMapping: "CTA",
-            order: "desc",
+            sipMapping: SipMappingType.CTA,
+            order: SortOrder.Descending,
             limit: 100,
             sort: "id",
             cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         _mockApi.Verify(x => x.GetConditionCodesAsync(
-            "stocks",
-            "trade",
+            AssetClass.Stocks,
+            DataType.Trade,
             "1,2,3",
-            "CTA",
-            "desc",
+            SipMappingType.CTA,
+            SortOrder.Descending,
             100,
             "id",
             It.IsAny<CancellationToken>()), Times.Once);
@@ -629,11 +629,11 @@ public class ReferenceDataServiceTests
         };
 
         _mockApi.Setup(x => x.GetConditionCodesAsync(
+                It.IsAny<AssetClass?>(),
+                It.IsAny<DataType?>(),
                 It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<string>(),
+                It.IsAny<SipMappingType?>(),
+                It.IsAny<SortOrder?>(),
                 It.IsAny<int?>(),
                 It.IsAny<string>(),
                 cancellationToken))
@@ -662,11 +662,11 @@ public class ReferenceDataServiceTests
     {
         // Arrange
         _mockApi.Setup(x => x.GetConditionCodesAsync(
+                It.IsAny<AssetClass?>(),
+                It.IsAny<DataType?>(),
                 It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<string>(),
+                It.IsAny<SipMappingType?>(),
+                It.IsAny<SortOrder?>(),
                 It.IsAny<int?>(),
                 It.IsAny<string>(),
                 It.IsAny<CancellationToken>()))
@@ -678,11 +678,11 @@ public class ReferenceDataServiceTests
         // Assert
         Assert.Null(result);
         _mockApi.Verify(x => x.GetConditionCodesAsync(
+            It.IsAny<AssetClass?>(),
+            It.IsAny<DataType?>(),
             It.IsAny<string>(),
-            It.IsAny<string>(),
-            It.IsAny<string>(),
-            It.IsAny<string>(),
-            It.IsAny<string>(),
+            It.IsAny<SipMappingType?>(),
+            It.IsAny<SortOrder?>(),
             It.IsAny<int?>(),
             It.IsAny<string>(),
             It.IsAny<CancellationToken>()), Times.Once);
@@ -697,11 +697,11 @@ public class ReferenceDataServiceTests
         // Arrange
         var expectedException = new HttpRequestException("Network error");
         _mockApi.Setup(x => x.GetConditionCodesAsync(
+                It.IsAny<AssetClass?>(),
+                It.IsAny<DataType?>(),
                 It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<string>(),
+                It.IsAny<SipMappingType?>(),
+                It.IsAny<SortOrder?>(),
                 It.IsAny<int?>(),
                 It.IsAny<string>(),
                 It.IsAny<CancellationToken>()))
@@ -756,11 +756,11 @@ public class ReferenceDataServiceTests
         };
 
         _mockApi.Setup(x => x.GetConditionCodesAsync(
+                It.IsAny<AssetClass?>(),
+                It.IsAny<DataType?>(),
                 It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<string>(),
+                It.IsAny<SipMappingType?>(),
+                It.IsAny<SortOrder?>(),
                 It.IsAny<int?>(),
                 It.IsAny<string>(),
                 It.IsAny<CancellationToken>()))
@@ -824,15 +824,15 @@ public class ReferenceDataServiceTests
         };
 
         _mockApi.Setup(x => x.GetExchangesAsync(
-                It.IsAny<string>(),
-                It.IsAny<string>(),
+                It.IsAny<AssetClass?>(),
+                It.IsAny<Locale?>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedResponse);
 
         // Act
         var result = await _service.GetExchangesAsync(
-            assetClass: "stocks",
-            locale: "us",
+            assetClass: AssetClass.Stocks,
+            locale: Locale.UnitedStates,
             cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
@@ -862,8 +862,8 @@ public class ReferenceDataServiceTests
         Assert.Equal("XNYS", nyse.Mic);
 
         _mockApi.Verify(x => x.GetExchangesAsync(
-            "stocks",
-            "us",
+            AssetClass.Stocks,
+            Locale.UnitedStates,
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -883,21 +883,21 @@ public class ReferenceDataServiceTests
         };
 
         _mockApi.Setup(x => x.GetExchangesAsync(
-                It.IsAny<string>(),
-                It.IsAny<string>(),
+                It.IsAny<AssetClass?>(),
+                It.IsAny<Locale?>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedResponse);
 
         // Act
         await _service.GetExchangesAsync(
-            assetClass: "options",
-            locale: "global",
+            assetClass: AssetClass.Options,
+            locale: Locale.Global,
             cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         _mockApi.Verify(x => x.GetExchangesAsync(
-            "options",
-            "global",
+            AssetClass.Options,
+            Locale.Global,
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -918,8 +918,8 @@ public class ReferenceDataServiceTests
         };
 
         _mockApi.Setup(x => x.GetExchangesAsync(
-                It.IsAny<string>(),
-                It.IsAny<string>(),
+                It.IsAny<AssetClass?>(),
+                It.IsAny<Locale?>(),
                 cancellationToken))
             .ReturnsAsync(expectedResponse);
 
@@ -941,8 +941,8 @@ public class ReferenceDataServiceTests
     {
         // Arrange
         _mockApi.Setup(x => x.GetExchangesAsync(
-                It.IsAny<string>(),
-                It.IsAny<string>(),
+                It.IsAny<AssetClass?>(),
+                It.IsAny<Locale?>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync((PolygonResponse<List<Exchange>>)null!);
 
@@ -952,8 +952,8 @@ public class ReferenceDataServiceTests
         // Assert
         Assert.Null(result);
         _mockApi.Verify(x => x.GetExchangesAsync(
-            It.IsAny<string>(),
-            It.IsAny<string>(),
+            It.IsAny<AssetClass?>(),
+            It.IsAny<Locale?>(),
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -966,8 +966,8 @@ public class ReferenceDataServiceTests
         // Arrange
         var expectedException = new HttpRequestException("Network error");
         _mockApi.Setup(x => x.GetExchangesAsync(
-                It.IsAny<string>(),
-                It.IsAny<string>(),
+                It.IsAny<AssetClass?>(),
+                It.IsAny<Locale?>(),
                 It.IsAny<CancellationToken>()))
             .ThrowsAsync(expectedException);
 
@@ -981,11 +981,11 @@ public class ReferenceDataServiceTests
     /// Tests that GetExchangesAsync handles exchanges with different types correctly.
     /// </summary>
     [Theory]
-    [InlineData("stocks")]
-    [InlineData("options")]
-    [InlineData("crypto")]
-    [InlineData("fx")]
-    public async Task GetExchangesAsync_WithDifferentAssetClasses_ReturnsCorrectData(string assetClass)
+    [InlineData(AssetClass.Stocks)]
+    [InlineData(AssetClass.Options)]
+    [InlineData(AssetClass.Crypto)]
+    [InlineData(AssetClass.Forex)]
+    public async Task GetExchangesAsync_WithDifferentAssetClasses_ReturnsCorrectData(AssetClass assetClass)
     {
         // Arrange
         var expectedResponse = new PolygonResponse<List<Exchange>>
@@ -996,7 +996,7 @@ public class ReferenceDataServiceTests
                 {
                     Id = 1,
                     Type = "exchange",
-                    AssetClass = assetClass,
+                    AssetClass = assetClass.ToString().ToLower(),
                     Locale = "us",
                     Name = "Test Exchange",
                     OperatingMic = "TEST"
@@ -1008,8 +1008,8 @@ public class ReferenceDataServiceTests
         };
 
         _mockApi.Setup(x => x.GetExchangesAsync(
-                It.IsAny<string>(),
-                It.IsAny<string>(),
+                It.IsAny<AssetClass?>(),
+                It.IsAny<Locale?>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedResponse);
 
@@ -1021,7 +1021,7 @@ public class ReferenceDataServiceTests
         // Assert
         Assert.NotNull(result);
         Assert.Single(result.Results);
-        Assert.Equal(assetClass, result.Results[0].AssetClass);
+        Assert.Equal(assetClass.ToString().ToLower(), result.Results[0].AssetClass);
 
         _mockApi.Verify(x => x.GetExchangesAsync(
             assetClass,
@@ -1060,8 +1060,8 @@ public class ReferenceDataServiceTests
         };
 
         _mockApi.Setup(x => x.GetExchangesAsync(
-                It.IsAny<string>(),
-                It.IsAny<string>(),
+                It.IsAny<AssetClass?>(),
+                It.IsAny<Locale?>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedResponse);
 
@@ -1104,8 +1104,8 @@ public class ReferenceDataServiceTests
         };
 
         _mockApi.Setup(x => x.GetExchangesAsync(
-                It.IsAny<string>(),
-                It.IsAny<string>(),
+                It.IsAny<AssetClass?>(),
+                It.IsAny<Locale?>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedResponse);
 

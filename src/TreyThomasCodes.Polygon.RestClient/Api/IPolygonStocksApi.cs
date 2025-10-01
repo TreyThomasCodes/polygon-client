@@ -17,11 +17,11 @@ public interface IPolygonStocksApi
     /// </summary>
     /// <param name="ticker">The ticker symbol for which to retrieve aggregate data (e.g., "AAPL", "MSFT").</param>
     /// <param name="multiplier">The number of timespan units to aggregate (e.g., 1 for 1 day, 5 for 5 minutes).</param>
-    /// <param name="timespan">The size of the time window for each aggregate (e.g., "minute", "hour", "day", "week", "month", "quarter", "year").</param>
+    /// <param name="timespan">The size of the time window for each aggregate.</param>
     /// <param name="from">Start date for the aggregate window in YYYY-MM-DD format.</param>
     /// <param name="to">End date for the aggregate window in YYYY-MM-DD format.</param>
     /// <param name="adjusted">Whether to adjust for stock splits and dividend payments. Defaults to true if not specified.</param>
-    /// <param name="sort">Sort order for results ("asc" for ascending or "desc" for descending by timestamp).</param>
+    /// <param name="sort">Sort order for results.</param>
     /// <param name="limit">Limit the number of aggregate results returned (maximum 50,000).</param>
     /// <param name="cancellationToken">A cancellation token to cancel the operation.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains a response with a list of aggregate OHLC data points.</returns>
@@ -29,11 +29,11 @@ public interface IPolygonStocksApi
     Task<PolygonResponse<List<StockBar>>> GetBarsAsync(
         string ticker,
         int multiplier,
-        string timespan,
+        AggregateInterval timespan,
         string from,
         string to,
         [Query] bool? adjusted = null,
-        [Query] string? sort = null,
+        [Query] SortOrder? sort = null,
         [Query] int? limit = null,
         CancellationToken cancellationToken = default);
 

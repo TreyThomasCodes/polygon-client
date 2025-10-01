@@ -7,6 +7,7 @@ using Microsoft.Extensions.Hosting;
 using TreyThomasCodes.Polygon.RestClient.Extensions;
 using TreyThomasCodes.Polygon.RestClient.Services;
 using TreyThomasCodes.Polygon.Models.Reference;
+using TreyThomasCodes.Polygon.Models.Common;
 
 namespace TreyThomasCodes.Polygon.IntegrationTests;
 
@@ -80,7 +81,7 @@ public class ExchangesIntegrationTests : IDisposable
 
         // Act
         var exchangesResponse = await referenceDataService.GetExchangesAsync(
-            assetClass: "stocks",
+            assetClass: AssetClass.Stocks,
             cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
@@ -110,7 +111,7 @@ public class ExchangesIntegrationTests : IDisposable
 
         // Act
         var exchangesResponse = await referenceDataService.GetExchangesAsync(
-            locale: "us",
+            locale: Locale.UnitedStates,
             cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
@@ -140,8 +141,8 @@ public class ExchangesIntegrationTests : IDisposable
 
         // Act
         var exchangesResponse = await referenceDataService.GetExchangesAsync(
-            assetClass: "stocks",
-            locale: "us",
+            assetClass: AssetClass.Stocks,
+            locale: Locale.UnitedStates,
             cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
@@ -186,8 +187,8 @@ public class ExchangesIntegrationTests : IDisposable
 
         // Act
         var exchangesResponse = await referenceDataService.GetExchangesAsync(
-            assetClass: "stocks",
-            locale: "us",
+            assetClass: AssetClass.Stocks,
+            locale: Locale.UnitedStates,
             cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
@@ -216,8 +217,8 @@ public class ExchangesIntegrationTests : IDisposable
 
         // Act
         var exchangesResponse = await referenceDataService.GetExchangesAsync(
-            assetClass: "stocks",
-            locale: "us",
+            assetClass: AssetClass.Stocks,
+            locale: Locale.UnitedStates,
             cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
@@ -244,8 +245,8 @@ public class ExchangesIntegrationTests : IDisposable
 
         // Act
         var exchangesResponse = await referenceDataService.GetExchangesAsync(
-            assetClass: "stocks",
-            locale: "us",
+            assetClass: AssetClass.Stocks,
+            locale: Locale.UnitedStates,
             cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
@@ -284,8 +285,8 @@ public class ExchangesIntegrationTests : IDisposable
 
         // Act
         var exchangesResponse = await referenceDataService.GetExchangesAsync(
-            assetClass: "stocks",
-            locale: "us",
+            assetClass: AssetClass.Stocks,
+            locale: Locale.UnitedStates,
             cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
@@ -317,8 +318,8 @@ public class ExchangesIntegrationTests : IDisposable
 
         // Act
         var exchangesResponse = await referenceDataService.GetExchangesAsync(
-            assetClass: "stocks",
-            locale: "us",
+            assetClass: AssetClass.Stocks,
+            locale: Locale.UnitedStates,
             cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
@@ -350,8 +351,8 @@ public class ExchangesIntegrationTests : IDisposable
 
         // Act
         var exchangesResponse = await referenceDataService.GetExchangesAsync(
-            assetClass: "stocks",
-            locale: "us",
+            assetClass: AssetClass.Stocks,
+            locale: Locale.UnitedStates,
             cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
@@ -390,8 +391,8 @@ public class ExchangesIntegrationTests : IDisposable
 
         // Act
         var exchangesResponse = await referenceDataService.GetExchangesAsync(
-            assetClass: "stocks",
-            locale: "us",
+            assetClass: AssetClass.Stocks,
+            locale: Locale.UnitedStates,
             cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert

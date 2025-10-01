@@ -23,15 +23,15 @@ public interface IPolygonReferenceApi
     /// <param name="tickerLt">Filter tickers alphabetically less than this value.</param>
     /// <param name="tickerLte">Filter tickers alphabetically less than or equal to this value.</param>
     /// <param name="type">Filter by security type (e.g., "CS" for Common Stock, "ETF" for Exchange Traded Fund).</param>
-    /// <param name="market">Filter by market (e.g., "stocks", "crypto", "fx").</param>
+    /// <param name="market">Filter by market type.</param>
     /// <param name="exchange">Filter by primary exchange (e.g., "XNYS", "XNAS").</param>
     /// <param name="cusip">Filter by CUSIP identifier.</param>
     /// <param name="cik">Filter by SEC Central Index Key (CIK).</param>
     /// <param name="date">Filter tickers active on this date in YYYY-MM-DD format.</param>
     /// <param name="search">Search for tickers by name or ticker symbol.</param>
     /// <param name="active">Filter by active status (true for active tickers, false for inactive).</param>
-    /// <param name="sort">Field to sort by (e.g., "ticker", "name", "market", "locale", "primary_exchange", "type", "active", "currency_symbol", "cik", "composite_figi", "share_class_figi", "last_updated_utc").</param>
-    /// <param name="order">Sort order ("asc" for ascending, "desc" for descending).</param>
+    /// <param name="sort">Field to sort by. Use constants from <see cref="TickerSortFields"/> for valid values.</param>
+    /// <param name="order">Sort order.</param>
     /// <param name="limit">Limit the number of results returned (maximum 1000).</param>
     /// <param name="cancellationToken">A cancellation token to cancel the operation.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains a response with a list of ticker information.</returns>
@@ -43,7 +43,7 @@ public interface IPolygonReferenceApi
         [Query][AliasAs("ticker.lt")] string? tickerLt = null,
         [Query][AliasAs("ticker.lte")] string? tickerLte = null,
         [Query] string? type = null,
-        [Query] string? market = null,
+        [Query] Market? market = null,
         [Query] string? exchange = null,
         [Query] string? cusip = null,
         [Query] string? cik = null,
@@ -51,7 +51,7 @@ public interface IPolygonReferenceApi
         [Query] string? search = null,
         [Query] bool? active = null,
         [Query] string? sort = null,
-        [Query] string? order = null,
+        [Query] SortOrder? order = null,
         [Query] int? limit = null,
         CancellationToken cancellationToken = default);
 
@@ -91,22 +91,22 @@ public interface IPolygonReferenceApi
     /// Retrieves a unified list of trade and quote conditions from various market data providers.
     /// These conditions provide context for market data events and affect calculations of trading metrics like high, low, open, close, and volume.
     /// </summary>
-    /// <param name="assetClass">Filter conditions by asset class. Common values include "stocks", "options", "crypto", "fx".</param>
-    /// <param name="dataType">Filter conditions by data type. Common values include "trade", "quote".</param>
+    /// <param name="assetClass">Filter conditions by asset class.</param>
+    /// <param name="dataType">Filter conditions by data type.</param>
     /// <param name="id">Filter by condition ID. Can be a single ID or comma-separated list of IDs.</param>
-    /// <param name="sipMapping">Filter by SIP mapping. Specify the mapping type (e.g., "CTA", "UTP", "FINRA_TDDS").</param>
-    /// <param name="order">Sort order for the results. Valid values are "asc" (ascending) or "desc" (descending). Default is "asc".</param>
+    /// <param name="sipMapping">Filter by SIP mapping type.</param>
+    /// <param name="order">Sort order for the results.</param>
     /// <param name="limit">Limit the number of results returned. Maximum value is 1000. Default is 10.</param>
-    /// <param name="sort">Field to sort by. Common values include "asset_class", "data_type", "id", "type", "name". Default is "asset_class".</param>
+    /// <param name="sort">Field to sort by. Use constants from <see cref="ConditionCodeSortFields"/> for valid values. Default is "asset_class".</param>
     /// <param name="cancellationToken">A cancellation token to cancel the operation.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains a response with a list of condition codes.</returns>
     [Get("/v3/reference/conditions")]
     Task<PolygonResponse<List<ConditionCode>>> GetConditionCodesAsync(
-        [Query][AliasAs("asset_class")] string? assetClass = null,
-        [Query][AliasAs("data_type")] string? dataType = null,
+        [Query][AliasAs("asset_class")] AssetClass? assetClass = null,
+        [Query][AliasAs("data_type")] DataType? dataType = null,
         [Query] string? id = null,
-        [Query][AliasAs("sip_mapping")] string? sipMapping = null,
-        [Query] string? order = null,
+        [Query][AliasAs("sip_mapping")] SipMappingType? sipMapping = null,
+        [Query] SortOrder? order = null,
         [Query] int? limit = null,
         [Query] string? sort = null,
         CancellationToken cancellationToken = default);
@@ -116,13 +116,13 @@ public interface IPolygonReferenceApi
     /// Returns information about trading venues including exchanges, trade reporting facilities (TRFs),
     /// securities information processors (SIPs), and other market-related entities.
     /// </summary>
-    /// <param name="assetClass">Filter exchanges by asset class. Common values include "stocks", "options", "crypto", "fx".</param>
-    /// <param name="locale">Filter exchanges by locale. Common values include "us" for United States exchanges, "global" for international exchanges.</param>
+    /// <param name="assetClass">Filter exchanges by asset class.</param>
+    /// <param name="locale">Filter exchanges by locale.</param>
     /// <param name="cancellationToken">A cancellation token to cancel the operation.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains a response with a list of exchanges.</returns>
     [Get("/v3/reference/exchanges")]
     Task<PolygonResponse<List<Exchange>>> GetExchangesAsync(
-        [Query][AliasAs("asset_class")] string? assetClass = null,
-        [Query] string? locale = null,
+        [Query][AliasAs("asset_class")] AssetClass? assetClass = null,
+        [Query] Locale? locale = null,
         CancellationToken cancellationToken = default);
 }
