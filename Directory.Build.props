@@ -1,5 +1,8 @@
 <Project>
 	<Sdk Name="DotNet.ReproducibleBuilds.Isolated" Version="1.2.39" PrivateAssets="All" />
+  <ItemGroup>
+    <PackageReference Include="DotNet.ReproducibleBuilds" PrivateAssets="All" />
+  </ItemGroup>
 	<PropertyGroup>
 		<EnablePackageValidation>true</EnablePackageValidation>
     <MinVerTagPrefix>v</MinVerTagPrefix>
