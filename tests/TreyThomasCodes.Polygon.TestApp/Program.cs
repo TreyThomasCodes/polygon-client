@@ -9,6 +9,7 @@ using Serilog.Exceptions.Refit.Destructurers;
 using TreyThomasCodes.Polygon.RestClient.Extensions;
 using TreyThomasCodes.Polygon.RestClient.Services;
 using TreyThomasCodes.Polygon.TestApp;
+using TreyThomasCodes.Polygon.Models.Common;
 
 Log.Logger = new LoggerConfiguration()
     .Enrich.WithExceptionDetails(new DestructuringOptionsBuilder()
@@ -59,7 +60,7 @@ try
     var yesterday = DateOnly.FromDateTime(DateTime.Today.AddDays(-1));
     var stocksService = polygonClient.Stocks;
 
-    var response = await stocksService.GetBarsAsync("AAPL", 1, "day", yesterday.ToString("yyyy-MM-dd"), yesterday.ToString("yyyy-MM-dd"));
+    var response = await stocksService.GetBarsAsync("AAPL", 1, AggregateInterval.Day, yesterday.ToString("yyyy-MM-dd"), yesterday.ToString("yyyy-MM-dd"));
 
     if (response?.Results != null && response?.ResultsCount > 0)
     {
@@ -108,7 +109,7 @@ try
     var weekStart = new DateOnly(2025, 9, 15);
     var weekEnd = new DateOnly(2025, 9, 19);
 
-    var tslaWeekResponse = await stocksService.GetBarsAsync("TSLA", 1, "day", weekStart.ToString("yyyy-MM-dd"), weekEnd.ToString("yyyy-MM-dd"));
+    var tslaWeekResponse = await stocksService.GetBarsAsync("TSLA", 1, AggregateInterval.Day, weekStart.ToString("yyyy-MM-dd"), weekEnd.ToString("yyyy-MM-dd"));
 
     if (tslaWeekResponse?.Results != null && tslaWeekResponse?.ResultsCount > 0)
     {

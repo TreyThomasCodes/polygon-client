@@ -7,6 +7,7 @@ using Microsoft.Extensions.Hosting;
 using TreyThomasCodes.Polygon.RestClient.Extensions;
 using TreyThomasCodes.Polygon.RestClient.Services;
 using TreyThomasCodes.Polygon.Models.Reference;
+using TreyThomasCodes.Polygon.Models.Common;
 
 namespace TreyThomasCodes.Polygon.IntegrationTests;
 
@@ -57,8 +58,8 @@ public class ConditionCodesIntegrationTests : IDisposable
 
         // Act
         var conditionCodesResponse = await referenceDataService.GetConditionCodesAsync(
-            assetClass: "stocks",
-            order: "asc",
+            assetClass: AssetClass.Stocks,
+            order: SortOrder.Ascending,
             limit: 10,
             sort: "asset_class",
             cancellationToken: TestContext.Current.CancellationToken);
@@ -85,7 +86,7 @@ public class ConditionCodesIntegrationTests : IDisposable
 
         // Act
         var conditionCodesResponse = await referenceDataService.GetConditionCodesAsync(
-            assetClass: "stocks",
+            assetClass: AssetClass.Stocks,
             limit: 5,
             cancellationToken: TestContext.Current.CancellationToken);
 
@@ -138,7 +139,7 @@ public class ConditionCodesIntegrationTests : IDisposable
 
         // Act - Get a larger set to increase chance of finding expected conditions
         var conditionCodesResponse = await referenceDataService.GetConditionCodesAsync(
-            assetClass: "stocks",
+            assetClass: AssetClass.Stocks,
             limit: 50,
             cancellationToken: TestContext.Current.CancellationToken);
 
@@ -165,7 +166,7 @@ public class ConditionCodesIntegrationTests : IDisposable
 
         // Act
         var conditionCodesResponse = await referenceDataService.GetConditionCodesAsync(
-            assetClass: "stocks",
+            assetClass: AssetClass.Stocks,
             limit: 10,
             cancellationToken: TestContext.Current.CancellationToken);
 
@@ -200,7 +201,7 @@ public class ConditionCodesIntegrationTests : IDisposable
 
         // Act
         var conditionCodesResponse = await referenceDataService.GetConditionCodesAsync(
-            assetClass: "stocks",
+            assetClass: AssetClass.Stocks,
             limit: 5,
             cancellationToken: TestContext.Current.CancellationToken);
 
@@ -238,7 +239,7 @@ public class ConditionCodesIntegrationTests : IDisposable
 
         // Act
         var conditionCodesResponse = await referenceDataService.GetConditionCodesAsync(
-            assetClass: "stocks",
+            assetClass: AssetClass.Stocks,
             limit: 10,
             cancellationToken: TestContext.Current.CancellationToken);
 
@@ -278,8 +279,8 @@ public class ConditionCodesIntegrationTests : IDisposable
 
         // Act
         var conditionCodesResponse = await referenceDataService.GetConditionCodesAsync(
-            assetClass: "stocks",
-            dataType: "trade",
+            assetClass: AssetClass.Stocks,
+            dataType: DataType.Trade,
             limit: 10,
             cancellationToken: TestContext.Current.CancellationToken);
 
@@ -306,7 +307,7 @@ public class ConditionCodesIntegrationTests : IDisposable
 
         // Act
         var conditionCodesResponse = await referenceDataService.GetConditionCodesAsync(
-            assetClass: "stocks",
+            assetClass: AssetClass.Stocks,
             limit: 3,
             cancellationToken: TestContext.Current.CancellationToken);
 
@@ -343,7 +344,7 @@ public class ConditionCodesIntegrationTests : IDisposable
 
         // Act
         var conditionCodesResponse = await referenceDataService.GetConditionCodesAsync(
-            assetClass: "stocks",
+            assetClass: AssetClass.Stocks,
             limit: requestedLimit,
             cancellationToken: TestContext.Current.CancellationToken);
 
@@ -367,9 +368,9 @@ public class ConditionCodesIntegrationTests : IDisposable
 
         // Act
         var conditionCodesResponse = await referenceDataService.GetConditionCodesAsync(
-            assetClass: "stocks",
+            assetClass: AssetClass.Stocks,
             sort: "id",
-            order: "asc",
+            order: SortOrder.Ascending,
             limit: 10,
             cancellationToken: TestContext.Current.CancellationToken);
 

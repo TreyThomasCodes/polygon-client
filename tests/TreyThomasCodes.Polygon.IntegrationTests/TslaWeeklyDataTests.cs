@@ -57,7 +57,7 @@ public class TslaWeeklyDataTests : IDisposable
         var stocksService = _polygonClient.Stocks;
 
         // Act
-        var response = await stocksService.GetBarsAsync("TSLA", 1, "day", weekStart.ToString("yyyy-MM-dd"), weekEnd.ToString("yyyy-MM-dd"), cancellationToken: TestContext.Current.CancellationToken);
+        var response = await stocksService.GetBarsAsync("TSLA", 1, AggregateInterval.Day, weekStart.ToString("yyyy-MM-dd"), weekEnd.ToString("yyyy-MM-dd"), cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         Assert.NotNull(response);
@@ -120,7 +120,7 @@ public class TslaWeeklyDataTests : IDisposable
         var stocksService = _polygonClient.Stocks;
 
         // Act
-        var response = await stocksService.GetBarsAsync("TSLA", 1, "day", weekStart.ToString("yyyy-MM-dd"), weekEnd.ToString("yyyy-MM-dd"), cancellationToken: TestContext.Current.CancellationToken);
+        var response = await stocksService.GetBarsAsync("TSLA", 1, AggregateInterval.Day, weekStart.ToString("yyyy-MM-dd"), weekEnd.ToString("yyyy-MM-dd"), cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         Assert.NotNull(response);
@@ -164,7 +164,7 @@ public class TslaWeeklyDataTests : IDisposable
         var stocksService = _polygonClient.Stocks;
 
         // Act
-        var response = await stocksService.GetBarsAsync("TSLA", 1, "day", weekStart.ToString("yyyy-MM-dd"), weekEnd.ToString("yyyy-MM-dd"), cancellationToken: TestContext.Current.CancellationToken);
+        var response = await stocksService.GetBarsAsync("TSLA", 1, AggregateInterval.Day, weekStart.ToString("yyyy-MM-dd"), weekEnd.ToString("yyyy-MM-dd"), cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         Assert.NotNull(response);

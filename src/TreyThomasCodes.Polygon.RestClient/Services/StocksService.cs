@@ -29,11 +29,11 @@ public class StocksService : IStocksService
     public Task<PolygonResponse<List<StockBar>>> GetBarsAsync(
         string ticker,
         int multiplier,
-        string timespan,
+        AggregateInterval timespan,
         string from,
         string to,
         bool? adjusted = null,
-        string? sort = null,
+        SortOrder? sort = null,
         int? limit = null,
         CancellationToken cancellationToken = default)
     {
