@@ -151,63 +151,42 @@ Accessed via `IPolygonClient.ReferenceData`
 | `TimeoutSeconds` | HTTP request timeout in seconds | `30` |
 | `MaxRetries` | Maximum number of retry attempts | `3` |
 
-## Usage Examples
+## Documentation
 
-### Get Historical Price Data
+For comprehensive examples and detailed usage instructions for every API call, see [USAGE.md](USAGE.md).
+
+### Quick Examples
 
 ```csharp
-// Get daily bars for the last 30 days
+using TreyThomasCodes.Polygon.Models.Common;
+
+// Get historical price data
 var bars = await _polygonClient.Stocks.GetBarsAsync(
     ticker: "AAPL",
     multiplier: 1,
-    timespan: "day",
+    timespan: AggregateInterval.Day,
     from: "2025-09-01",
     to: "2025-09-30",
     adjusted: true
 );
 
-foreach (var bar in bars.Results)
-{
-    Console.WriteLine($"Date: {bar.Timestamp}, Open: {bar.Open}, High: {bar.High}, Low: {bar.Low}, Close: {bar.Close}");
-}
-```
-
-### Get Real-Time Market Data
-
-```csharp
 // Get the latest trade
 var lastTrade = await _polygonClient.Stocks.GetLastTradeAsync("AAPL");
 Console.WriteLine($"Last trade price: ${lastTrade.Results.Price}");
 
-// Get the latest quote
-var lastQuote = await _polygonClient.Stocks.GetLastQuoteAsync("AAPL");
-Console.WriteLine($"Bid: ${lastQuote.Results.Bid.Price}, Ask: ${lastQuote.Results.Ask.Price}");
-```
-
-### Search for Tickers
-
-```csharp
-// Search for tickers by name
+// Search for tickers
 var tickers = await _polygonClient.ReferenceData.GetTickersAsync(
     search: "Apple",
     active: true,
     limit: 10
 );
 
-foreach (var ticker in tickers.Results)
-{
-    Console.WriteLine($"{ticker.Ticker}: {ticker.Name}");
-}
-```
-
-### Check Market Status
-
-```csharp
+// Check market status
 var status = await _polygonClient.ReferenceData.GetMarketStatusAsync();
 Console.WriteLine($"Market is {status.Market}");
-Console.WriteLine($"After hours: {status.AfterHours}");
-Console.WriteLine($"Early hours: {status.EarlyHours}");
 ```
+
+See [USAGE.md](USAGE.md) for detailed examples of all available API calls.
 
 ## License
 
