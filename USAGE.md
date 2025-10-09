@@ -13,6 +13,7 @@ This guide provides comprehensive examples for every API call implemented in the
 - [Reference Data Service](#reference-data-service)
   - [Tickers](#tickers)
   - [Market Information](#market-information)
+- [Options Service](#options-service)
 - [Common Patterns](#common-patterns)
 
 ## Setup
@@ -722,6 +723,21 @@ var stockTradeConditions = await _client.ReferenceData.GetConditionCodesAsync(
     limit: 100
 );
 ```
+
+## Options Service
+
+Access the options service via `IPolygonClient.Options`.
+
+**Note:** The Options service infrastructure has been implemented and is ready for future endpoint additions. The service interface (`IOptionsService`) and implementation (`OptionsService`) are in place, along with the underlying Refit API interface (`IPolygonOptionsApi`), all configured with dependency injection.
+
+Options-related endpoints will be added in upcoming releases, including:
+- Options contract details
+- Options trades data
+- Options quotes data
+- Options snapshot data
+- Options aggregate (OHLC) data
+
+Once implemented, the Options service will follow the same patterns as the Stocks and Reference Data services shown above.
 
 ## Common Patterns
 

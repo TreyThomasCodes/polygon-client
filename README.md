@@ -142,6 +142,12 @@ Accessed via `IPolygonClient.ReferenceData`
 - **`GetExchangesAsync`** - Get list of exchanges and market centers
 - **`GetConditionCodesAsync`** - Get trade and quote condition codes
 
+### Options Service (`IOptionsService`)
+
+Accessed via `IPolygonClient.Options`
+
+**Note:** The Options service infrastructure is in place and ready for future endpoint implementations. Options-related endpoints for contracts, trades, quotes, and aggregates will be added in upcoming releases.
+
 ## Configuration Options
 
 | Option | Description | Default |

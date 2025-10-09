@@ -121,8 +121,18 @@ public static class ServiceCollectionExtensions
             })
             .AddHttpMessageHandler<PolygonAuthenticationHandler>();
 
+        services.AddRefitClient<IPolygonOptionsApi>(settings)
+            .ConfigureHttpClient((serviceProvider, client) =>
+            {
+                var options = serviceProvider.GetRequiredService<IOptions<PolygonOptions>>().Value;
+                client.BaseAddress = new Uri(options.BaseUrl);
+                client.Timeout = options.Timeout;
+            })
+            .AddHttpMessageHandler<PolygonAuthenticationHandler>();
+
         services.AddTransient<IStocksService, StocksService>();
         services.AddTransient<IReferenceDataService, ReferenceDataService>();
+        services.AddTransient<IOptionsService, OptionsService>();
         services.AddTransient<IPolygonClient, PolygonClient>();
 
         return services;

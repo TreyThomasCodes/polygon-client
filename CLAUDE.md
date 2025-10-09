@@ -45,10 +45,11 @@ The client uses a layered architecture:
 1. **API Layer** (`/Api/`) - Refit interfaces defining HTTP endpoints
    - `IPolygonStocksApi` - Stock trades, quotes, snapshots, and OHLC aggregates
    - `IPolygonReferenceApi` - Ticker reference data and market status
+   - `IPolygonOptionsApi` - Options contract data (infrastructure ready for endpoint implementation)
 
 2. **Service Layer** (`/Services/`) - Business logic and orchestration
    - `IPolygonClient` - Main facade providing access to all services
-   - `IStocksService`, `IReferenceDataService` - Domain-specific services
+   - `IStocksService`, `IReferenceDataService`, `IOptionsService` - Domain-specific services
 
 3. **Configuration** (`/Configuration/`) - Options pattern for settings
    - `PolygonOptions` - API key, base URL, timeout, retry settings
