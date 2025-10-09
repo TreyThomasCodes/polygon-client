@@ -728,16 +728,75 @@ var stockTradeConditions = await _client.ReferenceData.GetConditionCodesAsync(
 
 Access the options service via `IPolygonClient.Options`.
 
-**Note:** The Options service infrastructure has been implemented and is ready for future endpoint additions. The service interface (`IOptionsService`) and implementation (`OptionsService`) are in place, along with the underlying Refit API interface (`IPolygonOptionsApi`), all configured with dependency injection.
+### Options Contracts
 
-Options-related endpoints will be added in upcoming releases, including:
-- Options contract details
-- Options trades data
-- Options quotes data
-- Options snapshot data
-- Options aggregate (OHLC) data
+#### GetContractDetailsAsync - Get Options Contract Information
 
-Once implemented, the Options service will follow the same patterns as the Stocks and Reference Data services shown above.
+Retrieve detailed information about a specific options contract by its ticker symbol.
+
+```csharp
+// Get contract details for a call option on SPY
+var contract = await _client.Options.GetContractDetailsAsync("O:SPY251219C00650000");
+
+if (contract.Results != null)
+{
+    var details = contract.Results;
+    Console.WriteLine($"Ticker: {details.Ticker}");
+    Console.WriteLine($"Underlying: {details.UnderlyingTicker}");
+    Console.WriteLine($"Contract Type: {details.ContractType}");
+    Console.WriteLine($"Strike Price: ${details.StrikePrice}");
+    Console.WriteLine($"Expiration Date: {details.ExpirationDate}");
+    Console.WriteLine($"Exercise Style: {details.ExerciseStyle}");
+    Console.WriteLine($"Shares Per Contract: {details.SharesPerContract}");
+    Console.WriteLine($"Primary Exchange: {details.PrimaryExchange}");
+    Console.WriteLine($"CFI Code: {details.Cfi}");
+}
+
+// Get contract details for a put option on AAPL
+var putContract = await _client.Options.GetContractDetailsAsync("O:AAPL251219P00200000");
+
+if (putContract.Results != null)
+{
+    var details = putContract.Results;
+    Console.WriteLine($"\n{details.ContractType?.ToUpper()} Option on {details.UnderlyingTicker}");
+    Console.WriteLine($"Strike: ${details.StrikePrice}");
+    Console.WriteLine($"Expires: {details.ExpirationDate}");
+    Console.WriteLine($"Style: {details.ExerciseStyle}");
+}
+
+// Example: Calculate intrinsic value (requires current stock price)
+var optionContract = await _client.Options.GetContractDetailsAsync("O:TSLA251219C00250000");
+var stockSnapshot = await _client.Stocks.GetSnapshotAsync("TSLA");
+
+if (optionContract.Results != null && stockSnapshot.Ticker?.LastTrade?.Price != null)
+{
+    var strikePrice = optionContract.Results.StrikePrice ?? 0;
+    var currentPrice = stockSnapshot.Ticker.LastTrade.Price;
+    var intrinsicValue = Math.Max(0, currentPrice - strikePrice);
+
+    Console.WriteLine($"\nOption Analysis:");
+    Console.WriteLine($"Current Stock Price: ${currentPrice}");
+    Console.WriteLine($"Strike Price: ${strikePrice}");
+    Console.WriteLine($"Intrinsic Value: ${intrinsicValue}");
+    Console.WriteLine($"Status: {(intrinsicValue > 0 ? "In the Money" : "Out of the Money")}");
+}
+```
+
+**Options Ticker Format:** Options tickers follow the OCC (Options Clearing Corporation) format:
+- Prefix: `O:` (indicates options)
+- Underlying ticker: e.g., `SPY`, `AAPL`, `TSLA`
+- Expiration date: `YYMMDD` format
+- Contract type: `C` for call, `P` for put
+- Strike price: 8 digits with implied decimals (e.g., `00650000` = $650.00)
+
+**Example:** `O:SPY251219C00650000`
+- `O:` - Options prefix
+- `SPY` - Underlying ticker (SPDR S&P 500 ETF)
+- `251219` - Expiration date (December 19, 2025)
+- `C` - Call option
+- `00650000` - Strike price ($650.00)
+
+**Note:** Additional options endpoints for trades, quotes, snapshots, and aggregates will be added in upcoming releases.
 
 ## Common Patterns
 

@@ -146,7 +146,8 @@ Accessed via `IPolygonClient.ReferenceData`
 
 Accessed via `IPolygonClient.Options`
 
-**Note:** The Options service infrastructure is in place and ready for future endpoint implementations. Options-related endpoints for contracts, trades, quotes, and aggregates will be added in upcoming releases.
+#### Options Contracts
+- **`GetContractDetailsAsync`** - Get detailed information about a specific options contract by its ticker symbol
 
 ## Configuration Options
 

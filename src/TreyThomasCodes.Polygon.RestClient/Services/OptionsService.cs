@@ -1,6 +1,8 @@
 // Copyright 2025 Trey Thomas
 // SPDX-License-Identifier: MPL-2.0
 
+using TreyThomasCodes.Polygon.Models.Common;
+using TreyThomasCodes.Polygon.Models.Options;
 using TreyThomasCodes.Polygon.RestClient.Api;
 
 namespace TreyThomasCodes.Polygon.RestClient.Services;
@@ -24,7 +26,11 @@ public class OptionsService : IOptionsService
         _api = api ?? throw new ArgumentNullException(nameof(api));
     }
 
-    // Options service method implementations will be added here as API endpoints are defined.
-    // Each method will delegate to the corresponding API method and may add additional
-    // business logic, validation, or data transformation as needed.
+    /// <inheritdoc />
+    public Task<PolygonResponse<OptionsContract>> GetContractDetailsAsync(
+        string optionsTicker,
+        CancellationToken cancellationToken = default)
+    {
+        return _api.GetContractDetailsAsync(optionsTicker, cancellationToken);
+    }
 }
