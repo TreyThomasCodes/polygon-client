@@ -1,16 +1,16 @@
 ## Project Overview
 
-TTC.Polygon is a .NET client library for the Polygon.io REST API, providing strongly-typed access to stock market data. The solution consists of two main projects and multiple test projects:
+TreyThomasCodes.Polygon is a .NET client library for the Polygon.io REST API, providing strongly-typed access to stock market data. The solution consists of two main projects and multiple test projects:
 
 **Main Projects:**
-- **TTC.Polygon.Models** - Shared models and DTOs for API responses
-- **TTC.Polygon.RestClient** - Main client library with HTTP services and dependency injection
+- **TreyThomasCodes.Polygon.Models** - Shared models and DTOs for API responses
+- **TreyThomasCodes.Polygon.RestClient** - Main client library with HTTP services and dependency injection
 
 **Test Projects:**
-- **TTC.Polygon.Models.Tests** - XUnit tests for the models library
-- **TTC.Polygon.RestClient.Tests** - XUnit tests for the REST client library
-- **TTC.Polygon.IntegrationTests** - Integration tests for the complete system
-- **TTC.Polygon.TestApp** - Console application for testing and development
+- **TreyThomasCodes.Polygon.Models.Tests** - XUnit tests for the models library
+- **TreyThomasCodes.Polygon.RestClient.Tests** - XUnit tests for the REST client library
+- **TreyThomasCodes.Polygon.IntegrationTests** - Integration tests for the complete system
+- **TreyThomasCodes.Polygon.TestApp** - Console application for testing and development
 
 ## Build and Test Commands
 
@@ -19,19 +19,19 @@ TTC.Polygon is a .NET client library for the Polygon.io REST API, providing stro
 dotnet build
 
 # Build specific projects
-dotnet build src/TTC.Polygon.Models/TTC.Polygon.Models.csproj
-dotnet build src/TTC.Polygon.RestClient/TTC.Polygon.RestClient.csproj
+dotnet build src/TreyThomasCodes.Polygon.Models/TreyThomasCodes.Polygon.Models.csproj
+dotnet build src/TreyThomasCodes.Polygon.RestClient/TreyThomasCodes.Polygon.RestClient.csproj
 
 # Run tests
 dotnet test
 
 # Run specific test projects
-dotnet test tests/TTC.Polygon.Models.Tests/TTC.Polygon.Models.Tests.csproj
-dotnet test tests/TTC.Polygon.RestClient.Tests/TTC.Polygon.RestClient.Tests.csproj
-dotnet test tests/TTC.Polygon.IntegrationTests/TTC.Polygon.IntegrationTests.csproj
+dotnet test tests/TreyThomasCodes.Polygon.Models.Tests/TreyThomasCodes.Polygon.Models.Tests.csproj
+dotnet test tests/TreyThomasCodes.Polygon.RestClient.Tests/TreyThomasCodes.Polygon.RestClient.Tests.csproj
+dotnet test tests/TreyThomasCodes.Polygon.IntegrationTests/TreyThomasCodes.Polygon.IntegrationTests.csproj
 
 # Run test app
-dotnet run --project tests/TTC.Polygon.TestApp/TTC.Polygon.TestApp.csproj
+dotnet run --project tests/TreyThomasCodes.Polygon.TestApp/TreyThomasCodes.Polygon.TestApp.csproj
 
 # Create NuGet packages (automatically generated on build)
 dotnet pack
@@ -83,10 +83,10 @@ Registration is handled through `ServiceCollectionExtensions.AddPolygonClient()`
 - Targets .NET 8 and .NET 9
 
 ### Testing Structure
-- **TTC.Polygon.Models.Tests** - Unit tests for models using XUnit
-- **TTC.Polygon.RestClient.Tests** - Unit tests for REST client services
-- **TTC.Polygon.IntegrationTests** - Integration tests for complete API workflows
-- **TTC.Polygon.TestApp** - Console application for manual testing and development
+- **TreyThomasCodes.Polygon.Models.Tests** - Unit tests for models using XUnit
+- **TreyThomasCodes.Polygon.RestClient.Tests** - Unit tests for REST client services
+- **TreyThomasCodes.Polygon.IntegrationTests** - Integration tests for complete API workflows
+- **TreyThomasCodes.Polygon.TestApp** - Console application for manual testing and development
 - Uses `coverlet.collector` for code coverage across all test projects
 - Moq framework available for mocking dependencies
 
