@@ -149,6 +149,9 @@ Accessed via `IPolygonClient.Options`
 #### Options Contracts
 - **`GetContractDetailsAsync`** - Get detailed information about a specific options contract by its ticker symbol
 
+#### Options Market Data
+- **`GetSnapshotAsync`** - Get a snapshot of current market data for a specific options contract, including Greeks, implied volatility, and underlying asset information
+
 ## Configuration Options
 
 | Option | Description | Default |

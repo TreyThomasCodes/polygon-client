@@ -796,7 +796,147 @@ if (optionContract.Results != null && stockSnapshot.Ticker?.LastTrade?.Price != 
 - `C` - Call option
 - `00650000` - Strike price ($650.00)
 
-**Note:** Additional options endpoints for trades, quotes, snapshots, and aggregates will be added in upcoming releases.
+### Options Market Data
+
+#### GetSnapshotAsync - Get Options Contract Snapshot
+
+Retrieve a comprehensive snapshot of current market data for an options contract, including Greeks, implied volatility, last trade, last quote, and underlying asset information.
+
+```csharp
+// Get snapshot for a call option on SPY
+var snapshot = await _client.Options.GetSnapshotAsync("SPY", "SPY251219C00650000");
+
+if (snapshot.Results != null)
+{
+    var data = snapshot.Results;
+
+    // Contract details
+    Console.WriteLine("Contract Details:");
+    Console.WriteLine($"Ticker: {data.Details?.Ticker}");
+    Console.WriteLine($"Type: {data.Details?.ContractType}");
+    Console.WriteLine($"Strike: ${data.Details?.StrikePrice}");
+    Console.WriteLine($"Expiration: {data.Details?.ExpirationDate}");
+    Console.WriteLine($"Style: {data.Details?.ExerciseStyle}");
+
+    // Pricing information
+    Console.WriteLine("\nPricing:");
+    Console.WriteLine($"Break-Even Price: ${data.BreakEvenPrice}");
+    Console.WriteLine($"Implied Volatility: {data.ImpliedVolatility:P2}");
+    Console.WriteLine($"Open Interest: {data.OpenInterest}");
+
+    // Daily data
+    if (data.Day != null)
+    {
+        Console.WriteLine("\nDaily Data:");
+        Console.WriteLine($"Open: ${data.Day.Open}");
+        Console.WriteLine($"High: ${data.Day.High}");
+        Console.WriteLine($"Low: ${data.Day.Low}");
+        Console.WriteLine($"Close: ${data.Day.Close}");
+        Console.WriteLine($"Volume: {data.Day.Volume}");
+        Console.WriteLine($"Change: ${data.Day.Change} ({data.Day.ChangePercent:F2}%)");
+        Console.WriteLine($"VWAP: ${data.Day.Vwap}");
+    }
+
+    // Greeks
+    if (data.Greeks != null)
+    {
+        Console.WriteLine("\nGreeks:");
+        Console.WriteLine($"Delta: {data.Greeks.Delta:F4}");
+        Console.WriteLine($"Gamma: {data.Greeks.Gamma:F4}");
+        Console.WriteLine($"Theta: {data.Greeks.Theta:F4}");
+        Console.WriteLine($"Vega: {data.Greeks.Vega:F4}");
+    }
+
+    // Last quote
+    if (data.LastQuote != null)
+    {
+        Console.WriteLine("\nLast Quote:");
+        Console.WriteLine($"Bid: ${data.LastQuote.Bid} x {data.LastQuote.BidSize} on exchange {data.LastQuote.BidExchange}");
+        Console.WriteLine($"Ask: ${data.LastQuote.Ask} x {data.LastQuote.AskSize} on exchange {data.LastQuote.AskExchange}");
+        Console.WriteLine($"Midpoint: ${data.LastQuote.Midpoint}");
+        Console.WriteLine($"Timeframe: {data.LastQuote.Timeframe}");
+    }
+
+    // Last trade
+    if (data.LastTrade != null)
+    {
+        Console.WriteLine("\nLast Trade:");
+        Console.WriteLine($"Price: ${data.LastTrade.Price}");
+        Console.WriteLine($"Size: {data.LastTrade.Size} contracts");
+        Console.WriteLine($"Exchange: {data.LastTrade.Exchange}");
+        Console.WriteLine($"Conditions: {string.Join(", ", data.LastTrade.Conditions ?? new List<int>())}");
+        Console.WriteLine($"Timeframe: {data.LastTrade.Timeframe}");
+    }
+
+    // Underlying asset
+    if (data.UnderlyingAsset != null)
+    {
+        Console.WriteLine("\nUnderlying Asset:");
+        Console.WriteLine($"Ticker: {data.UnderlyingAsset.Ticker}");
+        Console.WriteLine($"Price: ${data.UnderlyingAsset.Price}");
+        Console.WriteLine($"Change to Break-Even: ${data.UnderlyingAsset.ChangeToBreakEven}");
+        Console.WriteLine($"Timeframe: {data.UnderlyingAsset.Timeframe}");
+    }
+}
+
+// Get snapshot for a put option on AAPL
+var putSnapshot = await _client.Options.GetSnapshotAsync("AAPL", "AAPL250117P00150000");
+
+if (putSnapshot.Results != null)
+{
+    var put = putSnapshot.Results;
+    Console.WriteLine($"\n{put.Details?.ContractType?.ToUpper()} Option Analysis:");
+    Console.WriteLine($"Current Premium: ${put.Day?.Close}");
+    Console.WriteLine($"Intrinsic Value: ${Math.Max(0, (put.Details?.StrikePrice ?? 0) - (put.UnderlyingAsset?.Price ?? 0))}");
+    Console.WriteLine($"Time Value: ${(put.Day?.Close ?? 0) - Math.Max(0, (put.Details?.StrikePrice ?? 0) - (put.UnderlyingAsset?.Price ?? 0))}");
+
+    if (put.Greeks?.Delta.HasValue == true)
+    {
+        Console.WriteLine($"Delta: {put.Greeks.Delta:F4} (Put options have negative delta)");
+    }
+}
+
+// Example: Compare multiple strike prices
+var strikes = new[] { "SPY251219C00600000", "SPY251219C00650000", "SPY251219C00700000" };
+
+Console.WriteLine("\nComparing Strike Prices:");
+foreach (var strike in strikes)
+{
+    var optSnapshot = await _client.Options.GetSnapshotAsync("SPY", strike);
+
+    if (optSnapshot.Results != null)
+    {
+        var opt = optSnapshot.Results;
+        Console.WriteLine($"\nStrike ${opt.Details?.StrikePrice}:");
+        Console.WriteLine($"  Premium: ${opt.Day?.Close}");
+        Console.WriteLine($"  Delta: {opt.Greeks?.Delta:F4}");
+        Console.WriteLine($"  Gamma: {opt.Greeks?.Gamma:F4}");
+        Console.WriteLine($"  IV: {opt.ImpliedVolatility:P2}");
+        Console.WriteLine($"  Open Interest: {opt.OpenInterest}");
+        Console.WriteLine($"  Volume: {opt.Day?.Volume}");
+    }
+}
+
+// Example: Calculate probability of profit using delta
+var callSnapshot = await _client.Options.GetSnapshotAsync("SPY", "SPY251219C00650000");
+
+if (callSnapshot.Results?.Greeks?.Delta.HasValue == true)
+{
+    var delta = callSnapshot.Results.Greeks.Delta.Value;
+    var probProfit = Math.Abs(delta) * 100; // Approximation
+
+    Console.WriteLine($"\nProbability Analysis:");
+    Console.WriteLine($"Delta: {delta:F4}");
+    Console.WriteLine($"Approx. Probability ITM at Expiration: {probProfit:F2}%");
+    Console.WriteLine($"Approx. Probability OTM at Expiration: {(100 - probProfit):F2}%");
+}
+```
+
+**Parameters:**
+- `underlyingAsset` - The ticker symbol of the underlying asset (e.g., "SPY", "AAPL")
+- `optionContract` - The options contract identifier in OCC format WITHOUT the "O:" prefix (e.g., "SPY251219C00650000")
+
+**Note:** Additional options endpoints for trades, quotes, and aggregates will be added in upcoming releases.
 
 ## Common Patterns
 

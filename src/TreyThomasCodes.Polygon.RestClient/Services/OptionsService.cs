@@ -33,4 +33,13 @@ public class OptionsService : IOptionsService
     {
         return _api.GetContractDetailsAsync(optionsTicker, cancellationToken);
     }
+
+    /// <inheritdoc />
+    public Task<PolygonResponse<OptionSnapshot>> GetSnapshotAsync(
+        string underlyingAsset,
+        string optionContract,
+        CancellationToken cancellationToken = default)
+    {
+        return _api.GetSnapshotAsync(underlyingAsset, optionContract, cancellationToken);
+    }
 }

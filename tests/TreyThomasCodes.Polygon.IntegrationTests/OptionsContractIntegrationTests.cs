@@ -142,6 +142,211 @@ public class OptionsContractIntegrationTests : IDisposable
         Assert.Contains("404", exception.Message);
     }
 
+    #region GetSnapshotAsync Integration Tests
+
+    /// <summary>
+    /// Tests fetching SPY call option snapshot and verifies the client can successfully
+    /// make the request and deserialize the response.
+    /// </summary>
+    [Fact]
+    public async Task GetSnapshotAsync_ForSPYCallOption_ShouldReturnValidResponse()
+    {
+        // Arrange
+        // Using SPY as underlying asset and a December 2025 $650 call option
+        var underlyingAsset = "SPY";
+        var optionContract = "O:SPY251219C00650000";
+        var optionsService = _polygonClient.Options;
+
+        // Act
+        var response = await optionsService.GetSnapshotAsync(underlyingAsset, optionContract, TestContext.Current.CancellationToken);
+
+        // Assert - Verify client successfully made the call and deserialized the response
+        Assert.NotNull(response);
+        Assert.Equal("OK", response.Status);
+        Assert.NotNull(response.RequestId);
+        Assert.NotEmpty(response.RequestId);
+        Assert.NotNull(response.Results);
+    }
+
+    /// <summary>
+    /// Tests the data types and structure of the options snapshot response.
+    /// </summary>
+    [Fact]
+    public async Task GetSnapshotAsync_ShouldHaveCorrectDataTypes()
+    {
+        // Arrange
+        var underlyingAsset = "SPY";
+        var optionContract = "O:SPY251219C00650000";
+        var optionsService = _polygonClient.Options;
+
+        // Act
+        var response = await optionsService.GetSnapshotAsync(underlyingAsset, optionContract, TestContext.Current.CancellationToken);
+
+        // Assert
+        Assert.NotNull(response);
+        Assert.IsType<Models.Common.PolygonResponse<Models.Options.OptionSnapshot>>(response);
+
+        // Verify response structure
+        Assert.IsType<string>(response.Status);
+        Assert.IsType<string>(response.RequestId);
+
+        Assert.NotNull(response.Results);
+        Assert.IsType<Models.Options.OptionSnapshot>(response.Results);
+
+        // Verify top-level properties
+        if (response.Results.BreakEvenPrice.HasValue)
+            Assert.IsType<decimal>(response.Results.BreakEvenPrice.Value);
+
+        if (response.Results.ImpliedVolatility.HasValue)
+            Assert.IsType<decimal>(response.Results.ImpliedVolatility.Value);
+
+        if (response.Results.OpenInterest.HasValue)
+            Assert.IsType<int>(response.Results.OpenInterest.Value);
+
+        // Verify Day data structure
+        if (response.Results.Day != null)
+        {
+            Assert.IsType<Models.Options.OptionDayData>(response.Results.Day);
+            if (response.Results.Day.Close.HasValue)
+                Assert.IsType<decimal>(response.Results.Day.Close.Value);
+            if (response.Results.Day.Volume.HasValue)
+                Assert.IsType<long>(response.Results.Day.Volume.Value);
+        }
+
+        // Verify Details structure
+        if (response.Results.Details != null)
+        {
+            Assert.IsType<Models.Options.OptionContractDetails>(response.Results.Details);
+            if (response.Results.Details.ContractType != null)
+                Assert.IsType<string>(response.Results.Details.ContractType);
+            if (response.Results.Details.StrikePrice.HasValue)
+                Assert.IsType<decimal>(response.Results.Details.StrikePrice.Value);
+        }
+
+        // Verify Greeks structure
+        if (response.Results.Greeks != null)
+        {
+            Assert.IsType<Models.Options.OptionGreeks>(response.Results.Greeks);
+            if (response.Results.Greeks.Delta.HasValue)
+                Assert.IsType<decimal>(response.Results.Greeks.Delta.Value);
+            if (response.Results.Greeks.Gamma.HasValue)
+                Assert.IsType<decimal>(response.Results.Greeks.Gamma.Value);
+        }
+
+        // Verify LastQuote structure
+        if (response.Results.LastQuote != null)
+        {
+            Assert.IsType<Models.Options.OptionLastQuote>(response.Results.LastQuote);
+            if (response.Results.LastQuote.Ask.HasValue)
+                Assert.IsType<decimal>(response.Results.LastQuote.Ask.Value);
+            if (response.Results.LastQuote.Bid.HasValue)
+                Assert.IsType<decimal>(response.Results.LastQuote.Bid.Value);
+        }
+
+        // Verify LastTrade structure
+        if (response.Results.LastTrade != null)
+        {
+            Assert.IsType<Models.Options.OptionLastTrade>(response.Results.LastTrade);
+            if (response.Results.LastTrade.Price.HasValue)
+                Assert.IsType<decimal>(response.Results.LastTrade.Price.Value);
+            if (response.Results.LastTrade.Size.HasValue)
+                Assert.IsType<int>(response.Results.LastTrade.Size.Value);
+        }
+
+        // Verify UnderlyingAsset structure
+        if (response.Results.UnderlyingAsset != null)
+        {
+            Assert.IsType<Models.Options.OptionUnderlyingAsset>(response.Results.UnderlyingAsset);
+            if (response.Results.UnderlyingAsset.Price.HasValue)
+                Assert.IsType<decimal>(response.Results.UnderlyingAsset.Price.Value);
+            if (response.Results.UnderlyingAsset.Ticker != null)
+                Assert.IsType<string>(response.Results.UnderlyingAsset.Ticker);
+        }
+    }
+
+    /// <summary>
+    /// Tests fetching put option snapshot to verify both call and put options work correctly.
+    /// </summary>
+    [Fact]
+    public async Task GetSnapshotAsync_ForSPYPutOption_ShouldReturnValidResponse()
+    {
+        // Arrange
+        var underlyingAsset = "SPY";
+        var optionContract = "O:SPY251219P00650000"; // Put option
+        var optionsService = _polygonClient.Options;
+
+        // Act
+        var response = await optionsService.GetSnapshotAsync(underlyingAsset, optionContract, TestContext.Current.CancellationToken);
+
+        // Assert
+        Assert.NotNull(response);
+        Assert.Equal("OK", response.Status);
+        Assert.NotNull(response.Results);
+
+        // Verify contract type is put
+        if (response.Results.Details != null)
+        {
+            Assert.Equal("put", response.Results.Details.ContractType);
+        }
+
+        // Verify delta is negative for put options (if Greeks are available)
+        if (response.Results.Greeks?.Delta.HasValue == true)
+        {
+            Assert.True(response.Results.Greeks.Delta.Value <= 0, "Put option delta should be negative or zero");
+        }
+    }
+
+    /// <summary>
+    /// Tests behavior when requesting snapshot for an invalid option contract.
+    /// </summary>
+    [Fact]
+    public async Task GetSnapshotAsync_ForInvalidContract_ShouldThrowApiException()
+    {
+        // Arrange
+        var underlyingAsset = "INVALID";
+        var optionContract = "O:INVALID000000C00000000";
+        var optionsService = _polygonClient.Options;
+
+        // Act & Assert
+        // The Polygon API returns a 404 for invalid option contracts
+        // This is expected behavior and should throw a Refit.ApiException
+        var exception = await Assert.ThrowsAsync<Refit.ApiException>(
+            () => optionsService.GetSnapshotAsync(underlyingAsset, optionContract, TestContext.Current.CancellationToken));
+
+        // Verify the exception details
+        Assert.Equal(System.Net.HttpStatusCode.NotFound, exception.StatusCode);
+        Assert.Contains("404", exception.Message);
+    }
+
+    /// <summary>
+    /// Tests snapshot for multiple different underlying assets to verify client works across various tickers.
+    /// </summary>
+    [Theory]
+    [InlineData("SPY", "O:SPY251219C00650000")]
+    [InlineData("AAPL", "O:AAPL260116C00250000")]
+    public async Task GetSnapshotAsync_ForDifferentUnderlyings_ShouldReturnValidResponse(
+        string underlyingAsset, string optionContract)
+    {
+        // Arrange
+        var optionsService = _polygonClient.Options;
+
+        // Act
+        var response = await optionsService.GetSnapshotAsync(underlyingAsset, optionContract, TestContext.Current.CancellationToken);
+
+        // Assert - Verify client successfully made the call
+        Assert.NotNull(response);
+        Assert.Equal("OK", response.Status);
+        Assert.NotNull(response.Results);
+
+        // Verify underlying asset ticker matches request
+        if (response.Results.UnderlyingAsset?.Ticker != null)
+        {
+            Assert.Equal(underlyingAsset, response.Results.UnderlyingAsset.Ticker);
+        }
+    }
+
+    #endregion
+
     protected virtual void Dispose(bool disposing)
     {
         if (!disposedValue)

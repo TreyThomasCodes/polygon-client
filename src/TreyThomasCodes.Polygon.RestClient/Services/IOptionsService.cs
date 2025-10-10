@@ -23,4 +23,17 @@ public interface IOptionsService
     Task<PolygonResponse<OptionsContract>> GetContractDetailsAsync(
         string optionsTicker,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Retrieves a snapshot of current market data for a specific options contract.
+    /// Returns comprehensive market information including the most recent trade, quote, daily aggregate data, Greeks, implied volatility, open interest, and underlying asset details.
+    /// </summary>
+    /// <param name="underlyingAsset">The ticker symbol of the underlying asset (e.g., "SPY", "AAPL").</param>
+    /// <param name="optionContract">The options contract identifier in OCC format without the "O:" prefix (e.g., "SPY251219C00650000").</param>
+    /// <param name="cancellationToken">A cancellation token to cancel the operation.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains a response with the options contract snapshot including break-even price, daily data, contract details, Greeks, implied volatility, last quote, last trade, open interest, and underlying asset information.</returns>
+    Task<PolygonResponse<OptionSnapshot>> GetSnapshotAsync(
+        string underlyingAsset,
+        string optionContract,
+        CancellationToken cancellationToken = default);
 }
