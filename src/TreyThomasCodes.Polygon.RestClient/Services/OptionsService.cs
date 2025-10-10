@@ -68,4 +68,12 @@ public class OptionsService : IOptionsService
             cursor,
             cancellationToken);
     }
+
+    /// <inheritdoc />
+    public Task<PolygonResponse<OptionTrade>> GetLastTradeAsync(
+        string optionsTicker,
+        CancellationToken cancellationToken = default)
+    {
+        return _api.GetLastTradeAsync(optionsTicker, cancellationToken);
+    }
 }

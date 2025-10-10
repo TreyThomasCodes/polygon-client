@@ -64,4 +64,15 @@ public interface IOptionsService
         string? sort = null,
         string? cursor = null,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Retrieves the most recent trade for a specific options contract.
+    /// Returns detailed information about the last executed trade including price, size, exchange, conditions, and timing data.
+    /// </summary>
+    /// <param name="optionsTicker">The options ticker symbol in OCC format (e.g., "O:TSLA260320C00700000"). The ticker must include the "O:" prefix followed by the underlying ticker, expiration date (YYMMDD), contract type (C for call, P for put), and strike price.</param>
+    /// <param name="cancellationToken">A cancellation token to cancel the operation.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains a response with the most recent trade data for the specified options contract including ticker, price, size, exchange, conditions, sequence number, and timestamp.</returns>
+    Task<PolygonResponse<OptionTrade>> GetLastTradeAsync(
+        string optionsTicker,
+        CancellationToken cancellationToken = default);
 }

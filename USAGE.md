@@ -1201,7 +1201,106 @@ Console.WriteLine($"\nRetrieved {allContracts.Count} option contracts");
 - Calculate synthetic positions and spreads
 - Monitor the full options market for an underlying asset
 
-**Note:** Additional options endpoints for trades, quotes, and aggregates will be added in upcoming releases.
+#### GetLastTradeAsync - Get Most Recent Option Trade
+
+Retrieve the most recent trade for a specific options contract.
+
+```csharp
+// Get last trade for a call option on TSLA
+var lastTrade = await _client.Options.GetLastTradeAsync("O:TSLA260320C00700000");
+
+if (lastTrade.Results != null)
+{
+    var trade = lastTrade.Results;
+    Console.WriteLine($"Ticker: {trade.Ticker}");
+    Console.WriteLine($"Last trade price: ${trade.Price}");
+    Console.WriteLine($"Trade size: {trade.Size} contracts");
+    Console.WriteLine($"Exchange: {trade.Exchange}");
+    Console.WriteLine($"Timestamp: {trade.Timestamp}");
+    Console.WriteLine($"Sequence: {trade.Sequence}");
+    Console.WriteLine($"Condition codes: {string.Join(", ", trade.Conditions ?? new List<int>())}");
+
+    // Display market timestamp (converted to Eastern Time)
+    if (trade.MarketTimestamp.HasValue)
+    {
+        Console.WriteLine($"Market time: {trade.MarketTimestamp.Value}");
+    }
+}
+
+// Get last trade for a put option on SPY
+var putTrade = await _client.Options.GetLastTradeAsync("O:SPY251219P00650000");
+
+if (putTrade.Results != null)
+{
+    Console.WriteLine($"\nLast trade for {putTrade.Results.Ticker}:");
+    Console.WriteLine($"Price: ${putTrade.Results.Price}");
+    Console.WriteLine($"Size: {putTrade.Results.Size}");
+}
+
+// Example: Compare last trade prices across different strikes
+var strikes = new[]
+{
+    "O:SPY251219C00600000",
+    "O:SPY251219C00650000",
+    "O:SPY251219C00700000"
+};
+
+Console.WriteLine("\nLast Trade Prices by Strike:");
+foreach (var strike in strikes)
+{
+    var trade = await _client.Options.GetLastTradeAsync(strike);
+
+    if (trade.Results != null)
+    {
+        Console.WriteLine($"Strike ${strike.Substring(strike.Length - 8)}: ${trade.Results.Price} (Size: {trade.Results.Size})");
+    }
+}
+
+// Example: Calculate bid-ask spread using snapshot and last trade
+var snapshot = await _client.Options.GetSnapshotAsync("AAPL", "AAPL250117C00150000");
+var trade = await _client.Options.GetLastTradeAsync("O:AAPL250117C00150000");
+
+if (snapshot.Results?.LastQuote != null && trade.Results != null)
+{
+    var bid = snapshot.Results.LastQuote.Bid ?? 0;
+    var ask = snapshot.Results.LastQuote.Ask ?? 0;
+    var last = trade.Results.Price ?? 0;
+    var spread = ask - bid;
+    var midpoint = (bid + ask) / 2;
+
+    Console.WriteLine($"\nPrice Analysis for {trade.Results.Ticker}:");
+    Console.WriteLine($"Bid: ${bid}");
+    Console.WriteLine($"Ask: ${ask}");
+    Console.WriteLine($"Spread: ${spread}");
+    Console.WriteLine($"Midpoint: ${midpoint}");
+    Console.WriteLine($"Last trade: ${last}");
+    Console.WriteLine($"Trade vs Midpoint: ${last - midpoint}");
+}
+```
+
+**Parameters:**
+- `optionsTicker` (required) - The options ticker symbol in OCC format (e.g., "O:TSLA260320C00700000"). Must include the "O:" prefix.
+
+**Response:** Returns a `PolygonResponse<OptionTrade>` containing:
+- `Ticker` - The options ticker symbol
+- `Price` - The price at which the trade was executed
+- `Size` - The number of contracts traded
+- `Exchange` - The exchange where the trade was executed (numeric code)
+- `Timestamp` - When the trade was executed (nanoseconds since Unix epoch)
+- `Sequence` - Sequence number for ordering trades at the same timestamp
+- `Conditions` - List of condition codes that apply to the trade
+- `Id` - Unique identifier for the trade
+- `MarketTimestamp` - Computed property that converts the timestamp to Eastern Time
+
+**Use Cases:**
+- Get the most recent execution price for an options contract
+- Monitor real-time options trading activity
+- Compare last trade prices across different strikes or expirations
+- Analyze trade execution relative to bid/ask spreads
+- Track sequential trades for market microstructure analysis
+- Validate option pricing models against actual trades
+
+**Note:** Additional options endpoints for quotes and aggregates will be added in upcoming releases.
 
 ## Common Patterns
 
