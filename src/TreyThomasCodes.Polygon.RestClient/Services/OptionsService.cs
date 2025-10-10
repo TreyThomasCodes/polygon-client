@@ -76,4 +76,32 @@ public class OptionsService : IOptionsService
     {
         return _api.GetLastTradeAsync(optionsTicker, cancellationToken);
     }
+
+    /// <inheritdoc />
+    public Task<PolygonResponse<List<OptionQuote>>> GetQuotesAsync(
+        string optionsTicker,
+        string? timestamp = null,
+        string? timestampLt = null,
+        string? timestampLte = null,
+        string? timestampGt = null,
+        string? timestampGte = null,
+        string? order = null,
+        int? limit = null,
+        string? sort = null,
+        string? cursor = null,
+        CancellationToken cancellationToken = default)
+    {
+        return _api.GetQuotesAsync(
+            optionsTicker,
+            timestamp,
+            timestampLt,
+            timestampLte,
+            timestampGt,
+            timestampGte,
+            order,
+            limit,
+            sort,
+            cursor,
+            cancellationToken);
+    }
 }

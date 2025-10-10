@@ -1300,7 +1300,217 @@ if (snapshot.Results?.LastQuote != null && trade.Results != null)
 - Track sequential trades for market microstructure analysis
 - Validate option pricing models against actual trades
 
-**Note:** Additional options endpoints for quotes and aggregates will be added in upcoming releases.
+#### GetQuotesAsync - Get Historical Option Quotes
+
+Retrieve historical bid/ask quote data for a specific options contract. Returns tick-level quote data including bid and ask prices, sizes, exchange information, and timestamps. Supports time-based filtering and pagination.
+
+```csharp
+// Get recent quotes for an option with a limit
+var quotes = await _client.Options.GetQuotesAsync(
+    optionsTicker: "O:SPY241220P00720000",
+    limit: 10
+);
+
+if (quotes.Results != null)
+{
+    Console.WriteLine($"Found {quotes.Results.Count} quotes");
+
+    foreach (var quote in quotes.Results)
+    {
+        Console.WriteLine($"\nQuote at sequence {quote.SequenceNumber}:");
+        Console.WriteLine($"  Bid: ${quote.BidPrice} x {quote.BidSize} on exchange {quote.BidExchange}");
+        Console.WriteLine($"  Ask: ${quote.AskPrice} x {quote.AskSize} on exchange {quote.AskExchange}");
+        Console.WriteLine($"  Timestamp: {quote.SipTimestamp}");
+
+        // Display market timestamp (converted to Eastern Time)
+        if (quote.MarketTimestamp.HasValue)
+        {
+            Console.WriteLine($"  Market time: {quote.MarketTimestamp.Value}");
+        }
+    }
+
+    // Check for pagination
+    if (!string.IsNullOrEmpty(quotes.NextUrl))
+    {
+        Console.WriteLine($"\nMore results available: {quotes.NextUrl}");
+    }
+}
+
+// Get quotes for a specific time range
+var timeRangeQuotes = await _client.Options.GetQuotesAsync(
+    optionsTicker: "O:TSLA260320C00700000",
+    timestamp: "2022-03-07T14:30:00",
+    timestampLte: "2022-03-07T16:00:00",
+    limit: 100
+);
+
+Console.WriteLine($"\nQuotes between 2:30 PM and 4:00 PM:");
+foreach (var quote in timeRangeQuotes.Results ?? Enumerable.Empty<OptionQuote>())
+{
+    var spread = (quote.AskPrice ?? 0) - (quote.BidPrice ?? 0);
+    Console.WriteLine($"Bid: ${quote.BidPrice}, Ask: ${quote.AskPrice}, Spread: ${spread}");
+}
+
+// Get quotes after a specific timestamp
+var quotesAfter = await _client.Options.GetQuotesAsync(
+    optionsTicker: "O:AAPL250117C00150000",
+    timestampGt: "2022-03-07",
+    order: "asc",
+    limit: 50
+);
+
+// Get quotes before a specific timestamp
+var quotesBefore = await _client.Options.GetQuotesAsync(
+    optionsTicker: "O:MSFT250321P00400000",
+    timestampLt: "2022-03-08",
+    order: "desc",
+    limit: 50
+);
+
+// Get quotes in a specific range with sorting
+var sortedQuotes = await _client.Options.GetQuotesAsync(
+    optionsTicker: "O:SPY241220P00720000",
+    timestampGte: "2022-03-07T09:30:00",
+    timestampLte: "2022-03-07T16:00:00",
+    order: "asc",
+    sort: "timestamp",
+    limit: 1000
+);
+
+Console.WriteLine($"\nQuotes sorted by timestamp:");
+foreach (var quote in sortedQuotes.Results ?? Enumerable.Empty<OptionQuote>())
+{
+    Console.WriteLine($"{quote.SipTimestamp}: Bid ${quote.BidPrice} x {quote.BidSize}, Ask ${quote.AskPrice} x {quote.AskSize}");
+}
+
+// Example: Calculate average bid-ask spread
+if (quotes.Results?.Count > 0)
+{
+    var spreads = quotes.Results
+        .Where(q => q.AskPrice.HasValue && q.BidPrice.HasValue)
+        .Select(q => q.AskPrice!.Value - q.BidPrice!.Value);
+
+    var avgSpread = spreads.Average();
+    var minSpread = spreads.Min();
+    var maxSpread = spreads.Max();
+
+    Console.WriteLine($"\nSpread Analysis:");
+    Console.WriteLine($"  Average: ${avgSpread:F2}");
+    Console.WriteLine($"  Minimum: ${minSpread:F2}");
+    Console.WriteLine($"  Maximum: ${maxSpread:F2}");
+}
+
+// Example: Track quote updates over time
+var quoteHistory = await _client.Options.GetQuotesAsync(
+    optionsTicker: "O:SPY241220P00720000",
+    timestampGte: "2022-03-07T14:00:00",
+    timestampLte: "2022-03-07T14:05:00",
+    order: "asc",
+    limit: 100
+);
+
+Console.WriteLine($"\nQuote changes over 5 minutes:");
+OptionQuote? previousQuote = null;
+foreach (var quote in quoteHistory.Results ?? Enumerable.Empty<OptionQuote>())
+{
+    if (previousQuote != null)
+    {
+        var bidChange = (quote.BidPrice ?? 0) - (previousQuote.BidPrice ?? 0);
+        var askChange = (quote.AskPrice ?? 0) - (previousQuote.AskPrice ?? 0);
+
+        if (bidChange != 0 || askChange != 0)
+        {
+            Console.WriteLine($"Sequence {quote.SequenceNumber}:");
+            Console.WriteLine($"  Bid change: ${bidChange:F2}");
+            Console.WriteLine($"  Ask change: ${askChange:F2}");
+        }
+    }
+    previousQuote = quote;
+}
+
+// Example: Find best bid and ask across time
+var allQuotes = await _client.Options.GetQuotesAsync(
+    optionsTicker: "O:AAPL250117C00150000",
+    timestampGte: "2022-03-07",
+    limit: 1000
+);
+
+if (allQuotes.Results?.Count > 0)
+{
+    var bestBid = allQuotes.Results
+        .Where(q => q.BidPrice.HasValue)
+        .MaxBy(q => q.BidPrice!.Value);
+
+    var bestAsk = allQuotes.Results
+        .Where(q => q.AskPrice.HasValue)
+        .MinBy(q => q.AskPrice!.Value);
+
+    Console.WriteLine($"\nBest prices observed:");
+    Console.WriteLine($"  Best Bid: ${bestBid?.BidPrice} x {bestBid?.BidSize} (Seq: {bestBid?.SequenceNumber})");
+    Console.WriteLine($"  Best Ask: ${bestAsk?.AskPrice} x {bestAsk?.AskSize} (Seq: {bestAsk?.SequenceNumber})");
+}
+
+// Example: Pagination through large result sets
+var allOptionQuotes = new List<OptionQuote>();
+var response = await _client.Options.GetQuotesAsync(
+    optionsTicker: "O:SPY241220P00720000",
+    timestampGte: "2022-03-07",
+    limit: 100
+);
+
+if (response.Results != null)
+{
+    allOptionQuotes.AddRange(response.Results);
+}
+
+// Note: To implement full pagination, you would need to parse the cursor from NextUrl
+// and pass it to the cursor parameter in subsequent calls
+if (!string.IsNullOrEmpty(response.NextUrl))
+{
+    Console.WriteLine($"\nMore results available. Use the cursor parameter for pagination.");
+    Console.WriteLine($"Next page URL: {response.NextUrl}");
+}
+
+Console.WriteLine($"\nRetrieved {allOptionQuotes.Count} option quotes");
+```
+
+**Parameters:**
+- `optionsTicker` (required) - The options ticker symbol in OCC format (e.g., "O:SPY241220P00720000"). Must include the "O:" prefix.
+- `timestamp` (optional) - Query for quotes at or after this timestamp. Can be a date (YYYY-MM-DD), datetime (YYYY-MM-DDTHH:MM:SS), or nanosecond timestamp.
+- `timestampLt` (optional) - Query for quotes before this timestamp
+- `timestampLte` (optional) - Query for quotes at or before this timestamp
+- `timestampGt` (optional) - Query for quotes after this timestamp
+- `timestampGte` (optional) - Query for quotes at or after this timestamp
+- `order` (optional) - Sort order ("asc" or "desc") by timestamp
+- `limit` (optional) - Maximum number of results to return (varies by plan)
+- `sort` (optional) - Sort field (defaults to "timestamp")
+- `cursor` (optional) - Pagination cursor from previous response's `next_url`
+
+**Response:** Returns a `PolygonResponse<List<OptionQuote>>` containing:
+- A list of option quotes with the following properties per quote:
+  - `AskPrice` - The ask price for the option
+  - `AskSize` - The number of contracts offered at the ask price
+  - `AskExchange` - The exchange offering the ask (numeric code)
+  - `BidPrice` - The bid price for the option
+  - `BidSize` - The number of contracts bid for at the bid price
+  - `BidExchange` - The exchange offering the bid (numeric code)
+  - `SequenceNumber` - Sequence number for ordering quotes at the same timestamp
+  - `SipTimestamp` - When the quote was generated (nanoseconds since Unix epoch)
+  - `MarketTimestamp` - Computed property that converts SipTimestamp to Eastern Time
+- `NextUrl` property for pagination if more results are available
+- Standard response metadata (`Status`, `RequestId`)
+
+**Use Cases:**
+- Monitor historical bid/ask spreads for options contracts
+- Analyze market liquidity and quote depth over time
+- Track quote changes and market maker activity
+- Calculate time-weighted average bid/ask spreads
+- Identify periods of wide or narrow spreads
+- Build order book reconstructions for specific time periods
+- Compare quote patterns across different strike prices or expirations
+- Detect and analyze quote volatility and market microstructure
+
+**Note:** Additional options endpoints for aggregates will be added in upcoming releases.
 
 ## Common Patterns
 

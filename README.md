@@ -153,6 +153,7 @@ Accessed via `IPolygonClient.Options`
 - **`GetSnapshotAsync`** - Get a snapshot of current market data for a specific options contract, including Greeks, implied volatility, and underlying asset information
 - **`GetChainSnapshotAsync`** - Get snapshots for all options contracts for a given underlying asset with filtering by strike price, contract type, and expiration date
 - **`GetLastTradeAsync`** - Get the most recent trade for a specific options contract
+- **`GetQuotesAsync`** - Get historical bid/ask quote data for a specific options contract with time-based filtering and pagination
 
 ## Configuration Options
 
