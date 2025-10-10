@@ -36,4 +36,32 @@ public interface IOptionsService
         string underlyingAsset,
         string optionContract,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Retrieves a snapshot of current market data for all options contracts for a given underlying asset.
+    /// Returns a collection of option snapshots containing comprehensive market information for each contract including break-even price, daily data, contract details, Greeks, implied volatility, open interest, and underlying asset details.
+    /// Supports pagination and filtering by expiration date, strike price, and contract type.
+    /// </summary>
+    /// <param name="underlyingAsset">The ticker symbol of the underlying asset (e.g., "SPY", "AAPL", "MSTR").</param>
+    /// <param name="strikePrice">Filter by strike price. Only returns contracts with this exact strike price.</param>
+    /// <param name="contractType">Filter by contract type. Use "call" for call options or "put" for put options.</param>
+    /// <param name="expirationDateGte">Filter by expiration date greater than or equal to the specified date in YYYY-MM-DD format.</param>
+    /// <param name="expirationDateLte">Filter by expiration date less than or equal to the specified date in YYYY-MM-DD format.</param>
+    /// <param name="limit">Limit the number of results returned. Maximum value varies by plan.</param>
+    /// <param name="order">Sort order for results. Use "asc" for ascending or "desc" for descending.</param>
+    /// <param name="sort">Field to sort by (e.g., "ticker", "strike_price", "expiration_date").</param>
+    /// <param name="cursor">Cursor for pagination. Use the next_url from the previous response to get the next page of results.</param>
+    /// <param name="cancellationToken">A cancellation token to cancel the operation.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains a response with a list of option snapshots for all contracts matching the specified criteria. The response includes a next_url for pagination if more results are available.</returns>
+    Task<PolygonResponse<List<OptionSnapshot>>> GetChainSnapshotAsync(
+        string underlyingAsset,
+        decimal? strikePrice = null,
+        string? contractType = null,
+        string? expirationDateGte = null,
+        string? expirationDateLte = null,
+        int? limit = null,
+        string? order = null,
+        string? sort = null,
+        string? cursor = null,
+        CancellationToken cancellationToken = default);
 }

@@ -936,6 +936,271 @@ if (callSnapshot.Results?.Greeks?.Delta.HasValue == true)
 - `underlyingAsset` - The ticker symbol of the underlying asset (e.g., "SPY", "AAPL")
 - `optionContract` - The options contract identifier in OCC format WITHOUT the "O:" prefix (e.g., "SPY251219C00650000")
 
+#### GetChainSnapshotAsync - Get Option Chain Snapshot
+
+Retrieve snapshots for all options contracts for a given underlying asset. Returns comprehensive market data for each contract including Greeks, implied volatility, last trade, last quote, and underlying asset information. Supports filtering and pagination.
+
+```csharp
+// Get all options contracts for MSTR with a limit
+var chainSnapshot = await _client.Options.GetChainSnapshotAsync(
+    underlyingAsset: "MSTR",
+    limit: 10
+);
+
+if (chainSnapshot.Results != null)
+{
+    Console.WriteLine($"Found {chainSnapshot.Results.Count} contracts");
+
+    foreach (var contract in chainSnapshot.Results)
+    {
+        Console.WriteLine($"\n{contract.Details?.Ticker}:");
+        Console.WriteLine($"  Type: {contract.Details?.ContractType}");
+        Console.WriteLine($"  Strike: ${contract.Details?.StrikePrice}");
+        Console.WriteLine($"  Expiration: {contract.Details?.ExpirationDate}");
+        Console.WriteLine($"  Last Price: ${contract.Day?.Close}");
+        Console.WriteLine($"  Volume: {contract.Day?.Volume}");
+        Console.WriteLine($"  Open Interest: {contract.OpenInterest}");
+        Console.WriteLine($"  IV: {contract.ImpliedVolatility:P2}");
+
+        if (contract.Greeks != null)
+        {
+            Console.WriteLine($"  Delta: {contract.Greeks.Delta:F4}");
+            Console.WriteLine($"  Gamma: {contract.Greeks.Gamma:F6}");
+            Console.WriteLine($"  Theta: {contract.Greeks.Theta:F4}");
+            Console.WriteLine($"  Vega: {contract.Greeks.Vega:F4}");
+        }
+    }
+
+    // Check for pagination
+    if (!string.IsNullOrEmpty(chainSnapshot.NextUrl))
+    {
+        Console.WriteLine($"\nMore results available: {chainSnapshot.NextUrl}");
+    }
+}
+
+// Filter by contract type (calls only)
+var callsOnly = await _client.Options.GetChainSnapshotAsync(
+    underlyingAsset: "SPY",
+    contractType: "call",
+    limit: 20
+);
+
+Console.WriteLine($"\nCall Options for SPY:");
+foreach (var call in callsOnly.Results ?? Enumerable.Empty<OptionSnapshot>())
+{
+    Console.WriteLine($"Strike ${call.Details?.StrikePrice}: ${call.Day?.Close}");
+}
+
+// Filter by contract type (puts only)
+var putsOnly = await _client.Options.GetChainSnapshotAsync(
+    underlyingAsset: "SPY",
+    contractType: "put",
+    limit: 20
+);
+
+Console.WriteLine($"\nPut Options for SPY:");
+foreach (var put in putsOnly.Results ?? Enumerable.Empty<OptionSnapshot>())
+{
+    Console.WriteLine($"Strike ${put.Details?.StrikePrice}: ${put.Day?.Close}");
+}
+
+// Filter by specific strike price
+var strikeSnapshot = await _client.Options.GetChainSnapshotAsync(
+    underlyingAsset: "SPY",
+    strikePrice: 650m,
+    limit: 10
+);
+
+Console.WriteLine($"\nAll contracts at $650 strike:");
+foreach (var contract in strikeSnapshot.Results ?? Enumerable.Empty<OptionSnapshot>())
+{
+    Console.WriteLine($"{contract.Details?.Ticker}:");
+    Console.WriteLine($"  Type: {contract.Details?.ContractType}");
+    Console.WriteLine($"  Expiration: {contract.Details?.ExpirationDate}");
+    Console.WriteLine($"  Price: ${contract.Day?.Close}");
+}
+
+// Filter by expiration date range
+var expirationRange = await _client.Options.GetChainSnapshotAsync(
+    underlyingAsset: "AAPL",
+    expirationDateGte: "2025-10-01",
+    expirationDateLte: "2025-12-31",
+    limit: 50
+);
+
+Console.WriteLine($"\nAAPL options expiring between Oct-Dec 2025:");
+foreach (var contract in expirationRange.Results ?? Enumerable.Empty<OptionSnapshot>())
+{
+    Console.WriteLine($"{contract.Details?.Ticker} expires {contract.Details?.ExpirationDate}");
+}
+
+// Sort by strike price in ascending order
+var sortedByStrike = await _client.Options.GetChainSnapshotAsync(
+    underlyingAsset: "TSLA",
+    contractType: "call",
+    order: "asc",
+    sort: "strike_price",
+    limit: 20
+);
+
+Console.WriteLine($"\nTSLA calls sorted by strike price:");
+foreach (var contract in sortedByStrike.Results ?? Enumerable.Empty<OptionSnapshot>())
+{
+    Console.WriteLine($"Strike ${contract.Details?.StrikePrice}: ${contract.Day?.Close}, Delta: {contract.Greeks?.Delta:F4}");
+}
+
+// Combine multiple filters for specific analysis
+var nearMoneyPuts = await _client.Options.GetChainSnapshotAsync(
+    underlyingAsset: "SPY",
+    contractType: "put",
+    expirationDateGte: "2025-11-01",
+    expirationDateLte: "2025-11-30",
+    order: "asc",
+    sort: "strike_price",
+    limit: 50
+);
+
+Console.WriteLine($"\nSPY November 2025 puts:");
+foreach (var put in nearMoneyPuts.Results ?? Enumerable.Empty<OptionSnapshot>())
+{
+    if (put.Details?.StrikePrice.HasValue == true && put.UnderlyingAsset?.Price.HasValue == true)
+    {
+        var distance = put.UnderlyingAsset.Price.Value - put.Details.StrikePrice.Value;
+        var status = distance > 0 ? "OTM" : "ITM";
+
+        Console.WriteLine($"Strike ${put.Details.StrikePrice} ({status}):");
+        Console.WriteLine($"  Premium: ${put.Day?.Close}");
+        Console.WriteLine($"  Delta: {put.Greeks?.Delta:F4}");
+        Console.WriteLine($"  Open Interest: {put.OpenInterest}");
+        Console.WriteLine($"  Volume: {put.Day?.Volume}");
+    }
+}
+
+// Example: Find options with high volume
+var highVolume = await _client.Options.GetChainSnapshotAsync(
+    underlyingAsset: "NVDA",
+    limit: 100
+);
+
+var highVolumeContracts = highVolume.Results?
+    .Where(c => c.Day?.Volume.HasValue == true && c.Day.Volume > 1000)
+    .OrderByDescending(c => c.Day.Volume)
+    .Take(10);
+
+Console.WriteLine($"\nNVDA options with highest volume:");
+foreach (var contract in highVolumeContracts ?? Enumerable.Empty<OptionSnapshot>())
+{
+    Console.WriteLine($"{contract.Details?.Ticker}:");
+    Console.WriteLine($"  Type: {contract.Details?.ContractType}");
+    Console.WriteLine($"  Strike: ${contract.Details?.StrikePrice}");
+    Console.WriteLine($"  Volume: {contract.Day?.Volume}");
+    Console.WriteLine($"  Open Interest: {contract.OpenInterest}");
+    Console.WriteLine($"  Price: ${contract.Day?.Close}");
+}
+
+// Example: Build an options chain display
+var optionsChain = await _client.Options.GetChainSnapshotAsync(
+    underlyingAsset: "SPY",
+    expirationDateGte: "2025-12-15",
+    expirationDateLte: "2025-12-20",
+    order: "asc",
+    sort: "strike_price",
+    limit: 100
+);
+
+// Group by strike price
+var chainByStrike = optionsChain.Results?
+    .GroupBy(c => c.Details?.StrikePrice)
+    .OrderBy(g => g.Key);
+
+Console.WriteLine($"\nSPY Options Chain (Dec 2025):");
+Console.WriteLine($"{"Strike",-10} {"Call Bid",-12} {"Call Ask",-12} {"Put Bid",-12} {"Put Ask",-12}");
+Console.WriteLine(new string('-', 60));
+
+foreach (var strikeGroup in chainByStrike ?? Enumerable.Empty<IGrouping<decimal?, OptionSnapshot>>())
+{
+    var call = strikeGroup.FirstOrDefault(c => c.Details?.ContractType == "call");
+    var put = strikeGroup.FirstOrDefault(c => c.Details?.ContractType == "put");
+
+    var callBid = call?.LastQuote?.Bid?.ToString("F2") ?? "-";
+    var callAsk = call?.LastQuote?.Ask?.ToString("F2") ?? "-";
+    var putBid = put?.LastQuote?.Bid?.ToString("F2") ?? "-";
+    var putAsk = put?.LastQuote?.Ask?.ToString("F2") ?? "-";
+
+    Console.WriteLine($"{strikeGroup.Key,-10} {callBid,-12} {callAsk,-12} {putBid,-12} {putAsk,-12}");
+}
+
+// Example: Calculate implied volatility smile
+var ivSmile = await _client.Options.GetChainSnapshotAsync(
+    underlyingAsset: "AAPL",
+    contractType: "call",
+    expirationDateGte: "2025-11-15",
+    expirationDateLte: "2025-11-20",
+    order: "asc",
+    sort: "strike_price",
+    limit: 50
+);
+
+Console.WriteLine($"\nImplied Volatility Smile:");
+Console.WriteLine($"{"Strike",-10} {"IV",-10} {"Delta",-10}");
+Console.WriteLine(new string('-', 30));
+
+foreach (var contract in ivSmile.Results ?? Enumerable.Empty<OptionSnapshot>())
+{
+    if (contract.Details?.StrikePrice.HasValue == true && contract.ImpliedVolatility.HasValue)
+    {
+        Console.WriteLine($"{contract.Details.StrikePrice,-10} {contract.ImpliedVolatility:P2,-10} {contract.Greeks?.Delta:F4,-10}");
+    }
+}
+
+// Example: Pagination through large result sets
+var allContracts = new List<OptionSnapshot>();
+var response = await _client.Options.GetChainSnapshotAsync(
+    underlyingAsset: "SPY",
+    limit: 100
+);
+
+if (response.Results != null)
+{
+    allContracts.AddRange(response.Results);
+}
+
+// Note: To implement full pagination, you would need to parse the cursor from NextUrl
+// and pass it to the cursor parameter in subsequent calls
+if (!string.IsNullOrEmpty(response.NextUrl))
+{
+    Console.WriteLine($"\nMore results available. Use the cursor parameter for pagination.");
+    Console.WriteLine($"Next page URL: {response.NextUrl}");
+}
+
+Console.WriteLine($"\nRetrieved {allContracts.Count} option contracts");
+```
+
+**Parameters:**
+- `underlyingAsset` (required) - The ticker symbol of the underlying asset (e.g., "SPY", "AAPL", "MSTR")
+- `strikePrice` (optional) - Filter by exact strike price
+- `contractType` (optional) - Filter by contract type ("call" or "put")
+- `expirationDateGte` (optional) - Filter contracts expiring on or after this date (YYYY-MM-DD format)
+- `expirationDateLte` (optional) - Filter contracts expiring on or before this date (YYYY-MM-DD format)
+- `limit` (optional) - Maximum number of results to return (varies by plan)
+- `order` (optional) - Sort order ("asc" or "desc")
+- `sort` (optional) - Field to sort by (e.g., "ticker", "strike_price", "expiration_date")
+- `cursor` (optional) - Pagination cursor from previous response's `next_url`
+
+**Response:** Returns a `PolygonResponse<List<OptionSnapshot>>` containing:
+- A list of option snapshots, each with the same structure as the individual `GetSnapshotAsync` response
+- `NextUrl` property for pagination if more results are available
+- Standard response metadata (`Status`, `RequestId`)
+
+**Use Cases:**
+- Build complete options chains with calls and puts at all strikes
+- Analyze implied volatility across different strikes (volatility smile/skew)
+- Find high-volume or high open interest contracts
+- Compare options at different expiration dates
+- Screen for specific trading opportunities (e.g., ITM/OTM contracts)
+- Calculate synthetic positions and spreads
+- Monitor the full options market for an underlying asset
+
 **Note:** Additional options endpoints for trades, quotes, and aggregates will be added in upcoming releases.
 
 ## Common Patterns

@@ -42,4 +42,30 @@ public class OptionsService : IOptionsService
     {
         return _api.GetSnapshotAsync(underlyingAsset, optionContract, cancellationToken);
     }
+
+    /// <inheritdoc />
+    public Task<PolygonResponse<List<OptionSnapshot>>> GetChainSnapshotAsync(
+        string underlyingAsset,
+        decimal? strikePrice = null,
+        string? contractType = null,
+        string? expirationDateGte = null,
+        string? expirationDateLte = null,
+        int? limit = null,
+        string? order = null,
+        string? sort = null,
+        string? cursor = null,
+        CancellationToken cancellationToken = default)
+    {
+        return _api.GetChainSnapshotAsync(
+            underlyingAsset,
+            strikePrice,
+            contractType,
+            expirationDateGte,
+            expirationDateLte,
+            limit,
+            order,
+            sort,
+            cursor,
+            cancellationToken);
+    }
 }
