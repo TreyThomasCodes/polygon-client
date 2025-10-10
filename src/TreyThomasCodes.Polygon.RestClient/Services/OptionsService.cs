@@ -104,4 +104,32 @@ public class OptionsService : IOptionsService
             cursor,
             cancellationToken);
     }
+
+    /// <inheritdoc />
+    public Task<PolygonResponse<List<OptionTradeV3>>> GetTradesAsync(
+        string optionsTicker,
+        string? timestamp = null,
+        string? timestampLt = null,
+        string? timestampLte = null,
+        string? timestampGt = null,
+        string? timestampGte = null,
+        string? order = null,
+        int? limit = null,
+        string? sort = null,
+        string? cursor = null,
+        CancellationToken cancellationToken = default)
+    {
+        return _api.GetTradesAsync(
+            optionsTicker,
+            timestamp,
+            timestampLt,
+            timestampLte,
+            timestampGt,
+            timestampGte,
+            order,
+            limit,
+            sort,
+            cursor,
+            cancellationToken);
+    }
 }

@@ -105,4 +105,34 @@ public interface IOptionsService
         string? sort = null,
         string? cursor = null,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Retrieves historical trade data for a specific options contract.
+    /// Returns a list of trades containing price, size, exchange, conditions, and timing data.
+    /// Supports pagination and time-based filtering.
+    /// </summary>
+    /// <param name="optionsTicker">The options ticker symbol in OCC format (e.g., "O:TSLA210903C00700000"). The ticker must include the "O:" prefix followed by the underlying ticker, expiration date (YYMMDD), contract type (C for call, P for put), and strike price.</param>
+    /// <param name="timestamp">Query for trades at or after this timestamp. Can be a date (YYYY-MM-DD), datetime (YYYY-MM-DDTHH:MM:SS), or nanosecond timestamp.</param>
+    /// <param name="timestampLt">Query for trades before this timestamp. Can be a date (YYYY-MM-DD), datetime (YYYY-MM-DDTHH:MM:SS), or nanosecond timestamp.</param>
+    /// <param name="timestampLte">Query for trades at or before this timestamp. Can be a date (YYYY-MM-DD), datetime (YYYY-MM-DDTHH:MM:SS), or nanosecond timestamp.</param>
+    /// <param name="timestampGt">Query for trades after this timestamp. Can be a date (YYYY-MM-DD), datetime (YYYY-MM-DDTHH:MM:SS), or nanosecond timestamp.</param>
+    /// <param name="timestampGte">Query for trades at or after this timestamp. Can be a date (YYYY-MM-DD), datetime (YYYY-MM-DDTHH:MM:SS), or nanosecond timestamp.</param>
+    /// <param name="order">Sort order for results. Use "asc" for ascending or "desc" for descending by timestamp.</param>
+    /// <param name="limit">Limit the number of results returned. Maximum value varies by plan.</param>
+    /// <param name="sort">Sort field for results. Defaults to "timestamp".</param>
+    /// <param name="cursor">Cursor for pagination. Use the next_url from the previous response to get the next page of results.</param>
+    /// <param name="cancellationToken">A cancellation token to cancel the operation.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains a response with a list of option trades including price, size, exchange, conditions, sequence numbers, and timestamps. The response includes a next_url for pagination if more results are available.</returns>
+    Task<PolygonResponse<List<OptionTradeV3>>> GetTradesAsync(
+        string optionsTicker,
+        string? timestamp = null,
+        string? timestampLt = null,
+        string? timestampLte = null,
+        string? timestampGt = null,
+        string? timestampGte = null,
+        string? order = null,
+        int? limit = null,
+        string? sort = null,
+        string? cursor = null,
+        CancellationToken cancellationToken = default);
 }

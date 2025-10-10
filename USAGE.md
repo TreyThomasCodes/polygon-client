@@ -1510,6 +1510,242 @@ Console.WriteLine($"\nRetrieved {allOptionQuotes.Count} option quotes");
 - Compare quote patterns across different strike prices or expirations
 - Detect and analyze quote volatility and market microstructure
 
+#### GetTradesAsync - Get Historical Option Trades
+
+Retrieve historical trade data for a specific options contract. Returns tick-level trade data including price, size, exchange, conditions, and timestamps. Supports time-based filtering and pagination.
+
+```csharp
+// Get recent trades for an option with a limit
+var trades = await _client.Options.GetTradesAsync(
+    optionsTicker: "O:TSLA210903C00700000",
+    limit: 10
+);
+
+if (trades.Results != null)
+{
+    Console.WriteLine($"Found {trades.Results.Count} trades");
+
+    foreach (var trade in trades.Results)
+    {
+        Console.WriteLine($"\nTrade:");
+        Console.WriteLine($"  Price: ${trade.Price}");
+        Console.WriteLine($"  Size: {trade.Size} contracts");
+        Console.WriteLine($"  Exchange: {trade.Exchange}");
+        Console.WriteLine($"  Sequence: {trade.SequenceNumber}");
+        Console.WriteLine($"  SIP Timestamp: {trade.SipTimestamp}");
+
+        // Display market timestamp (converted to Eastern Time)
+        if (trade.MarketTimestamp.HasValue)
+        {
+            Console.WriteLine($"  Market time: {trade.MarketTimestamp.Value}");
+        }
+
+        // Display participant timestamp
+        if (trade.MarketParticipantTimestamp.HasValue)
+        {
+            Console.WriteLine($"  Participant time: {trade.MarketParticipantTimestamp.Value}");
+        }
+
+        // Display condition codes
+        if (trade.Conditions != null && trade.Conditions.Count > 0)
+        {
+            Console.WriteLine($"  Conditions: {string.Join(", ", trade.Conditions)}");
+        }
+    }
+
+    // Check for pagination
+    if (!string.IsNullOrEmpty(trades.NextUrl))
+    {
+        Console.WriteLine($"\nMore results available: {trades.NextUrl}");
+    }
+}
+
+// Get trades for a specific time range
+var timeRangeTrades = await _client.Options.GetTradesAsync(
+    optionsTicker: "O:TSLA210903C00700000",
+    timestamp: "2021-07-23T15:42:22",
+    timestampLte: "2021-07-23T16:00:00",
+    limit: 100
+);
+
+Console.WriteLine($"\nTrades between 3:42 PM and 4:00 PM:");
+foreach (var trade in timeRangeTrades.Results ?? Enumerable.Empty<OptionTradeV3>())
+{
+    Console.WriteLine($"${trade.Price} x {trade.Size} contracts @ {trade.MarketTimestamp}");
+}
+
+// Get trades after a specific timestamp
+var tradesAfter = await _client.Options.GetTradesAsync(
+    optionsTicker: "O:SPY241220P00720000",
+    timestampGt: "2021-07-23",
+    order: "asc",
+    limit: 50
+);
+
+// Get trades before a specific timestamp
+var tradesBefore = await _client.Options.GetTradesAsync(
+    optionsTicker: "O:AAPL250117C00150000",
+    timestampLt: "2021-07-24",
+    order: "desc",
+    limit: 50
+);
+
+// Get trades in a specific range with sorting
+var sortedTrades = await _client.Options.GetTradesAsync(
+    optionsTicker: "O:TSLA210903C00700000",
+    timestampGte: "2021-07-23T09:30:00",
+    timestampLte: "2021-07-23T16:00:00",
+    order: "asc",
+    sort: "timestamp",
+    limit: 1000
+);
+
+Console.WriteLine($"\nTrades sorted by timestamp:");
+foreach (var trade in sortedTrades.Results ?? Enumerable.Empty<OptionTradeV3>())
+{
+    Console.WriteLine($"{trade.SipTimestamp}: ${trade.Price} x {trade.Size} contracts on exchange {trade.Exchange}");
+}
+
+// Example: Calculate volume-weighted average price (VWAP)
+if (trades.Results?.Count > 0)
+{
+    var totalValue = trades.Results
+        .Where(t => t.Price.HasValue && t.Size.HasValue)
+        .Sum(t => t.Price!.Value * t.Size!.Value);
+
+    var totalVolume = trades.Results
+        .Where(t => t.Size.HasValue)
+        .Sum(t => t.Size!.Value);
+
+    if (totalVolume > 0)
+    {
+        var vwap = totalValue / totalVolume;
+        Console.WriteLine($"\nVWAP: ${vwap:F2}");
+        Console.WriteLine($"Total Volume: {totalVolume} contracts");
+        Console.WriteLine($"Total Value: ${totalValue:F2}");
+    }
+}
+
+// Example: Analyze trade sizes
+if (trades.Results?.Count > 0)
+{
+    var sizes = trades.Results
+        .Where(t => t.Size.HasValue)
+        .Select(t => t.Size!.Value);
+
+    Console.WriteLine($"\nTrade Size Analysis:");
+    Console.WriteLine($"  Average: {sizes.Average():F2} contracts");
+    Console.WriteLine($"  Minimum: {sizes.Min()} contracts");
+    Console.WriteLine($"  Maximum: {sizes.Max()} contracts");
+}
+
+// Example: Track price movement over time
+var priceHistory = await _client.Options.GetTradesAsync(
+    optionsTicker: "O:TSLA210903C00700000",
+    timestampGte: "2021-07-23T14:00:00",
+    timestampLte: "2021-07-23T14:05:00",
+    order: "asc",
+    limit: 100
+);
+
+Console.WriteLine($"\nPrice movement over 5 minutes:");
+OptionTradeV3? previousTrade = null;
+foreach (var trade in priceHistory.Results ?? Enumerable.Empty<OptionTradeV3>())
+{
+    if (previousTrade != null && trade.Price.HasValue && previousTrade.Price.HasValue)
+    {
+        var priceChange = trade.Price.Value - previousTrade.Price.Value;
+
+        if (priceChange != 0)
+        {
+            Console.WriteLine($"Sequence {trade.SequenceNumber}:");
+            Console.WriteLine($"  Price: ${trade.Price:F2}");
+            Console.WriteLine($"  Change: ${priceChange:F2}");
+        }
+    }
+    previousTrade = trade;
+}
+
+// Example: Find largest trade
+var allTrades = await _client.Options.GetTradesAsync(
+    optionsTicker: "O:TSLA210903C00700000",
+    timestampGte: "2021-07-23",
+    limit: 1000
+);
+
+if (allTrades.Results?.Count > 0)
+{
+    var largestTrade = allTrades.Results
+        .Where(t => t.Size.HasValue)
+        .MaxBy(t => t.Size!.Value);
+
+    Console.WriteLine($"\nLargest trade:");
+    Console.WriteLine($"  Size: {largestTrade?.Size} contracts");
+    Console.WriteLine($"  Price: ${largestTrade?.Price}");
+    Console.WriteLine($"  Value: ${(largestTrade?.Price ?? 0) * (largestTrade?.Size ?? 0)}");
+}
+
+// Example: Pagination through large result sets
+var allOptionTrades = new List<OptionTradeV3>();
+var response = await _client.Options.GetTradesAsync(
+    optionsTicker: "O:TSLA210903C00700000",
+    timestampGte: "2021-07-23",
+    limit: 100
+);
+
+if (response.Results != null)
+{
+    allOptionTrades.AddRange(response.Results);
+}
+
+// Note: To implement full pagination, you would need to parse the cursor from NextUrl
+// and pass it to the cursor parameter in subsequent calls
+if (!string.IsNullOrEmpty(response.NextUrl))
+{
+    Console.WriteLine($"\nMore results available. Use the cursor parameter for pagination.");
+    Console.WriteLine($"Next page URL: {response.NextUrl}");
+}
+
+Console.WriteLine($"\nRetrieved {allOptionTrades.Count} option trades");
+```
+
+**Parameters:**
+- `optionsTicker` (required) - The options ticker symbol in OCC format (e.g., "O:TSLA210903C00700000"). Must include the "O:" prefix.
+- `timestamp` (optional) - Query for trades at or after this timestamp. Can be a date (YYYY-MM-DD), datetime (YYYY-MM-DDTHH:MM:SS), or nanosecond timestamp.
+- `timestampLt` (optional) - Query for trades before this timestamp
+- `timestampLte` (optional) - Query for trades at or before this timestamp
+- `timestampGt` (optional) - Query for trades after this timestamp
+- `timestampGte` (optional) - Query for trades at or after this timestamp
+- `order` (optional) - Sort order ("asc" or "desc") by timestamp
+- `limit` (optional) - Maximum number of results to return (varies by plan)
+- `sort` (optional) - Sort field (defaults to "timestamp")
+- `cursor` (optional) - Pagination cursor from previous response's `next_url`
+
+**Response:** Returns a `PolygonResponse<List<OptionTradeV3>>` containing:
+- A list of option trades with the following properties per trade:
+  - `Price` - The price at which the trade was executed (per contract)
+  - `Size` - The number of contracts traded
+  - `Exchange` - The exchange where the trade was executed (numeric code)
+  - `Conditions` - List of condition codes providing additional context about the trade
+  - `SipTimestamp` - When the trade was reported to the SIP (nanoseconds since Unix epoch)
+  - `ParticipantTimestamp` - When the trade was reported by the exchange participant (nanoseconds since Unix epoch)
+  - `SequenceNumber` - Sequence number for ordering trades at the same timestamp
+  - `Id` - Trade identifier
+  - `MarketTimestamp` - Computed property that converts SipTimestamp to Eastern Time
+  - `MarketParticipantTimestamp` - Computed property that converts ParticipantTimestamp to Eastern Time
+- `NextUrl` property for pagination if more results are available
+- Standard response metadata (`Status`, `RequestId`)
+
+**Use Cases:**
+- Analyze historical trading activity for options contracts
+- Calculate volume-weighted average price (VWAP) for options
+- Track trade execution patterns and size distribution
+- Identify large block trades or unusual trading activity
+- Monitor price movement and volatility throughout the trading day
+- Compare trade execution quality across exchanges
+- Build time-and-sales data for options contracts
+- Analyze market microstructure and trade flow
+
 **Note:** Additional options endpoints for aggregates will be added in upcoming releases.
 
 ## Common Patterns
