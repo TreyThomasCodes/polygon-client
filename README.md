@@ -155,6 +155,7 @@ Accessed via `IPolygonClient.Options`
 - **`GetLastTradeAsync`** - Get the most recent trade for a specific options contract
 - **`GetQuotesAsync`** - Get historical bid/ask quote data for a specific options contract with time-based filtering and pagination
 - **`GetTradesAsync`** - Get historical trade data for a specific options contract with time-based filtering and pagination
+- **`GetBarsAsync`** - Get aggregate OHLC (bar/candle) data for an options contract over a specified time range with configurable intervals
 
 ## Configuration Options
 
@@ -198,6 +199,20 @@ var tickers = await _polygonClient.ReferenceData.GetTickersAsync(
 // Check market status
 var status = await _polygonClient.ReferenceData.GetMarketStatusAsync();
 Console.WriteLine($"Market is {status.Market}");
+
+// Get option contract details
+var optionContract = await _polygonClient.Options.GetContractDetailsAsync("O:SPY251219C00650000");
+Console.WriteLine($"Strike: ${optionContract.Results.StrikePrice}, Expiration: {optionContract.Results.ExpirationDate}");
+
+// Get option bars (historical OHLC data)
+var optionBars = await _polygonClient.Options.GetBarsAsync(
+    optionsTicker: "O:SPY251219C00650000",
+    multiplier: 1,
+    timespan: AggregateInterval.Day,
+    from: "2023-01-09",
+    to: "2023-02-10"
+);
+Console.WriteLine($"Found {optionBars.Results?.Count} option bars");
 ```
 
 See [USAGE.md](USAGE.md) for detailed examples of all available API calls.

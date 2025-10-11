@@ -135,4 +135,30 @@ public interface IOptionsService
         string? sort = null,
         string? cursor = null,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Retrieves aggregate OHLC (bar/candle) data for an options contract over a specified time range.
+    /// Returns historical pricing data aggregated by the specified time interval, useful for charting and technical analysis.
+    /// Each bar contains open, high, low, close, volume, and volume-weighted average price for the specified time period.
+    /// </summary>
+    /// <param name="optionsTicker">The options ticker symbol in OCC format (e.g., "O:SPY251219C00650000"). The ticker must include the "O:" prefix followed by the underlying ticker, expiration date (YYMMDD), contract type (C for call, P for put), and strike price.</param>
+    /// <param name="multiplier">The number of timespan units to aggregate (e.g., 1 for 1 day, 5 for 5 minutes, 15 for 15 minutes).</param>
+    /// <param name="timespan">The size of the time window for each aggregate (e.g., minute, hour, day, week, month, quarter, year).</param>
+    /// <param name="from">Start date for the aggregate window in YYYY-MM-DD format.</param>
+    /// <param name="to">End date for the aggregate window in YYYY-MM-DD format.</param>
+    /// <param name="adjusted">Whether to adjust for splits. Defaults to true if not specified. Note that options contracts are not adjusted for underlying stock splits.</param>
+    /// <param name="sort">Sort order for results (asc for ascending, desc for descending by timestamp).</param>
+    /// <param name="limit">Limit the number of aggregate results returned. Maximum value varies by plan.</param>
+    /// <param name="cancellationToken">A cancellation token to cancel the operation.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains a response with a list of aggregate OHLC bars for the specified options contract, including ticker symbol, query metadata, and whether results are adjusted.</returns>
+    Task<PolygonResponse<List<OptionBar>>> GetBarsAsync(
+        string optionsTicker,
+        int multiplier,
+        AggregateInterval timespan,
+        string from,
+        string to,
+        bool? adjusted = null,
+        SortOrder? sort = null,
+        int? limit = null,
+        CancellationToken cancellationToken = default);
 }

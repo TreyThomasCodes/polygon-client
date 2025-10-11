@@ -132,4 +132,28 @@ public class OptionsService : IOptionsService
             cursor,
             cancellationToken);
     }
+
+    /// <inheritdoc />
+    public Task<PolygonResponse<List<OptionBar>>> GetBarsAsync(
+        string optionsTicker,
+        int multiplier,
+        AggregateInterval timespan,
+        string from,
+        string to,
+        bool? adjusted = null,
+        SortOrder? sort = null,
+        int? limit = null,
+        CancellationToken cancellationToken = default)
+    {
+        return _api.GetBarsAsync(
+            optionsTicker,
+            multiplier,
+            timespan,
+            from,
+            to,
+            adjusted,
+            sort,
+            limit,
+            cancellationToken);
+    }
 }

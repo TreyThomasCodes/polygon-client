@@ -1746,7 +1746,253 @@ Console.WriteLine($"\nRetrieved {allOptionTrades.Count} option trades");
 - Build time-and-sales data for options contracts
 - Analyze market microstructure and trade flow
 
-**Note:** Additional options endpoints for aggregates will be added in upcoming releases.
+#### GetBarsAsync - Get Historical Option Bars
+
+Retrieve aggregate OHLC (bar/candle) data for an options contract over a specified time range. Returns historical pricing data aggregated by the specified time interval, useful for charting and technical analysis.
+
+```csharp
+using TreyThomasCodes.Polygon.Models.Common;
+
+// Get daily bars for an SPY call option
+var dailyBars = await _client.Options.GetBarsAsync(
+    optionsTicker: "O:SPY251219C00650000",
+    multiplier: 1,
+    timespan: AggregateInterval.Day,
+    from: "2023-01-09",
+    to: "2023-02-10"
+);
+
+if (dailyBars.Results != null)
+{
+    Console.WriteLine($"Found {dailyBars.Results.Count} bars");
+    Console.WriteLine($"Ticker: {dailyBars.Ticker}");
+    Console.WriteLine($"Adjusted: {dailyBars.Adjusted}");
+
+    foreach (var bar in dailyBars.Results)
+    {
+        Console.WriteLine($"\nBar at {bar.Timestamp}:");
+        Console.WriteLine($"  Open: ${bar.Open}");
+        Console.WriteLine($"  High: ${bar.High}");
+        Console.WriteLine($"  Low: ${bar.Low}");
+        Console.WriteLine($"  Close: ${bar.Close}");
+        Console.WriteLine($"  Volume: {bar.Volume} contracts");
+        Console.WriteLine($"  VWAP: ${bar.VolumeWeightedAveragePrice}");
+        Console.WriteLine($"  Transactions: {bar.NumberOfTransactions}");
+
+        // Display market timestamp (converted to Eastern Time)
+        if (bar.MarketTimestamp.HasValue)
+        {
+            Console.WriteLine($"  Market time: {bar.MarketTimestamp.Value}");
+        }
+    }
+}
+
+// Get 5-minute intraday bars
+var intradayBars = await _client.Options.GetBarsAsync(
+    optionsTicker: "O:TSLA260320C00700000",
+    multiplier: 5,
+    timespan: AggregateInterval.Minute,
+    from: "2023-01-09",
+    to: "2023-01-10",
+    limit: 100
+);
+
+Console.WriteLine($"\n5-minute intraday bars:");
+foreach (var bar in intradayBars.Results ?? Enumerable.Empty<OptionBar>())
+{
+    Console.WriteLine($"{bar.MarketTimestamp}: O=${bar.Open}, H=${bar.High}, L=${bar.Low}, C=${bar.Close}, V={bar.Volume}");
+}
+
+// Get hourly bars
+var hourlyBars = await _client.Options.GetBarsAsync(
+    optionsTicker: "O:AAPL250117C00150000",
+    multiplier: 1,
+    timespan: AggregateInterval.Hour,
+    from: "2023-01-09",
+    to: "2023-01-13"
+);
+
+// Get weekly bars for long-term analysis
+var weeklyBars = await _client.Options.GetBarsAsync(
+    optionsTicker: "O:SPY251219C00650000",
+    multiplier: 1,
+    timespan: AggregateInterval.Week,
+    from: "2023-01-01",
+    to: "2023-03-31"
+);
+
+// With optional parameters
+var customBars = await _client.Options.GetBarsAsync(
+    optionsTicker: "O:SPY251219C00650000",
+    multiplier: 1,
+    timespan: AggregateInterval.Day,
+    from: "2023-01-09",
+    to: "2023-02-10",
+    adjusted: true,
+    sort: SortOrder.Ascending,
+    limit: 50
+);
+
+Console.WriteLine($"\nCustom bars with sorting and limit:");
+foreach (var bar in customBars.Results ?? Enumerable.Empty<OptionBar>())
+{
+    Console.WriteLine($"Date: {bar.MarketTimestamp}, Close: ${bar.Close}, Volume: {bar.Volume}");
+}
+
+// Example: Calculate price movement and volatility
+if (dailyBars.Results?.Count > 1)
+{
+    var firstBar = dailyBars.Results.First();
+    var lastBar = dailyBars.Results.Last();
+
+    if (firstBar.Close.HasValue && lastBar.Close.HasValue)
+    {
+        var priceChange = lastBar.Close.Value - firstBar.Close.Value;
+        var percentChange = (priceChange / firstBar.Close.Value) * 100;
+
+        Console.WriteLine($"\nPrice Movement Analysis:");
+        Console.WriteLine($"Start Price: ${firstBar.Close}");
+        Console.WriteLine($"End Price: ${lastBar.Close}");
+        Console.WriteLine($"Change: ${priceChange:F2} ({percentChange:F2}%)");
+    }
+
+    // Calculate average daily volume
+    var avgVolume = dailyBars.Results
+        .Where(b => b.Volume.HasValue)
+        .Average(b => (double)b.Volume!.Value);
+
+    Console.WriteLine($"Average Daily Volume: {avgVolume:F0} contracts");
+
+    // Calculate price volatility (standard deviation of daily returns)
+    var returns = new List<decimal>();
+    for (int i = 1; i < dailyBars.Results.Count; i++)
+    {
+        if (dailyBars.Results[i].Close.HasValue && dailyBars.Results[i - 1].Close.HasValue)
+        {
+            var dailyReturn = (dailyBars.Results[i].Close!.Value - dailyBars.Results[i - 1].Close!.Value)
+                            / dailyBars.Results[i - 1].Close!.Value;
+            returns.Add(dailyReturn);
+        }
+    }
+
+    if (returns.Count > 0)
+    {
+        var avgReturn = returns.Average();
+        var variance = returns.Sum(r => Math.Pow((double)(r - avgReturn), 2)) / returns.Count;
+        var stdDev = Math.Sqrt(variance);
+
+        Console.WriteLine($"\nVolatility Analysis:");
+        Console.WriteLine($"Avg Daily Return: {avgReturn:P2}");
+        Console.WriteLine($"Std Dev: {stdDev:P2}");
+        Console.WriteLine($"Annualized Volatility: {stdDev * Math.Sqrt(252):P2}");
+    }
+}
+
+// Example: Find highest and lowest prices
+if (dailyBars.Results?.Count > 0)
+{
+    var highestBar = dailyBars.Results
+        .Where(b => b.High.HasValue)
+        .OrderByDescending(b => b.High!.Value)
+        .FirstOrDefault();
+
+    var lowestBar = dailyBars.Results
+        .Where(b => b.Low.HasValue)
+        .OrderBy(b => b.Low!.Value)
+        .FirstOrDefault();
+
+    Console.WriteLine($"\nPrice Range:");
+    Console.WriteLine($"Highest: ${highestBar?.High} on {highestBar?.MarketTimestamp}");
+    Console.WriteLine($"Lowest: ${lowestBar?.Low} on {lowestBar?.MarketTimestamp}");
+}
+
+// Example: Calculate total trading volume
+if (dailyBars.Results?.Count > 0)
+{
+    var totalVolume = dailyBars.Results
+        .Where(b => b.Volume.HasValue)
+        .Sum(b => (decimal)b.Volume!.Value);
+
+    var avgVwap = dailyBars.Results
+        .Where(b => b.VolumeWeightedAveragePrice.HasValue && b.Volume.HasValue)
+        .Sum(b => b.VolumeWeightedAveragePrice!.Value * b.Volume!.Value) / totalVolume;
+
+    Console.WriteLine($"\nTrading Statistics:");
+    Console.WriteLine($"Total Volume: {totalVolume} contracts");
+    Console.WriteLine($"Average VWAP: ${avgVwap:F2}");
+}
+
+// Example: Compare multiple option contracts
+var strikes = new[] { "O:SPY251219C00600000", "O:SPY251219C00650000", "O:SPY251219C00700000" };
+
+Console.WriteLine($"\nComparing Multiple Strikes:");
+foreach (var strike in strikes)
+{
+    var bars = await _client.Options.GetBarsAsync(
+        optionsTicker: strike,
+        multiplier: 1,
+        timespan: AggregateInterval.Day,
+        from: "2023-01-09",
+        to: "2023-02-10"
+    );
+
+    if (bars.Results?.Count > 0)
+    {
+        var lastBar = bars.Results.Last();
+        var avgVolume = bars.Results.Average(b => (double)(b.Volume ?? 0));
+
+        Console.WriteLine($"\n{bars.Ticker}:");
+        Console.WriteLine($"  Last Close: ${lastBar.Close}");
+        Console.WriteLine($"  Avg Volume: {avgVolume:F0} contracts");
+        Console.WriteLine($"  Bars: {bars.Results.Count}");
+    }
+}
+```
+
+**Parameters:**
+- `optionsTicker` (required) - The options ticker symbol in OCC format (e.g., "O:SPY251219C00650000"). Must include the "O:" prefix.
+- `multiplier` (required) - The number of timespan units to aggregate (e.g., 1 for 1 day, 5 for 5 minutes, 15 for 15 minutes)
+- `timespan` (required) - The size of the time window for each aggregate (minute, hour, day, week, month, quarter, year)
+- `from` (required) - Start date for the aggregate window in YYYY-MM-DD format
+- `to` (required) - End date for the aggregate window in YYYY-MM-DD format
+- `adjusted` (optional) - Whether to adjust for splits. Defaults to true if not specified. Note that options contracts are not typically adjusted for underlying stock splits.
+- `sort` (optional) - Sort order for results (asc for ascending, desc for descending by timestamp)
+- `limit` (optional) - Limit the number of aggregate results returned. Maximum value varies by plan.
+
+**Response:** Returns a `PolygonResponse<List<OptionBar>>` containing:
+- A list of option bars with the following properties per bar:
+  - `Volume` - The number of contracts traded during the aggregate window
+  - `VolumeWeightedAveragePrice` - The average price weighted by volume
+  - `Open` - The opening price for the time period
+  - `Close` - The closing price for the time period
+  - `High` - The highest price reached during the time period
+  - `Low` - The lowest price reached during the time period
+  - `Timestamp` - The timestamp for the start of the aggregate window (milliseconds since Unix epoch)
+  - `NumberOfTransactions` - The count of individual trades aggregated into this bar
+  - `MarketTimestamp` - Computed property that converts the timestamp to Eastern Time
+- Response metadata including:
+  - `Ticker` - The options ticker symbol
+  - `QueryCount` - Number of queries made
+  - `ResultsCount` - Number of results returned
+  - `Adjusted` - Whether the results are adjusted
+  - `Count` - Total count of results
+  - `Status` - Response status ("OK" for success)
+  - `RequestId` - Unique request identifier
+
+**Use Cases:**
+- Build candlestick charts for options contracts
+- Analyze historical price movements and trends
+- Calculate technical indicators (moving averages, Bollinger Bands, etc.)
+- Monitor options premium changes over time
+- Compare price action across different strike prices or expirations
+- Identify support and resistance levels
+- Calculate historical volatility from price bars
+- Backtest options trading strategies
+- Track volume patterns and liquidity
+- Analyze intraday trading patterns with minute or hour bars
+- Monitor long-term trends with weekly or monthly bars
+
+**Note:** For real-time or near real-time data, consider using the GetTradesAsync or GetQuotesAsync endpoints. The bars endpoint provides aggregated historical data which is ideal for charting and technical analysis.
 
 ## Common Patterns
 
