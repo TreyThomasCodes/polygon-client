@@ -168,4 +168,18 @@ public interface IPolygonOptionsApi
         [Query] SortOrder? sort = null,
         [Query] int? limit = null,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Retrieves the daily open, high, low, close (OHLC) summary for a specific options contract on a given date.
+    /// Returns comprehensive daily trading data including opening and closing prices, high and low prices, trading volume, and pre-market and after-hours prices.
+    /// </summary>
+    /// <param name="optionsTicker">The options ticker symbol in OCC format (e.g., "O:SPY251219C00650000"). The ticker must include the "O:" prefix followed by the underlying ticker, expiration date (YYMMDD), contract type (C for call, P for put), and strike price.</param>
+    /// <param name="date">The date of the requested daily data in YYYY-MM-DD format (e.g., "2023-01-09").</param>
+    /// <param name="cancellationToken">A cancellation token to cancel the operation.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains the daily OHLC summary including status, date, symbol, open, high, low, close prices, trading volume, pre-market price, and after-hours price for the specified options contract and date.</returns>
+    [Get("/v1/open-close/{optionsTicker}/{date}")]
+    Task<OptionDailyOpenClose> GetDailyOpenCloseAsync(
+        string optionsTicker,
+        string date,
+        CancellationToken cancellationToken = default);
 }

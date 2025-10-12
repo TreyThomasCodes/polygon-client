@@ -156,4 +156,13 @@ public class OptionsService : IOptionsService
             limit,
             cancellationToken);
     }
+
+    /// <inheritdoc />
+    public Task<OptionDailyOpenClose> GetDailyOpenCloseAsync(
+        string optionsTicker,
+        string date,
+        CancellationToken cancellationToken = default)
+    {
+        return _api.GetDailyOpenCloseAsync(optionsTicker, date, cancellationToken);
+    }
 }

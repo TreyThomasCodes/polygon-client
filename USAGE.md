@@ -1994,6 +1994,149 @@ foreach (var strike in strikes)
 
 **Note:** For real-time or near real-time data, consider using the GetTradesAsync or GetQuotesAsync endpoints. The bars endpoint provides aggregated historical data which is ideal for charting and technical analysis.
 
+#### GetDailyOpenCloseAsync - Get Daily Open/Close Summary
+
+Retrieve the daily open, high, low, close (OHLC) summary for a specific options contract on a given date. Returns comprehensive daily trading data including pre-market and after-hours prices.
+
+```csharp
+// Get daily open/close data for an SPY call option
+var dailyData = await _client.Options.GetDailyOpenCloseAsync(
+    optionsTicker: "O:SPY251219C00650000",
+    date: "2023-01-09"
+);
+
+if (dailyData != null)
+{
+    Console.WriteLine($"Symbol: {dailyData.Symbol}");
+    Console.WriteLine($"Date: {dailyData.From}");
+    Console.WriteLine($"\nDaily Summary:");
+    Console.WriteLine($"  Open: ${dailyData.Open}");
+    Console.WriteLine($"  High: ${dailyData.High}");
+    Console.WriteLine($"  Low: ${dailyData.Low}");
+    Console.WriteLine($"  Close: ${dailyData.Close}");
+    Console.WriteLine($"  Volume: {dailyData.Volume} contracts");
+
+    if (dailyData.PreMarket.HasValue)
+    {
+        Console.WriteLine($"  Pre-Market: ${dailyData.PreMarket}");
+    }
+
+    if (dailyData.AfterHours.HasValue)
+    {
+        Console.WriteLine($"  After-Hours: ${dailyData.AfterHours}");
+    }
+
+    // Calculate daily price change
+    if (dailyData.Open.HasValue && dailyData.Close.HasValue)
+    {
+        var change = dailyData.Close.Value - dailyData.Open.Value;
+        var changePercent = (change / dailyData.Open.Value) * 100;
+        Console.WriteLine($"\nDaily Change: ${change:F2} ({changePercent:F2}%)");
+    }
+
+    // Calculate trading range
+    if (dailyData.High.HasValue && dailyData.Low.HasValue)
+    {
+        var range = dailyData.High.Value - dailyData.Low.Value;
+        Console.WriteLine($"Trading Range: ${range:F2}");
+    }
+}
+
+// Get daily data for a put option
+var putDailyData = await _client.Options.GetDailyOpenCloseAsync(
+    optionsTicker: "O:AAPL250117P00150000",
+    date: "2023-01-15"
+);
+
+if (putDailyData != null)
+{
+    Console.WriteLine($"\n{putDailyData.Symbol} Daily Summary:");
+    Console.WriteLine($"Open to Close: ${putDailyData.Open} → ${putDailyData.Close}");
+    Console.WriteLine($"Range: ${putDailyData.Low} - ${putDailyData.High}");
+    Console.WriteLine($"Volume: {putDailyData.Volume} contracts");
+}
+
+// Example: Track daily option premium changes
+var dates = new[] { "2023-01-09", "2023-01-10", "2023-01-11", "2023-01-12", "2023-01-13" };
+var optionTicker = "O:TSLA260320C00700000";
+
+Console.WriteLine("\nDaily Premium Tracking:");
+foreach (var date in dates)
+{
+    try
+    {
+        var daily = await _client.Options.GetDailyOpenCloseAsync(optionTicker, date);
+
+        if (daily != null)
+        {
+            Console.WriteLine($"{date}: Open=${daily.Open}, Close=${daily.Close}, " +
+                            $"Volume={daily.Volume}");
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"{date}: No data available ({ex.Message})");
+    }
+}
+
+// Example: Compare pre-market, regular hours, and after-hours trading
+var compareData = await _client.Options.GetDailyOpenCloseAsync(
+    optionsTicker: "O:SPY251219C00650000",
+    date: "2023-01-09"
+);
+
+if (compareData != null)
+{
+    Console.WriteLine("\nTrading Session Analysis:");
+
+    if (compareData.PreMarket.HasValue && compareData.Open.HasValue)
+    {
+        var preMarketMove = compareData.Open.Value - compareData.PreMarket.Value;
+        Console.WriteLine($"Pre-Market → Open: ${preMarketMove:F2}");
+    }
+
+    if (compareData.Open.HasValue && compareData.Close.HasValue)
+    {
+        var regularHoursMove = compareData.Close.Value - compareData.Open.Value;
+        Console.WriteLine($"Open → Close: ${regularHoursMove:F2}");
+    }
+
+    if (compareData.Close.HasValue && compareData.AfterHours.HasValue)
+    {
+        var afterHoursMove = compareData.AfterHours.Value - compareData.Close.Value;
+        Console.WriteLine($"Close → After-Hours: ${afterHoursMove:F2}");
+    }
+}
+```
+
+**Parameters:**
+- `optionsTicker` (required) - The options ticker symbol in OCC format (e.g., "O:SPY251219C00650000"). Must include the "O:" prefix.
+- `date` (required) - The date of the requested daily data in YYYY-MM-DD format (e.g., "2023-01-09")
+
+**Response:** Returns an `OptionDailyOpenClose` object containing:
+- `Status` - Response status ("OK" for success)
+- `From` - The date for this daily summary in YYYY-MM-DD format
+- `Symbol` - The options contract ticker symbol in OCC format
+- `Open` - The opening price for the trading day
+- `High` - The highest price reached during the trading day
+- `Low` - The lowest price reached during the trading day
+- `Close` - The closing price for the trading day
+- `Volume` - The total trading volume for the day (number of contracts)
+- `PreMarket` - The last trade price from the pre-market trading session
+- `AfterHours` - The last trade price from the after-hours trading session
+
+**Use Cases:**
+- Get a quick daily snapshot of an options contract's performance
+- Track daily premium changes for specific options
+- Analyze pre-market and after-hours trading activity
+- Calculate daily price changes and ranges
+- Monitor daily volume for liquidity assessment
+- Compare multiple days of daily summaries for trend analysis
+- Verify daily high/low levels for technical analysis
+- Track options during earnings announcements or major events
+
+**Note:** This endpoint provides a summary of the entire trading day in a single response. For more granular intraday data, use the GetBarsAsync endpoint with minute or hour intervals.
+
 ## Common Patterns
 
 ### Error Handling
