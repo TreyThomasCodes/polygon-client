@@ -20,4 +20,10 @@ public interface IPolygonClient
     /// Provides access to market trading status, exchange information, and other metadata.
     /// </summary>
     IReferenceDataService ReferenceData { get; }
+
+    /// <summary>
+    /// Gets the options service for accessing options contract data and market information.
+    /// Provides access to options trades, quotes, snapshots, and aggregates for options contracts.
+    /// </summary>
+    IOptionsService Options { get; }
 }
