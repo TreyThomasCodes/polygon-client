@@ -1994,6 +1994,99 @@ foreach (var strike in strikes)
 
 **Note:** For real-time or near real-time data, consider using the GetTradesAsync or GetQuotesAsync endpoints. The bars endpoint provides aggregated historical data which is ideal for charting and technical analysis.
 
+#### GetPreviousDayBarAsync - Get Previous Trading Day Bar
+
+Retrieve the previous trading day's OHLC bar data for a specific options contract. Returns the most recent completed trading session's open, high, low, close, volume, and volume-weighted average price data. This is useful for calculating daily price changes and percentage movements.
+
+```csharp
+// Get previous day bar data for an SPY call option
+var previousDayBar = await _client.Options.GetPreviousDayBarAsync(
+    optionsTicker: "O:SPY251219C00650000"
+);
+
+if (previousDayBar?.Results != null && previousDayBar.Results.Count > 0)
+{
+    var bar = previousDayBar.Results[0];
+    Console.WriteLine($"Ticker: {previousDayBar.Ticker}");
+    Console.WriteLine($"Adjusted: {previousDayBar.Adjusted}");
+    Console.WriteLine($"\nPrevious Day Summary:");
+    Console.WriteLine($"  Open: ${bar.Open}");
+    Console.WriteLine($"  High: ${bar.High}");
+    Console.WriteLine($"  Low: ${bar.Low}");
+    Console.WriteLine($"  Close: ${bar.Close}");
+    Console.WriteLine($"  Volume: {bar.Volume} contracts");
+    Console.WriteLine($"  VWAP: ${bar.VolumeWeightedAveragePrice}");
+    Console.WriteLine($"  Transactions: {bar.NumberOfTransactions}");
+
+    // Calculate daily price change
+    if (bar.Open.HasValue && bar.Close.HasValue)
+    {
+        var change = bar.Close.Value - bar.Open.Value;
+        var changePercent = (change / bar.Open.Value) * 100;
+        Console.WriteLine($"\nDaily Change: ${change:F2} ({changePercent:F2}%)");
+    }
+
+    // Convert timestamp to readable date
+    if (bar.MarketTimestamp.HasValue)
+    {
+        Console.WriteLine($"Date: {bar.MarketTimestamp.Value.ToString("yyyy-MM-dd", null)}");
+    }
+}
+
+// Get previous day bar data with adjusted parameter
+var adjustedBar = await _client.Options.GetPreviousDayBarAsync(
+    optionsTicker: "O:AAPL250117P00150000",
+    adjusted: true
+);
+
+if (adjustedBar?.Results != null && adjustedBar.Results.Count > 0)
+{
+    var bar = adjustedBar.Results[0];
+    Console.WriteLine($"\n{adjustedBar.Ticker} Previous Day:");
+    Console.WriteLine($"Close: ${bar.Close} | Volume: {bar.Volume} | VWAP: ${bar.VolumeWeightedAveragePrice}");
+}
+
+// Example: Compare multiple options contracts
+var optionTickers = new[]
+{
+    "O:SPY251219C00650000",
+    "O:SPY251219C00700000",
+    "O:SPY251219C00750000"
+};
+
+Console.WriteLine("\nPrevious Day Performance Comparison:");
+foreach (var ticker in optionTickers)
+{
+    try
+    {
+        var previousDay = await _client.Options.GetPreviousDayBarAsync(ticker);
+
+        if (previousDay?.Results != null && previousDay.Results.Count > 0)
+        {
+            var bar = previousDay.Results[0];
+            if (bar.Open.HasValue && bar.Close.HasValue)
+            {
+                var changePercent = ((bar.Close.Value - bar.Open.Value) / bar.Open.Value) * 100;
+                Console.WriteLine($"{ticker}: {changePercent:F2}% | Vol: {bar.Volume}");
+            }
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"{ticker}: Error - {ex.Message}");
+    }
+}
+```
+
+**Common Use Cases:**
+- Calculate daily price changes for options contracts
+- Monitor previous day's trading activity
+- Compare performance across multiple strike prices or expirations
+- Quick access to yesterday's closing prices for algorithmic trading
+- Track volume and liquidity from the previous trading session
+
+**Note:** This endpoint returns the most recent completed trading day's data. For specific historical dates, use GetDailyOpenCloseAsync instead.
+
 #### GetDailyOpenCloseAsync - Get Daily Open/Close Summary
 
 Retrieve the daily open, high, low, close (OHLC) summary for a specific options contract on a given date. Returns comprehensive daily trading data including pre-market and after-hours prices.

@@ -156,6 +156,7 @@ Accessed via `IPolygonClient.Options`
 - **`GetQuotesAsync`** - Get historical bid/ask quote data for a specific options contract with time-based filtering and pagination
 - **`GetTradesAsync`** - Get historical trade data for a specific options contract with time-based filtering and pagination
 - **`GetBarsAsync`** - Get aggregate OHLC (bar/candle) data for an options contract over a specified time range with configurable intervals
+- **`GetPreviousDayBarAsync`** - Get the previous trading day's OHLC bar data for a specific options contract
 - **`GetDailyOpenCloseAsync`** - Get daily open, high, low, close summary for a specific options contract including pre-market and after-hours prices
 
 ## Configuration Options

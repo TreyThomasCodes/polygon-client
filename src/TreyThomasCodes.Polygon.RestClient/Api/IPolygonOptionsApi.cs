@@ -182,4 +182,19 @@ public interface IPolygonOptionsApi
         string optionsTicker,
         string date,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Retrieves the previous trading day's OHLC data for a specific options contract.
+    /// Returns the most recent completed trading session's open, high, low, close, volume, and volume-weighted average price data.
+    /// This is useful for calculating daily price changes and percentage movements for options contracts.
+    /// </summary>
+    /// <param name="optionsTicker">The options ticker symbol in OCC format (e.g., "O:SPY251219C00650000"). The ticker must include the "O:" prefix followed by the underlying ticker, expiration date (YYMMDD), contract type (C for call, P for put), and strike price.</param>
+    /// <param name="adjusted">Whether to adjust for underlying stock splits. Defaults to true if not specified. Note that options contracts themselves are not adjusted for splits, but this parameter affects how the underlying asset's price changes are reflected.</param>
+    /// <param name="cancellationToken">A cancellation token to cancel the operation.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains a response with the previous trading day's OHLC bar data including open, high, low, close prices, trading volume, volume-weighted average price, timestamp, and number of transactions.</returns>
+    [Get("/v2/aggs/ticker/{optionsTicker}/prev")]
+    Task<PolygonResponse<List<OptionBar>>> GetPreviousDayBarAsync(
+        string optionsTicker,
+        [Query] bool? adjusted = null,
+        CancellationToken cancellationToken = default);
 }

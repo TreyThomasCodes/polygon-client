@@ -165,4 +165,13 @@ public class OptionsService : IOptionsService
     {
         return _api.GetDailyOpenCloseAsync(optionsTicker, date, cancellationToken);
     }
+
+    /// <inheritdoc />
+    public Task<PolygonResponse<List<OptionBar>>> GetPreviousDayBarAsync(
+        string optionsTicker,
+        bool? adjusted = null,
+        CancellationToken cancellationToken = default)
+    {
+        return _api.GetPreviousDayBarAsync(optionsTicker, adjusted, cancellationToken);
+    }
 }
