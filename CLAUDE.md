@@ -51,10 +51,16 @@ The client uses a layered architecture:
    - `IPolygonClient` - Main facade providing access to all services
    - `IStocksService`, `IReferenceDataService`, `IOptionsService` - Domain-specific services
 
-3. **Configuration** (`/Configuration/`) - Options pattern for settings
+3. **Extensions Layer** (`/Extensions/`) - Extension methods for enhanced usability
+   - `OptionsServiceExtensions` - Extension methods for `IOptionsService` providing:
+     - Component-based methods (e.g., `GetContractByComponentsAsync`, `GetSnapshotByComponentsAsync`, `GetLastTradeByComponentsAsync`, `GetBarsByComponentsAsync`)
+     - OptionsTicker-based overloads for all major Options API calls
+     - Discovery helpers (`GetAvailableStrikesAsync`, `GetExpirationDatesAsync`)
+
+4. **Configuration** (`/Configuration/`) - Options pattern for settings
    - `PolygonOptions` - API key, base URL, timeout, retry settings
 
-4. **Authentication** (`/Authentication/`) - HTTP message handlers
+5. **Authentication** (`/Authentication/`) - HTTP message handlers
    - `PolygonAuthenticationHandler` - Adds API key to requests
 
 ### Dependency Injection Setup
@@ -81,6 +87,14 @@ Registration is handled through `ServiceCollectionExtensions.AddPolygonClient()`
 - Contains strongly-typed models for all API responses
 - Uses `PolygonResponse<T>` as generic wrapper
 - Targets .NET 8 and .NET 9
+- **Options Ticker Helpers** (`/Options/`)
+  - `OptionType` - Enum for Call and Put option types
+  - `OptionsTicker` - Class for creating, parsing, and validating OCC format options tickers
+    - Static methods: `Create()`, `Parse()`, `TryParse()`
+    - Instance methods: `ToString()`, `Equals()`, `GetHashCode()`
+    - Properties: `Underlying`, `ExpirationDate`, `Type`, `Strike`
+  - `OptionsTickerBuilder` - Fluent builder for constructing options tickers
+    - Methods: `WithUnderlying()`, `WithExpiration()`, `AsCall()`, `AsPut()`, `WithType()`, `WithStrike()`, `Build()`, `BuildTicker()`, `Reset()`
 
 ### Testing Structure
 - **TreyThomasCodes.Polygon.Models.Tests** - Unit tests for models using XUnit

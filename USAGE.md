@@ -796,6 +796,206 @@ if (optionContract.Results != null && stockSnapshot.Ticker?.LastTrade?.Price != 
 - `C` - Call option
 - `00650000` - Strike price ($650.00)
 
+### Options Ticker Construction Helpers
+
+Working with OCC format options tickers can be complex and error-prone. The library provides helper classes and extension methods to simplify ticker construction and API calls.
+
+#### OptionsTicker Class - Create and Parse Tickers
+
+The `OptionsTicker` class provides static factory methods for creating and parsing OCC format ticker strings.
+
+```csharp
+using TreyThomasCodes.Polygon.Models.Options;
+
+// Create a ticker from components
+string callTicker = OptionsTicker.Create(
+    underlying: "UBER",
+    expirationDate: new DateTime(2022, 1, 21),
+    type: OptionType.Call,
+    strike: 50m
+);
+Console.WriteLine(callTicker); // Output: O:UBER220121C00050000
+
+// Create a put option ticker
+string putTicker = OptionsTicker.Create(
+    underlying: "F",
+    expirationDate: new DateTime(2021, 11, 19),
+    type: OptionType.Put,
+    strike: 14m
+);
+Console.WriteLine(putTicker); // Output: O:F211119P00014000
+
+// Parse an existing ticker into components
+var parsed = OptionsTicker.Parse("O:UBER220121C00050000");
+Console.WriteLine($"Underlying: {parsed.Underlying}");      // UBER
+Console.WriteLine($"Expiration: {parsed.ExpirationDate}");  // 2022-01-21
+Console.WriteLine($"Type: {parsed.Type}");                  // Call
+Console.WriteLine($"Strike: ${parsed.Strike}");             // 50
+
+// Try parsing with validation
+if (OptionsTicker.TryParse("O:SPY251219C00650000", out var ticker))
+{
+    Console.WriteLine($"Successfully parsed: Strike ${ticker.Strike}");
+}
+else
+{
+    Console.WriteLine("Invalid ticker format");
+}
+
+// Create OptionsTicker instance and convert to string
+var tickerObj = new OptionsTicker("SPY", new DateTime(2025, 12, 19), OptionType.Call, 650m);
+string formattedTicker = tickerObj.ToString(); // O:SPY251219C00650000
+```
+
+#### OptionsTickerBuilder - Fluent API
+
+The `OptionsTickerBuilder` class provides a fluent, discoverable API for building options tickers.
+
+```csharp
+using TreyThomasCodes.Polygon.Models.Options;
+
+// Build a call option ticker using fluent API
+var callTicker = new OptionsTickerBuilder()
+    .WithUnderlying("SPY")
+    .WithExpiration(2025, 12, 19)
+    .AsCall()
+    .WithStrike(650m)
+    .Build();
+Console.WriteLine(callTicker); // O:SPY251219C00650000
+
+// Build a put option ticker
+var putTicker = new OptionsTickerBuilder()
+    .WithUnderlying("TSLA")
+    .WithExpiration(new DateTime(2026, 3, 20))
+    .AsPut()
+    .WithStrike(700m)
+    .Build();
+Console.WriteLine(putTicker); // O:TSLA260320P00700000
+
+// Build and get OptionsTicker object instead of string
+var tickerObject = new OptionsTickerBuilder()
+    .WithUnderlying("AAPL")
+    .WithExpiration(2025, 1, 17)
+    .WithType(OptionType.Put)
+    .WithStrike(150m)
+    .BuildTicker(); // Returns OptionsTicker instance
+
+// Reuse builder with Reset()
+var builder = new OptionsTickerBuilder();
+
+var ticker1 = builder
+    .WithUnderlying("NVDA")
+    .WithExpiration(2025, 6, 20)
+    .AsCall()
+    .WithStrike(800m)
+    .Build();
+
+builder.Reset();
+
+var ticker2 = builder
+    .WithUnderlying("AMZN")
+    .WithExpiration(2025, 9, 19)
+    .AsPut()
+    .WithStrike(180m)
+    .Build();
+```
+
+#### Extension Methods - Simplified API Calls
+
+The library provides extension methods that accept components or `OptionsTicker` objects directly, eliminating the need to manually construct ticker strings.
+
+```csharp
+using TreyThomasCodes.Polygon.RestClient.Extensions;
+using TreyThomasCodes.Polygon.Models.Options;
+using TreyThomasCodes.Polygon.Models.Common;
+
+// Method 1: Use components directly
+var contract = await _client.Options.GetContractByComponentsAsync(
+    underlying: "UBER",
+    expirationDate: new DateTime(2022, 1, 21),
+    type: OptionType.Call,
+    strike: 50m
+);
+
+var snapshot = await _client.Options.GetSnapshotByComponentsAsync(
+    underlying: "SPY",
+    expirationDate: new DateTime(2025, 12, 19),
+    type: OptionType.Call,
+    strike: 650m
+);
+
+var lastTrade = await _client.Options.GetLastTradeByComponentsAsync(
+    underlying: "TSLA",
+    expirationDate: new DateTime(2026, 3, 20),
+    type: OptionType.Call,
+    strike: 700m
+);
+
+var bars = await _client.Options.GetBarsByComponentsAsync(
+    underlying: "SPY",
+    expirationDate: new DateTime(2025, 12, 19),
+    type: OptionType.Call,
+    strike: 650m,
+    multiplier: 1,
+    timespan: AggregateInterval.Day,
+    from: "2025-11-01",
+    to: "2025-11-30"
+);
+
+// Method 2: Use OptionsTicker objects for reusability
+var ticker = OptionsTicker.Parse("O:SPY251219C00650000");
+
+// All major options API calls support OptionsTicker objects
+var contractDetails = await _client.Options.GetContractDetailsAsync(ticker);
+var marketSnapshot = await _client.Options.GetSnapshotAsync(ticker);
+var trade = await _client.Options.GetLastTradeAsync(ticker);
+var quotes = await _client.Options.GetQuotesAsync(ticker, timestamp: "2024-12-01", limit: 100);
+var trades = await _client.Options.GetTradesAsync(ticker, timestamp: "2021-09-03", limit: 100);
+var dailyBars = await _client.Options.GetBarsAsync(ticker, 1, AggregateInterval.Day, "2025-11-01", "2025-11-30");
+var dailyOHLC = await _client.Options.GetDailyOpenCloseAsync(ticker, "2023-01-09");
+var previousDay = await _client.Options.GetPreviousDayBarAsync(ticker);
+
+// Method 3: Helper methods for discovery
+// Discover available strike prices for an underlying
+var strikes = await _client.Options.GetAvailableStrikesAsync(
+    underlying: "SPY",
+    type: OptionType.Call,
+    expirationDateGte: "2025-12-01",
+    expirationDateLte: "2025-12-31"
+);
+
+foreach (var strike in strikes)
+{
+    Console.WriteLine($"Available strike: ${strike}");
+}
+
+// Discover available expiration dates
+var expirations = await _client.Options.GetExpirationDatesAsync(
+    underlying: "UBER",
+    type: OptionType.Put,
+    strikePrice: 50m  // Optional: filter by specific strike
+);
+
+foreach (var expiration in expirations)
+{
+    Console.WriteLine($"Available expiration: {expiration:yyyy-MM-dd}");
+}
+
+// Discover expiration dates for a specific strike
+var expirationsForStrike = await _client.Options.GetExpirationDatesAsync(
+    underlying: "AAPL",
+    type: OptionType.Call,
+    strikePrice: 180m
+);
+```
+
+**Benefits of Using Helpers:**
+- **Type Safety** - Compile-time validation of parameters
+- **Validation** - Automatic validation of ticker components (e.g., strike price can't be negative)
+- **Readability** - Clear, self-documenting code
+- **Flexibility** - Choose between string tickers, components, or OptionsTicker objects
+- **Discovery** - Find available strikes and expiration dates without manual API exploration
+
 ### Options Market Data
 
 #### GetSnapshotAsync - Get Options Contract Snapshot
