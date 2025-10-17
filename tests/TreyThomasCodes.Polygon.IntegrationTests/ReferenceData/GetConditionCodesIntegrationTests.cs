@@ -1,60 +1,26 @@
 // Copyright 2025 Trey Thomas
 // SPDX-License-Identifier: MPL-2.0
 
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using TreyThomasCodes.Polygon.RestClient.Extensions;
-using TreyThomasCodes.Polygon.RestClient.Services;
-using TreyThomasCodes.Polygon.Models.Reference;
 using TreyThomasCodes.Polygon.Models.Common;
+using TreyThomasCodes.Polygon.Models.Reference;
 
-namespace TreyThomasCodes.Polygon.IntegrationTests;
+namespace TreyThomasCodes.Polygon.IntegrationTests.ReferenceData;
 
 /// <summary>
 /// Integration tests for fetching condition codes data from Polygon.io.
 /// These tests verify the client library functionality, not the API itself.
 /// </summary>
-public class ConditionCodesIntegrationTests : IDisposable
+public class GetConditionCodesIntegrationTests : IntegrationTestBase
 {
-    private readonly IHost _host;
-    private readonly IPolygonClient _polygonClient;
-    private readonly string _apiKey;
-    private bool disposedValue;
-
-    /// <summary>
-    /// Initializes a new instance of the ConditionCodesIntegrationTests class.
-    /// Sets up the host with dependency injection and Polygon client configuration.
-    /// </summary>
-    public ConditionCodesIntegrationTests()
-    {
-        var builder = Host.CreateApplicationBuilder();
-        builder.Configuration.AddUserSecrets<ConditionCodesIntegrationTests>();
-        var apiKey = builder.Configuration["Polygon:ApiKey"];
-
-        // Skip all tests in this class if no API key is configured
-        Assert.SkipUnless(!string.IsNullOrEmpty(apiKey), "Polygon API key not configured in user secrets. Use: dotnet user-secrets set \"Polygon:ApiKey\" \"your-api-key-here\"");
-
-        _apiKey = apiKey!; // Safe to use ! since we skip if null or empty
-
-        builder.Services.AddPolygonClient(options =>
-        {
-            options.ApiKey = _apiKey;
-        });
-
-        _host = builder.Build();
-        _polygonClient = _host.Services.GetRequiredService<IPolygonClient>();
-    }
-
     /// <summary>
     /// Tests fetching condition codes from Polygon.io with stocks asset class filter.
     /// Verifies that the client can successfully call the endpoint and deserialize the response.
     /// </summary>
     [Fact]
-    public async Task GetConditionCodes_WithStocksFilter_ShouldReturnValidResponse()
+    public async Task GetConditionCodesAsync_WithStocksFilter_ShouldReturnValidResponse()
     {
         // Arrange
-        var referenceDataService = _polygonClient.ReferenceData;
+        var referenceDataService = PolygonClient.ReferenceData;
 
         // Act
         var conditionCodesResponse = await referenceDataService.GetConditionCodesAsync(
@@ -76,10 +42,10 @@ public class ConditionCodesIntegrationTests : IDisposable
     /// Verifies that the client correctly deserializes all response properties.
     /// </summary>
     [Fact]
-    public async Task GetConditionCodes_ShouldHaveCorrectDataTypes()
+    public async Task GetConditionCodesAsync_ShouldHaveCorrectDataTypes()
     {
         // Arrange
-        var referenceDataService = _polygonClient.ReferenceData;
+        var referenceDataService = PolygonClient.ReferenceData;
 
         // Act
         var conditionCodesResponse = await referenceDataService.GetConditionCodesAsync(
@@ -103,25 +69,5 @@ public class ConditionCodesIntegrationTests : IDisposable
         Assert.IsType<SipMapping>(firstCode.SipMapping);
         Assert.IsType<UpdateRules>(firstCode.UpdateRules);
         Assert.IsType<List<string>>(firstCode.DataTypes);
-    }
-
-    protected virtual void Dispose(bool disposing)
-    {
-        if (!disposedValue)
-        {
-            if (disposing)
-            {
-                _host.Dispose();
-            }
-
-            disposedValue = true;
-        }
-    }
-
-    public void Dispose()
-    {
-        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        Dispose(disposing: true);
-        GC.SuppressFinalize(this);
     }
 }

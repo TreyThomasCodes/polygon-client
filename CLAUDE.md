@@ -98,11 +98,20 @@ Registration is handled through `ServiceCollectionExtensions.AddPolygonClient()`
 
 ### Testing Structure
 - **TreyThomasCodes.Polygon.Models.Tests** - Unit tests for models using XUnit
-- **TreyThomasCodes.Polygon.RestClient.Tests** - Unit tests for REST client services
+  - `/Json/` - JSON converter tests
+  - `/Options/` - Options ticker and builder tests
+  - `/Reference/` - Reference data model tests
+  - `/Stocks/` - Stock data model tests
+- **TreyThomasCodes.Polygon.RestClient.Tests** - Unit tests for REST client services, organized by service and method
+  - `/Authentication/` - Authentication handler tests
+  - `/Services/Options/` - Options service tests split by method (GetBars, GetChainSnapshot, GetContractDetails, GetDailyOpenClose, GetLastTrade, GetPreviousDayBar, GetQuotes, GetSnapshot, GetTrades)
+  - `/Services/ReferenceData/` - Reference data service tests split by method (GetConditionCodes, GetExchanges, GetMarketStatus, GetTickerTypes)
+  - `/Services/Stocks/` - Stocks service tests split by method (GetLastQuote, GetLastTrade, GetSnapshot)
 - **TreyThomasCodes.Polygon.IntegrationTests** - Integration tests for complete API workflows
 - **TreyThomasCodes.Polygon.TestApp** - Console application for manual testing and development
 - Uses `coverlet.collector` for code coverage across all test projects
 - Moq framework available for mocking dependencies
+- Test files follow the naming convention: `{ServiceName}_{MethodName}Tests.cs` for unit tests
 
 ### Package Generation
 - Both RestClient and Models projects generate NuGet packages on build
