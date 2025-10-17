@@ -1,60 +1,29 @@
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
+// Copyright 2025 Trey Thomas
+// SPDX-License-Identifier: MPL-2.0
+
 using NodaTime;
-using TreyThomasCodes.Polygon.RestClient.Extensions;
-using TreyThomasCodes.Polygon.RestClient.Services;
 using TreyThomasCodes.Polygon.Models.Common;
 using TreyThomasCodes.Polygon.Models.Stocks;
 
-namespace TreyThomasCodes.Polygon.IntegrationTests;
+namespace TreyThomasCodes.Polygon.IntegrationTests.Stocks;
 
 /// <summary>
-/// Integration tests for fetching TSLA weekly aggregate data.
+/// Integration tests for fetching stock aggregate bars (OHLC) data.
 /// These tests require a valid Polygon API key to be configured in user secrets.
 /// </summary>
-public class TslaWeeklyDataTests : IDisposable
+public class GetBarsIntegrationTests : IntegrationTestBase
 {
-    private readonly IHost _host;
-    private readonly IPolygonClient _polygonClient;
-    private readonly string _apiKey;
-    private bool disposedValue;
-
-    /// <summary>
-    /// Initializes a new instance of the TslaWeeklyDataTests class.
-    /// Sets up the host with dependency injection and Polygon client configuration.
-    /// </summary>
-    public TslaWeeklyDataTests()
-    {
-        var builder = Host.CreateApplicationBuilder();
-        builder.Configuration.AddUserSecrets<TslaWeeklyDataTests>();
-        var apiKey = builder.Configuration["Polygon:ApiKey"];
-
-        // Skip all tests in this class if no API key is configured
-        Assert.SkipUnless(!string.IsNullOrEmpty(apiKey), "Polygon API key not configured in user secrets. Use: dotnet user-secrets set \"Polygon:ApiKey\" \"your-api-key-here\"");
-
-        _apiKey = apiKey!; // Safe to use ! since we skip if null or empty
-
-        builder.Services.AddPolygonClient(options =>
-        {
-            options.ApiKey = _apiKey;
-        });
-
-        _host = builder.Build();
-        _polygonClient = _host.Services.GetRequiredService<IPolygonClient>();
-    }
-
     /// <summary>
     /// Tests fetching TSLA daily OHLC data for the week of September 15-19, 2025.
     /// Verifies that the API returns valid aggregate data with expected properties.
     /// </summary>
     [Fact]
-    public async Task GetTslaWeeklyData_ShouldReturnValidAggregateData()
+    public async Task GetBarsAsync_ForTSLAWeeklyData_ShouldReturnValidAggregateData()
     {
         // Arrange
         var weekStart = new DateOnly(2025, 9, 15);
         var weekEnd = new DateOnly(2025, 9, 19);
-        var stocksService = _polygonClient.Stocks;
+        var stocksService = PolygonClient.Stocks;
 
         // Act
         var response = await stocksService.GetBarsAsync("TSLA", 1, AggregateInterval.Day, weekStart.ToString("yyyy-MM-dd"), weekEnd.ToString("yyyy-MM-dd"), cancellationToken: TestContext.Current.CancellationToken);
@@ -112,12 +81,12 @@ public class TslaWeeklyDataTests : IDisposable
     /// Tests the data structure and validates that all expected aggregate properties are properly populated.
     /// </summary>
     [Fact]
-    public async Task GetTslaWeeklyData_ShouldHaveProperDataStructure()
+    public async Task GetBarsAsync_ShouldHaveProperDataStructure()
     {
         // Arrange
         var weekStart = new DateOnly(2025, 9, 15);
         var weekEnd = new DateOnly(2025, 9, 19);
-        var stocksService = _polygonClient.Stocks;
+        var stocksService = PolygonClient.Stocks;
 
         // Act
         var response = await stocksService.GetBarsAsync("TSLA", 1, AggregateInterval.Day, weekStart.ToString("yyyy-MM-dd"), weekEnd.ToString("yyyy-MM-dd"), cancellationToken: TestContext.Current.CancellationToken);
@@ -156,12 +125,12 @@ public class TslaWeeklyDataTests : IDisposable
     /// Tests that the integration handles date range queries correctly and returns data in chronological order.
     /// </summary>
     [Fact]
-    public async Task GetTslaWeeklyData_ShouldReturnDataInChronologicalOrder()
+    public async Task GetBarsAsync_ShouldReturnDataInChronologicalOrder()
     {
         // Arrange
         var weekStart = new DateOnly(2025, 9, 15);
         var weekEnd = new DateOnly(2025, 9, 19);
-        var stocksService = _polygonClient.Stocks;
+        var stocksService = PolygonClient.Stocks;
 
         // Act
         var response = await stocksService.GetBarsAsync("TSLA", 1, AggregateInterval.Day, weekStart.ToString("yyyy-MM-dd"), weekEnd.ToString("yyyy-MM-dd"), cancellationToken: TestContext.Current.CancellationToken);
@@ -181,25 +150,5 @@ public class TslaWeeklyDataTests : IDisposable
                     "StockBar data should be returned in chronological order");
             }
         }
-    }
-
-    protected virtual void Dispose(bool disposing)
-    {
-        if (!disposedValue)
-        {
-            if (disposing)
-            {
-                _host.Dispose();
-            }
-
-            disposedValue = true;
-        }
-    }
-
-    public void Dispose()
-    {
-        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        Dispose(disposing: true);
-        GC.SuppressFinalize(this);
     }
 }

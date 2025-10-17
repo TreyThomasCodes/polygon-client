@@ -1,50 +1,14 @@
 // Copyright 2025 Trey Thomas
 // SPDX-License-Identifier: MPL-2.0
 
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using NodaTime;
-using TreyThomasCodes.Polygon.RestClient.Extensions;
-using TreyThomasCodes.Polygon.RestClient.Services;
-
-namespace TreyThomasCodes.Polygon.IntegrationTests;
+namespace TreyThomasCodes.Polygon.IntegrationTests.Stocks;
 
 /// <summary>
 /// Integration tests for fetching the last stock quote (NBBO) data.
 /// These tests require a valid Polygon API key to be configured in user secrets.
 /// </summary>
-public class StockLastQuoteIntegrationTests : IDisposable
+public class GetLastQuoteIntegrationTests : IntegrationTestBase
 {
-    private readonly IHost _host;
-    private readonly IPolygonClient _polygonClient;
-    private readonly string _apiKey;
-    private bool disposedValue;
-
-    /// <summary>
-    /// Initializes a new instance of the StockLastQuoteIntegrationTests class.
-    /// Sets up the host with dependency injection and Polygon client configuration.
-    /// </summary>
-    public StockLastQuoteIntegrationTests()
-    {
-        var builder = Host.CreateApplicationBuilder();
-        builder.Configuration.AddUserSecrets<StockLastQuoteIntegrationTests>();
-        var apiKey = builder.Configuration["Polygon:ApiKey"];
-
-        // Skip all tests in this class if no API key is configured
-        Assert.SkipUnless(!string.IsNullOrEmpty(apiKey), "Polygon API key not configured in user secrets. Use: dotnet user-secrets set \"Polygon:ApiKey\" \"your-api-key-here\"");
-
-        _apiKey = apiKey!; // Safe to use ! since we skip if null or empty
-
-        builder.Services.AddPolygonClient(options =>
-        {
-            options.ApiKey = _apiKey;
-        });
-
-        _host = builder.Build();
-        _polygonClient = _host.Services.GetRequiredService<IPolygonClient>();
-    }
-
     /// <summary>
     /// Tests fetching the last quote for AAPL.
     /// Verifies that the client can successfully call the endpoint and deserialize the response.
@@ -54,7 +18,7 @@ public class StockLastQuoteIntegrationTests : IDisposable
     {
         // Arrange
         var ticker = "AAPL";
-        var stocksService = _polygonClient.Stocks;
+        var stocksService = PolygonClient.Stocks;
 
         // Act
         var response = await stocksService.GetLastQuoteAsync(ticker, TestContext.Current.CancellationToken);
@@ -77,7 +41,7 @@ public class StockLastQuoteIntegrationTests : IDisposable
     {
         // Arrange
         var ticker = "AAPL";
-        var stocksService = _polygonClient.Stocks;
+        var stocksService = PolygonClient.Stocks;
 
         // Act
         var response = await stocksService.GetLastQuoteAsync(ticker, TestContext.Current.CancellationToken);
@@ -123,7 +87,7 @@ public class StockLastQuoteIntegrationTests : IDisposable
     {
         // Arrange
         var invalidTicker = "INVALIDTICKER123";
-        var stocksService = _polygonClient.Stocks;
+        var stocksService = PolygonClient.Stocks;
 
         // Act & Assert - Verify client properly handles API errors
         var exception = await Assert.ThrowsAsync<Refit.ApiException>(
@@ -131,26 +95,5 @@ public class StockLastQuoteIntegrationTests : IDisposable
 
         Assert.Equal(System.Net.HttpStatusCode.NotFound, exception.StatusCode);
         Assert.Contains("404", exception.Message);
-    }
-
-
-    protected virtual void Dispose(bool disposing)
-    {
-        if (!disposedValue)
-        {
-            if (disposing)
-            {
-                _host.Dispose();
-            }
-
-            disposedValue = true;
-        }
-    }
-
-    public void Dispose()
-    {
-        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        Dispose(disposing: true);
-        GC.SuppressFinalize(this);
     }
 }
