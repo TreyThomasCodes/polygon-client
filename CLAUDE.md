@@ -107,11 +107,16 @@ Registration is handled through `ServiceCollectionExtensions.AddPolygonClient()`
   - `/Services/Options/` - Options service tests split by method (GetBars, GetChainSnapshot, GetContractDetails, GetDailyOpenClose, GetLastTrade, GetPreviousDayBar, GetQuotes, GetSnapshot, GetTrades)
   - `/Services/ReferenceData/` - Reference data service tests split by method (GetConditionCodes, GetExchanges, GetMarketStatus, GetTickerTypes)
   - `/Services/Stocks/` - Stocks service tests split by method (GetLastQuote, GetLastTrade, GetSnapshot)
-- **TreyThomasCodes.Polygon.IntegrationTests** - Integration tests for complete API workflows
+- **TreyThomasCodes.Polygon.IntegrationTests** - Integration tests for complete API workflows, organized by service area
+  - `IntegrationTestBase.cs` - Base class providing DI setup, Polygon client configuration, and resource disposal for all integration tests
+  - `/Options/` - Integration tests for Options API methods (GetBars, GetChainSnapshot, GetContractDetails, GetDailyOpenClose, GetLastTrade, GetPreviousDayBar, GetQuotes, GetSnapshot, GetTrades)
+  - `/OptionsExtensions/` - Integration tests for Options extension methods (ComponentBasedExtensions, OptionsTickerExtensions, DiscoveryHelpers)
+  - `/Stocks/` - Integration tests for Stocks API methods (GetBars, GetLastQuote, GetLastTrade, GetSnapshot)
+  - `/ReferenceData/` - Integration tests for Reference Data API methods (GetConditionCodes, GetExchanges, GetMarketStatus, GetTickerTypes)
 - **TreyThomasCodes.Polygon.TestApp** - Console application for manual testing and development
 - Uses `coverlet.collector` for code coverage across all test projects
 - Moq framework available for mocking dependencies
-- Test files follow the naming convention: `{ServiceName}_{MethodName}Tests.cs` for unit tests
+- Test files follow the naming convention: `{MethodName}Tests.cs` for unit tests and `{MethodName}IntegrationTests.cs` for integration tests
 
 ### Package Generation
 - Both RestClient and Models projects generate NuGet packages on build
