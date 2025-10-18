@@ -1,6 +1,8 @@
 // Copyright 2025 Trey Thomas
 // SPDX-License-Identifier: MPL-2.0
 
+using TreyThomasCodes.Polygon.RestClient.Requests.Stocks;
+
 namespace TreyThomasCodes.Polygon.IntegrationTests.Stocks;
 
 /// <summary>
@@ -17,11 +19,15 @@ public class GetLastQuoteIntegrationTests : IntegrationTestBase
     public async Task GetLastQuoteAsync_ForAAPL_ShouldReturnValidResponse()
     {
         // Arrange
-        var ticker = "AAPL";
         var stocksService = PolygonClient.Stocks;
 
+        var request = new GetLastQuoteRequest
+        {
+            Ticker = "AAPL"
+        };
+
         // Act
-        var response = await stocksService.GetLastQuoteAsync(ticker, TestContext.Current.CancellationToken);
+        var response = await stocksService.GetLastQuoteAsync(request, TestContext.Current.CancellationToken);
 
         // Assert - Verify client successfully made the call and deserialized the response
         Assert.NotNull(response);
@@ -29,7 +35,7 @@ public class GetLastQuoteIntegrationTests : IntegrationTestBase
         Assert.NotNull(response.RequestId);
         Assert.NotEmpty(response.RequestId);
         Assert.NotNull(response.Results);
-        Assert.Equal(ticker, response.Results.Ticker);
+        Assert.Equal(request.Ticker, response.Results.Ticker);
     }
 
     /// <summary>
@@ -40,11 +46,15 @@ public class GetLastQuoteIntegrationTests : IntegrationTestBase
     public async Task GetLastQuoteAsync_ShouldHaveCorrectDataTypes()
     {
         // Arrange
-        var ticker = "AAPL";
         var stocksService = PolygonClient.Stocks;
 
+        var request = new GetLastQuoteRequest
+        {
+            Ticker = "AAPL"
+        };
+
         // Act
-        var response = await stocksService.GetLastQuoteAsync(ticker, TestContext.Current.CancellationToken);
+        var response = await stocksService.GetLastQuoteAsync(request, TestContext.Current.CancellationToken);
 
         // Assert - Verify client deserialized the response correctly
         Assert.NotNull(response);
@@ -80,20 +90,23 @@ public class GetLastQuoteIntegrationTests : IntegrationTestBase
     }
 
     /// <summary>
-    /// Tests that the client correctly handles errors for invalid ticker symbols.
+    /// Tests that the client correctly validates ticker symbols.
     /// </summary>
     [Fact]
-    public async Task GetLastQuoteAsync_ForInvalidTicker_ShouldThrowApiException()
+    public async Task GetLastQuoteAsync_ForInvalidTicker_ShouldThrowValidationException()
     {
         // Arrange
-        var invalidTicker = "INVALIDTICKER123";
         var stocksService = PolygonClient.Stocks;
 
-        // Act & Assert - Verify client properly handles API errors
-        var exception = await Assert.ThrowsAsync<Refit.ApiException>(
-            () => stocksService.GetLastQuoteAsync(invalidTicker, TestContext.Current.CancellationToken));
+        var request = new GetLastQuoteRequest
+        {
+            Ticker = "INVALIDTICKER123"
+        };
 
-        Assert.Equal(System.Net.HttpStatusCode.NotFound, exception.StatusCode);
-        Assert.Contains("404", exception.Message);
+        // Act & Assert - Verify validation catches invalid ticker (exceeds 10 character limit)
+        var exception = await Assert.ThrowsAsync<FluentValidation.ValidationException>(
+            () => stocksService.GetLastQuoteAsync(request, TestContext.Current.CancellationToken));
+
+        Assert.Contains("Ticker", exception.Message);
     }
 }

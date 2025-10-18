@@ -1,6 +1,8 @@
 // Copyright 2025 Trey Thomas
 // SPDX-License-Identifier: MPL-2.0
 
+using TreyThomasCodes.Polygon.RestClient.Requests.Options;
+
 namespace TreyThomasCodes.Polygon.IntegrationTests.Options;
 
 /// <summary>
@@ -17,15 +19,18 @@ public class GetBarsIntegrationTests : IntegrationTestBase
     public async Task GetBarsAsync_ForSPYCallOption_ShouldReturnValidResponse()
     {
         // Arrange
-        var optionsTicker = "O:SPY251219C00650000";
-        var multiplier = 1;
-        var timespan = Models.Common.AggregateInterval.Day;
-        var from = "2023-01-09";
-        var to = "2023-02-10";
+        var request = new GetBarsRequest
+        {
+            OptionsTicker = "O:SPY251219C00650000",
+            Multiplier = 1,
+            Timespan = Models.Common.AggregateInterval.Day,
+            From = "2023-01-09",
+            To = "2023-02-10"
+        };
         var optionsService = PolygonClient.Options;
 
         // Act
-        var response = await optionsService.GetBarsAsync(optionsTicker, multiplier, timespan, from, to, cancellationToken: TestContext.Current.CancellationToken);
+        var response = await optionsService.GetBarsAsync(request, TestContext.Current.CancellationToken);
 
         // Assert - Verify client successfully made the call and deserialized the response
         Assert.NotNull(response);
@@ -43,15 +48,18 @@ public class GetBarsIntegrationTests : IntegrationTestBase
     public async Task GetBarsAsync_ShouldHaveCorrectDataTypes()
     {
         // Arrange
-        var optionsTicker = "O:SPY251219C00650000";
-        var multiplier = 1;
-        var timespan = Models.Common.AggregateInterval.Day;
-        var from = "2023-01-09";
-        var to = "2023-02-10";
+        var request = new GetBarsRequest
+        {
+            OptionsTicker = "O:SPY251219C00650000",
+            Multiplier = 1,
+            Timespan = Models.Common.AggregateInterval.Day,
+            From = "2023-01-09",
+            To = "2023-02-10"
+        };
         var optionsService = PolygonClient.Options;
 
         // Act
-        var response = await optionsService.GetBarsAsync(optionsTicker, multiplier, timespan, from, to, cancellationToken: TestContext.Current.CancellationToken);
+        var response = await optionsService.GetBarsAsync(request, TestContext.Current.CancellationToken);
 
         // Assert - Verify client deserialized the response correctly
         Assert.NotNull(response);
@@ -118,19 +126,22 @@ public class GetBarsIntegrationTests : IntegrationTestBase
     public async Task GetBarsAsync_ShouldDeserializeTickerAndMetadata()
     {
         // Arrange
-        var optionsTicker = "O:SPY251219C00650000";
-        var multiplier = 1;
-        var timespan = Models.Common.AggregateInterval.Day;
-        var from = "2023-01-09";
-        var to = "2023-02-10";
+        var request = new GetBarsRequest
+        {
+            OptionsTicker = "O:SPY251219C00650000",
+            Multiplier = 1,
+            Timespan = Models.Common.AggregateInterval.Day,
+            From = "2023-01-09",
+            To = "2023-02-10"
+        };
         var optionsService = PolygonClient.Options;
 
         // Act
-        var response = await optionsService.GetBarsAsync(optionsTicker, multiplier, timespan, from, to, cancellationToken: TestContext.Current.CancellationToken);
+        var response = await optionsService.GetBarsAsync(request, TestContext.Current.CancellationToken);
 
         // Assert - Verify metadata is properly deserialized
         Assert.NotNull(response);
-        Assert.Equal(optionsTicker, response.Ticker);
+        Assert.Equal(request.OptionsTicker, response.Ticker);
         Assert.True(response.QueryCount.HasValue);
         Assert.True(response.ResultsCount.HasValue);
         Assert.True(response.Count.HasValue);
@@ -144,15 +155,18 @@ public class GetBarsIntegrationTests : IntegrationTestBase
     public async Task GetBarsAsync_MarketTimestamp_ShouldConvertToEasternTime()
     {
         // Arrange
-        var optionsTicker = "O:SPY251219C00650000";
-        var multiplier = 1;
-        var timespan = Models.Common.AggregateInterval.Day;
-        var from = "2023-01-09";
-        var to = "2023-02-10";
+        var request = new GetBarsRequest
+        {
+            OptionsTicker = "O:SPY251219C00650000",
+            Multiplier = 1,
+            Timespan = Models.Common.AggregateInterval.Day,
+            From = "2023-01-09",
+            To = "2023-02-10"
+        };
         var optionsService = PolygonClient.Options;
 
         // Act
-        var response = await optionsService.GetBarsAsync(optionsTicker, multiplier, timespan, from, to, cancellationToken: TestContext.Current.CancellationToken);
+        var response = await optionsService.GetBarsAsync(request, TestContext.Current.CancellationToken);
 
         // Assert - Verify MarketTimestamp conversion works
         Assert.NotNull(response);
@@ -172,15 +186,18 @@ public class GetBarsIntegrationTests : IntegrationTestBase
     public async Task GetBarsAsync_ShouldDeserializeOHLCPrices()
     {
         // Arrange
-        var optionsTicker = "O:SPY251219C00650000";
-        var multiplier = 1;
-        var timespan = Models.Common.AggregateInterval.Day;
-        var from = "2023-01-09";
-        var to = "2023-02-10";
+        var request = new GetBarsRequest
+        {
+            OptionsTicker = "O:SPY251219C00650000",
+            Multiplier = 1,
+            Timespan = Models.Common.AggregateInterval.Day,
+            From = "2023-01-09",
+            To = "2023-02-10"
+        };
         var optionsService = PolygonClient.Options;
 
         // Act
-        var response = await optionsService.GetBarsAsync(optionsTicker, multiplier, timespan, from, to, cancellationToken: TestContext.Current.CancellationToken);
+        var response = await optionsService.GetBarsAsync(request, TestContext.Current.CancellationToken);
 
         // Assert - Verify OHLC prices are properly deserialized
         Assert.NotNull(response);
@@ -215,15 +232,18 @@ public class GetBarsIntegrationTests : IntegrationTestBase
     public async Task GetBarsAsync_WithMinuteInterval_ShouldReturnValidResponse()
     {
         // Arrange
-        var optionsTicker = "O:SPY251219C00650000";
-        var multiplier = 5;
-        var timespan = Models.Common.AggregateInterval.Minute;
-        var from = "2023-01-09";
-        var to = "2023-01-10";
+        var request = new GetBarsRequest
+        {
+            OptionsTicker = "O:SPY251219C00650000",
+            Multiplier = 5,
+            Timespan = Models.Common.AggregateInterval.Minute,
+            From = "2023-01-09",
+            To = "2023-01-10"
+        };
         var optionsService = PolygonClient.Options;
 
         // Act
-        var response = await optionsService.GetBarsAsync(optionsTicker, multiplier, timespan, from, to, cancellationToken: TestContext.Current.CancellationToken);
+        var response = await optionsService.GetBarsAsync(request, TestContext.Current.CancellationToken);
 
         // Assert - Verify client successfully made the call
         Assert.NotNull(response);
@@ -238,18 +258,21 @@ public class GetBarsIntegrationTests : IntegrationTestBase
     public async Task GetBarsAsync_WithOptionalParameters_ShouldReturnValidResponse()
     {
         // Arrange
-        var optionsTicker = "O:SPY251219C00650000";
-        var multiplier = 1;
-        var timespan = Models.Common.AggregateInterval.Day;
-        var from = "2023-01-09";
-        var to = "2023-02-10";
-        var adjusted = true;
-        var sort = Models.Common.SortOrder.Ascending;
-        var limit = 10;
+        var request = new GetBarsRequest
+        {
+            OptionsTicker = "O:SPY251219C00650000",
+            Multiplier = 1,
+            Timespan = Models.Common.AggregateInterval.Day,
+            From = "2023-01-09",
+            To = "2023-02-10",
+            Adjusted = true,
+            Sort = Models.Common.SortOrder.Ascending,
+            Limit = 10
+        };
         var optionsService = PolygonClient.Options;
 
         // Act
-        var response = await optionsService.GetBarsAsync(optionsTicker, multiplier, timespan, from, to, adjusted, sort, limit, TestContext.Current.CancellationToken);
+        var response = await optionsService.GetBarsAsync(request, TestContext.Current.CancellationToken);
 
         // Assert - Verify client successfully made the call with optional parameters
         Assert.NotNull(response);
@@ -260,8 +283,8 @@ public class GetBarsIntegrationTests : IntegrationTestBase
         // Verify limit is respected (results count should be <= limit if data is available)
         if (response.Results.Count > 0)
         {
-            Assert.True(response.Results.Count <= limit,
-                $"Results count ({response.Results.Count}) should be <= limit ({limit})");
+            Assert.True(response.Results.Count <= request.Limit!.Value,
+                $"Results count ({response.Results.Count}) should be <= limit ({request.Limit.Value})");
         }
     }
 
@@ -272,15 +295,18 @@ public class GetBarsIntegrationTests : IntegrationTestBase
     public async Task GetBarsAsync_ShouldDeserializeVolumeAndTransactionCount()
     {
         // Arrange
-        var optionsTicker = "O:SPY251219C00650000";
-        var multiplier = 1;
-        var timespan = Models.Common.AggregateInterval.Day;
-        var from = "2023-01-09";
-        var to = "2023-02-10";
+        var request = new GetBarsRequest
+        {
+            OptionsTicker = "O:SPY251219C00650000",
+            Multiplier = 1,
+            Timespan = Models.Common.AggregateInterval.Day,
+            From = "2023-01-09",
+            To = "2023-02-10"
+        };
         var optionsService = PolygonClient.Options;
 
         // Act
-        var response = await optionsService.GetBarsAsync(optionsTicker, multiplier, timespan, from, to, cancellationToken: TestContext.Current.CancellationToken);
+        var response = await optionsService.GetBarsAsync(request, TestContext.Current.CancellationToken);
 
         // Assert - Verify volume and transaction count are properly deserialized
         Assert.NotNull(response);

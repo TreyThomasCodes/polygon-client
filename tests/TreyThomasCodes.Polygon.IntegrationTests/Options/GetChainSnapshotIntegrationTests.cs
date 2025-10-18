@@ -1,6 +1,8 @@
 // Copyright 2025 Trey Thomas
 // SPDX-License-Identifier: MPL-2.0
 
+using TreyThomasCodes.Polygon.RestClient.Requests.Options;
+
 namespace TreyThomasCodes.Polygon.IntegrationTests.Options;
 
 /// <summary>
@@ -17,11 +19,15 @@ public class GetChainSnapshotIntegrationTests : IntegrationTestBase
     public async Task GetChainSnapshotAsync_ForSPY_ShouldReturnValidResponse()
     {
         // Arrange
-        var underlyingAsset = "SPY";
+        var request = new GetChainSnapshotRequest
+        {
+            UnderlyingAsset = "SPY",
+            Limit = 10
+        };
         var optionsService = PolygonClient.Options;
 
         // Act
-        var response = await optionsService.GetChainSnapshotAsync(underlyingAsset, limit: 10, cancellationToken: TestContext.Current.CancellationToken);
+        var response = await optionsService.GetChainSnapshotAsync(request, TestContext.Current.CancellationToken);
 
         // Assert - Verify client successfully made the call and deserialized the response
         Assert.NotNull(response);
@@ -39,11 +45,15 @@ public class GetChainSnapshotIntegrationTests : IntegrationTestBase
     public async Task GetChainSnapshotAsync_ShouldHaveCorrectDataTypes()
     {
         // Arrange
-        var underlyingAsset = "SPY";
+        var request = new GetChainSnapshotRequest
+        {
+            UnderlyingAsset = "SPY",
+            Limit = 5
+        };
         var optionsService = PolygonClient.Options;
 
         // Act
-        var response = await optionsService.GetChainSnapshotAsync(underlyingAsset, limit: 5, cancellationToken: TestContext.Current.CancellationToken);
+        var response = await optionsService.GetChainSnapshotAsync(request, TestContext.Current.CancellationToken);
 
         // Assert - Verify client deserialized the response correctly
         Assert.NotNull(response);

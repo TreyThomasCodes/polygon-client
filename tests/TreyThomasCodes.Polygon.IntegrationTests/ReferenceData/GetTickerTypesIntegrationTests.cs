@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: MPL-2.0
 
 using TreyThomasCodes.Polygon.Models.Reference;
+using TreyThomasCodes.Polygon.RestClient.Requests.Reference;
 
 namespace TreyThomasCodes.Polygon.IntegrationTests.ReferenceData;
 
@@ -20,9 +21,12 @@ public class GetTickerTypesIntegrationTests : IntegrationTestBase
     {
         // Arrange
         var referenceDataService = PolygonClient.ReferenceData;
+        var request = new GetTickerTypesRequest();
 
         // Act
-        var tickerTypesResponse = await referenceDataService.GetTickerTypesAsync(TestContext.Current.CancellationToken);
+        var tickerTypesResponse = await referenceDataService.GetTickerTypesAsync(
+            request,
+            TestContext.Current.CancellationToken);
 
         // Assert - Verify client successfully made the call and deserialized the response
         Assert.NotNull(tickerTypesResponse);
@@ -43,9 +47,12 @@ public class GetTickerTypesIntegrationTests : IntegrationTestBase
     {
         // Arrange
         var referenceDataService = PolygonClient.ReferenceData;
+        var request = new GetTickerTypesRequest();
 
         // Act
-        var tickerTypesResponse = await referenceDataService.GetTickerTypesAsync(TestContext.Current.CancellationToken);
+        var tickerTypesResponse = await referenceDataService.GetTickerTypesAsync(
+            request,
+            TestContext.Current.CancellationToken);
 
         // Assert - Verify client deserialized the response correctly
         Assert.NotNull(tickerTypesResponse);

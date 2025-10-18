@@ -3,6 +3,7 @@
 
 using TreyThomasCodes.Polygon.Models.Common;
 using TreyThomasCodes.Polygon.Models.Reference;
+using TreyThomasCodes.Polygon.RestClient.Requests.Reference;
 
 namespace TreyThomasCodes.Polygon.IntegrationTests.ReferenceData;
 
@@ -21,12 +22,16 @@ public class GetConditionCodesIntegrationTests : IntegrationTestBase
     {
         // Arrange
         var referenceDataService = PolygonClient.ReferenceData;
+        var request = new GetConditionCodesRequest
+        {
+            AssetClass = AssetClass.Stocks,
+            Limit = 10
+        };
 
         // Act
         var conditionCodesResponse = await referenceDataService.GetConditionCodesAsync(
-            assetClass: AssetClass.Stocks,
-            limit: 10,
-            cancellationToken: TestContext.Current.CancellationToken);
+            request,
+            TestContext.Current.CancellationToken);
 
         // Assert - Verify client successfully made the call and deserialized the response
         Assert.NotNull(conditionCodesResponse);
@@ -46,12 +51,16 @@ public class GetConditionCodesIntegrationTests : IntegrationTestBase
     {
         // Arrange
         var referenceDataService = PolygonClient.ReferenceData;
+        var request = new GetConditionCodesRequest
+        {
+            AssetClass = AssetClass.Stocks,
+            Limit = 5
+        };
 
         // Act
         var conditionCodesResponse = await referenceDataService.GetConditionCodesAsync(
-            assetClass: AssetClass.Stocks,
-            limit: 5,
-            cancellationToken: TestContext.Current.CancellationToken);
+            request,
+            TestContext.Current.CancellationToken);
 
         // Assert - Verify client deserialized the response correctly
         Assert.NotNull(conditionCodesResponse);

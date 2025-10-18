@@ -8,6 +8,7 @@ using Serilog.Exceptions.Core;
 using Serilog.Exceptions.Refit.Destructurers;
 using TreyThomasCodes.Polygon.RestClient.Extensions;
 using TreyThomasCodes.Polygon.RestClient.Services;
+using TreyThomasCodes.Polygon.RestClient.Requests.Stocks;
 using TreyThomasCodes.Polygon.TestApp;
 using TreyThomasCodes.Polygon.Models.Common;
 
@@ -60,7 +61,15 @@ try
     var yesterday = DateOnly.FromDateTime(DateTime.Today.AddDays(-1));
     var stocksService = polygonClient.Stocks;
 
-    var response = await stocksService.GetBarsAsync("AAPL", 1, AggregateInterval.Day, yesterday.ToString("yyyy-MM-dd"), yesterday.ToString("yyyy-MM-dd"));
+    var barsRequest = new GetBarsRequest
+    {
+        Ticker = "AAPL",
+        Multiplier = 1,
+        Timespan = AggregateInterval.Day,
+        From = yesterday.ToString("yyyy-MM-dd"),
+        To = yesterday.ToString("yyyy-MM-dd")
+    };
+    var response = await stocksService.GetBarsAsync(barsRequest);
 
     if (response?.Results != null && response?.ResultsCount > 0)
     {
@@ -75,7 +84,11 @@ try
 
     Log.Information("Fetching AAPL previous trading day data using previous day endpoint...");
 
-    var previousDayResponse = await stocksService.GetPreviousCloseAsync("AAPL");
+    var previousCloseRequest = new GetPreviousCloseRequest
+    {
+        Ticker = "AAPL"
+    };
+    var previousDayResponse = await stocksService.GetPreviousCloseAsync(previousCloseRequest);
 
     if (previousDayResponse?.Results != null && previousDayResponse?.ResultsCount > 0)
     {
@@ -90,7 +103,11 @@ try
 
     Log.Information("Fetching ZZZZZZ previous trading day data (nonexistent stock)...");
 
-    var zzzzzResponse = await stocksService.GetPreviousCloseAsync("ZZZZZZ");
+    var zzzzzRequest = new GetPreviousCloseRequest
+    {
+        Ticker = "ZZZZZZ"
+    };
+    var zzzzzResponse = await stocksService.GetPreviousCloseAsync(zzzzzRequest);
 
     if (zzzzzResponse?.Results != null && zzzzzResponse?.Results?.Count > 0)
     {
@@ -109,7 +126,15 @@ try
     var weekStart = new DateOnly(2025, 9, 15);
     var weekEnd = new DateOnly(2025, 9, 19);
 
-    var tslaWeekResponse = await stocksService.GetBarsAsync("TSLA", 1, AggregateInterval.Day, weekStart.ToString("yyyy-MM-dd"), weekEnd.ToString("yyyy-MM-dd"));
+    var tslaWeekRequest = new GetBarsRequest
+    {
+        Ticker = "TSLA",
+        Multiplier = 1,
+        Timespan = AggregateInterval.Day,
+        From = weekStart.ToString("yyyy-MM-dd"),
+        To = weekEnd.ToString("yyyy-MM-dd")
+    };
+    var tslaWeekResponse = await stocksService.GetBarsAsync(tslaWeekRequest);
 
     if (tslaWeekResponse?.Results != null && tslaWeekResponse?.ResultsCount > 0)
     {

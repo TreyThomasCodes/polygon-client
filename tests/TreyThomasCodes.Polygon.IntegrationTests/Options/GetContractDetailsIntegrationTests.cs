@@ -1,6 +1,8 @@
 // Copyright 2025 Trey Thomas
 // SPDX-License-Identifier: MPL-2.0
 
+using TreyThomasCodes.Polygon.RestClient.Requests.Options;
+
 namespace TreyThomasCodes.Polygon.IntegrationTests.Options;
 
 /// <summary>
@@ -17,11 +19,14 @@ public class GetContractDetailsIntegrationTests : IntegrationTestBase
     public async Task GetContractDetailsAsync_ForSPYCallOption_ShouldReturnValidResponse()
     {
         // Arrange
-        var optionsTicker = "O:SPY251219C00650000";
+        var request = new GetContractDetailsRequest
+        {
+            OptionsTicker = "O:SPY251219C00650000"
+        };
         var optionsService = PolygonClient.Options;
 
         // Act
-        var response = await optionsService.GetContractDetailsAsync(optionsTicker, TestContext.Current.CancellationToken);
+        var response = await optionsService.GetContractDetailsAsync(request, TestContext.Current.CancellationToken);
 
         // Assert - Verify client successfully made the call and deserialized the response
         Assert.NotNull(response);
@@ -39,11 +44,14 @@ public class GetContractDetailsIntegrationTests : IntegrationTestBase
     public async Task GetContractDetailsAsync_ShouldHaveCorrectDataTypes()
     {
         // Arrange
-        var optionsTicker = "O:SPY251219C00650000";
+        var request = new GetContractDetailsRequest
+        {
+            OptionsTicker = "O:SPY251219C00650000"
+        };
         var optionsService = PolygonClient.Options;
 
         // Act
-        var response = await optionsService.GetContractDetailsAsync(optionsTicker, TestContext.Current.CancellationToken);
+        var response = await optionsService.GetContractDetailsAsync(request, TestContext.Current.CancellationToken);
 
         // Assert - Verify client deserialized the response correctly
         Assert.NotNull(response);
@@ -57,20 +65,22 @@ public class GetContractDetailsIntegrationTests : IntegrationTestBase
     }
 
     /// <summary>
-    /// Tests that the client correctly handles errors for invalid options tickers.
+    /// Tests that the client correctly validates options ticker format.
     /// </summary>
     [Fact]
-    public async Task GetContractDetailsAsync_ForInvalidTicker_ShouldThrowApiException()
+    public async Task GetContractDetailsAsync_ForInvalidTicker_ShouldThrowValidationException()
     {
         // Arrange
-        var invalidTicker = "O:INVALID000000C00000000";
+        var request = new GetContractDetailsRequest
+        {
+            OptionsTicker = "O:INVALID000000C00000000"
+        };
         var optionsService = PolygonClient.Options;
 
-        // Act & Assert - Verify client properly handles API errors
-        var exception = await Assert.ThrowsAsync<Refit.ApiException>(
-            () => optionsService.GetContractDetailsAsync(invalidTicker, TestContext.Current.CancellationToken));
+        // Act & Assert - Verify validation catches invalid OCC ticker format
+        var exception = await Assert.ThrowsAsync<FluentValidation.ValidationException>(
+            () => optionsService.GetContractDetailsAsync(request, TestContext.Current.CancellationToken));
 
-        Assert.Equal(System.Net.HttpStatusCode.NotFound, exception.StatusCode);
-        Assert.Contains("404", exception.Message);
+        Assert.Contains("OptionsTicker", exception.Message);
     }
 }

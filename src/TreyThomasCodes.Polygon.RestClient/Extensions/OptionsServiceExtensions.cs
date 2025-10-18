@@ -3,6 +3,7 @@
 
 using TreyThomasCodes.Polygon.Models.Common;
 using TreyThomasCodes.Polygon.Models.Options;
+using TreyThomasCodes.Polygon.RestClient.Requests.Options;
 using TreyThomasCodes.Polygon.RestClient.Services;
 
 namespace TreyThomasCodes.Polygon.RestClient.Extensions;
@@ -47,7 +48,8 @@ public static class OptionsServiceExtensions
         ArgumentNullException.ThrowIfNull(optionsService);
 
         string ticker = OptionsTicker.Create(underlying, expirationDate, type, strike);
-        return optionsService.GetContractDetailsAsync(ticker, cancellationToken);
+        var request = new GetContractDetailsRequest { OptionsTicker = ticker };
+        return optionsService.GetContractDetailsAsync(request, cancellationToken);
     }
 
     /// <summary>
@@ -85,7 +87,12 @@ public static class OptionsServiceExtensions
 
         var ticker = new OptionsTicker(underlying, expirationDate, type, strike);
         string optionContract = ticker.ToString().Substring(2); // Remove "O:" prefix
-        return optionsService.GetSnapshotAsync(underlying, optionContract, cancellationToken);
+        var request = new GetSnapshotRequest
+        {
+            UnderlyingAsset = underlying,
+            OptionContract = optionContract
+        };
+        return optionsService.GetSnapshotAsync(request, cancellationToken);
     }
 
     /// <summary>
@@ -135,15 +142,18 @@ public static class OptionsServiceExtensions
             _ => null
         };
 
-        var response = await optionsService.GetChainSnapshotAsync(
-            underlying,
-            contractType: contractType,
-            expirationDateGte: expirationDateGte,
-            expirationDateLte: expirationDateLte,
-            limit: 1000, // Get a large batch
-            sort: "strike_price",
-            order: "asc",
-            cancellationToken: cancellationToken);
+        var request = new GetChainSnapshotRequest
+        {
+            UnderlyingAsset = underlying,
+            ContractType = contractType,
+            ExpirationDateGte = expirationDateGte,
+            ExpirationDateLte = expirationDateLte,
+            Limit = 1000, // Get a large batch
+            Sort = "strike_price",
+            Order = "asc"
+        };
+
+        var response = await optionsService.GetChainSnapshotAsync(request, cancellationToken);
 
         if (response.Results == null || response.Results.Count == 0)
             return new List<decimal>();
@@ -210,14 +220,17 @@ public static class OptionsServiceExtensions
             _ => null
         };
 
-        var response = await optionsService.GetChainSnapshotAsync(
-            underlying,
-            strikePrice: strikePrice,
-            contractType: contractType,
-            limit: 1000, // Get a large batch
-            sort: "expiration_date",
-            order: "asc",
-            cancellationToken: cancellationToken);
+        var request = new GetChainSnapshotRequest
+        {
+            UnderlyingAsset = underlying,
+            StrikePrice = strikePrice,
+            ContractType = contractType,
+            Limit = 1000, // Get a large batch
+            Sort = "expiration_date",
+            Order = "asc"
+        };
+
+        var response = await optionsService.GetChainSnapshotAsync(request, cancellationToken);
 
         if (response.Results == null || response.Results.Count == 0)
             return new List<DateTime>();
@@ -269,7 +282,8 @@ public static class OptionsServiceExtensions
         ArgumentNullException.ThrowIfNull(optionsService);
         ArgumentNullException.ThrowIfNull(ticker);
 
-        return optionsService.GetContractDetailsAsync(ticker.ToString(), cancellationToken);
+        var request = new GetContractDetailsRequest { OptionsTicker = ticker.ToString() };
+        return optionsService.GetContractDetailsAsync(request, cancellationToken);
     }
 
     /// <summary>
@@ -296,7 +310,12 @@ public static class OptionsServiceExtensions
         ArgumentNullException.ThrowIfNull(ticker);
 
         string optionContract = ticker.ToString().Substring(2); // Remove "O:" prefix
-        return optionsService.GetSnapshotAsync(ticker.Underlying, optionContract, cancellationToken);
+        var request = new GetSnapshotRequest
+        {
+            UnderlyingAsset = ticker.Underlying,
+            OptionContract = optionContract
+        };
+        return optionsService.GetSnapshotAsync(request, cancellationToken);
     }
 
     /// <summary>
@@ -322,7 +341,8 @@ public static class OptionsServiceExtensions
         ArgumentNullException.ThrowIfNull(optionsService);
         ArgumentNullException.ThrowIfNull(ticker);
 
-        return optionsService.GetLastTradeAsync(ticker.ToString(), cancellationToken);
+        var request = new GetLastTradeRequest { OptionsTicker = ticker.ToString() };
+        return optionsService.GetLastTradeAsync(request, cancellationToken);
     }
 
     /// <summary>
@@ -372,18 +392,20 @@ public static class OptionsServiceExtensions
         ArgumentNullException.ThrowIfNull(optionsService);
         ArgumentNullException.ThrowIfNull(ticker);
 
-        return optionsService.GetQuotesAsync(
-            ticker.ToString(),
-            timestamp,
-            timestampLt,
-            timestampLte,
-            timestampGt,
-            timestampGte,
-            order,
-            limit,
-            sort,
-            cursor,
-            cancellationToken);
+        var request = new GetQuotesRequest
+        {
+            OptionsTicker = ticker.ToString(),
+            Timestamp = timestamp,
+            TimestampLt = timestampLt,
+            TimestampLte = timestampLte,
+            TimestampGt = timestampGt,
+            TimestampGte = timestampGte,
+            Order = order,
+            Limit = limit,
+            Sort = sort,
+            Cursor = cursor
+        };
+        return optionsService.GetQuotesAsync(request, cancellationToken);
     }
 
     /// <summary>
@@ -433,18 +455,20 @@ public static class OptionsServiceExtensions
         ArgumentNullException.ThrowIfNull(optionsService);
         ArgumentNullException.ThrowIfNull(ticker);
 
-        return optionsService.GetTradesAsync(
-            ticker.ToString(),
-            timestamp,
-            timestampLt,
-            timestampLte,
-            timestampGt,
-            timestampGte,
-            order,
-            limit,
-            sort,
-            cursor,
-            cancellationToken);
+        var request = new GetTradesRequest
+        {
+            OptionsTicker = ticker.ToString(),
+            Timestamp = timestamp,
+            TimestampLt = timestampLt,
+            TimestampLte = timestampLte,
+            TimestampGt = timestampGt,
+            TimestampGte = timestampGte,
+            Order = order,
+            Limit = limit,
+            Sort = sort,
+            Cursor = cursor
+        };
+        return optionsService.GetTradesAsync(request, cancellationToken);
     }
 
     /// <summary>
@@ -496,16 +520,18 @@ public static class OptionsServiceExtensions
         ArgumentNullException.ThrowIfNull(optionsService);
         ArgumentNullException.ThrowIfNull(ticker);
 
-        return optionsService.GetBarsAsync(
-            ticker.ToString(),
-            multiplier,
-            timespan,
-            from,
-            to,
-            adjusted,
-            sort,
-            limit,
-            cancellationToken);
+        var request = new GetBarsRequest
+        {
+            OptionsTicker = ticker.ToString(),
+            Multiplier = multiplier,
+            Timespan = timespan,
+            From = from,
+            To = to,
+            Adjusted = adjusted,
+            Sort = sort,
+            Limit = limit
+        };
+        return optionsService.GetBarsAsync(request, cancellationToken);
     }
 
     /// <summary>
@@ -534,7 +560,12 @@ public static class OptionsServiceExtensions
         ArgumentNullException.ThrowIfNull(optionsService);
         ArgumentNullException.ThrowIfNull(ticker);
 
-        return optionsService.GetDailyOpenCloseAsync(ticker.ToString(), date, cancellationToken);
+        var request = new GetDailyOpenCloseRequest
+        {
+            OptionsTicker = ticker.ToString(),
+            Date = date
+        };
+        return optionsService.GetDailyOpenCloseAsync(request, cancellationToken);
     }
 
     /// <summary>
@@ -563,7 +594,12 @@ public static class OptionsServiceExtensions
         ArgumentNullException.ThrowIfNull(optionsService);
         ArgumentNullException.ThrowIfNull(ticker);
 
-        return optionsService.GetPreviousDayBarAsync(ticker.ToString(), adjusted, cancellationToken);
+        var request = new GetPreviousDayBarRequest
+        {
+            OptionsTicker = ticker.ToString(),
+            Adjusted = adjusted
+        };
+        return optionsService.GetPreviousDayBarAsync(request, cancellationToken);
     }
 
     #endregion
@@ -602,7 +638,8 @@ public static class OptionsServiceExtensions
         ArgumentNullException.ThrowIfNull(optionsService);
 
         string ticker = OptionsTicker.Create(underlying, expirationDate, type, strike);
-        return optionsService.GetLastTradeAsync(ticker, cancellationToken);
+        var request = new GetLastTradeRequest { OptionsTicker = ticker };
+        return optionsService.GetLastTradeAsync(request, cancellationToken);
     }
 
     /// <summary>
@@ -657,6 +694,17 @@ public static class OptionsServiceExtensions
         ArgumentNullException.ThrowIfNull(optionsService);
 
         string ticker = OptionsTicker.Create(underlying, expirationDate, type, strike);
-        return optionsService.GetBarsAsync(ticker, multiplier, timespan, from, to, adjusted, sort, limit, cancellationToken);
+        var request = new GetBarsRequest
+        {
+            OptionsTicker = ticker,
+            Multiplier = multiplier,
+            Timespan = timespan,
+            From = from,
+            To = to,
+            Adjusted = adjusted,
+            Sort = sort,
+            Limit = limit
+        };
+        return optionsService.GetBarsAsync(request, cancellationToken);
     }
 }

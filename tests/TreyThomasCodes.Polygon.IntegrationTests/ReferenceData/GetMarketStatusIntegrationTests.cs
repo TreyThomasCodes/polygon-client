@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: MPL-2.0
 
 using TreyThomasCodes.Polygon.Models.Reference;
+using TreyThomasCodes.Polygon.RestClient.Requests.Reference;
 
 namespace TreyThomasCodes.Polygon.IntegrationTests.ReferenceData;
 
@@ -20,9 +21,12 @@ public class GetMarketStatusIntegrationTests : IntegrationTestBase
     {
         // Arrange
         var referenceDataService = PolygonClient.ReferenceData;
+        var request = new GetMarketStatusRequest();
 
         // Act
-        var marketStatus = await referenceDataService.GetMarketStatusAsync(TestContext.Current.CancellationToken);
+        var marketStatus = await referenceDataService.GetMarketStatusAsync(
+            request,
+            TestContext.Current.CancellationToken);
 
         // Assert - Verify client successfully made the call and deserialized the response
         Assert.NotNull(marketStatus);
@@ -41,9 +45,12 @@ public class GetMarketStatusIntegrationTests : IntegrationTestBase
     {
         // Arrange
         var referenceDataService = PolygonClient.ReferenceData;
+        var request = new GetMarketStatusRequest();
 
         // Act
-        var marketStatus = await referenceDataService.GetMarketStatusAsync(TestContext.Current.CancellationToken);
+        var marketStatus = await referenceDataService.GetMarketStatusAsync(
+            request,
+            TestContext.Current.CancellationToken);
 
         // Assert - Verify client deserialized the response correctly
         Assert.NotNull(marketStatus);

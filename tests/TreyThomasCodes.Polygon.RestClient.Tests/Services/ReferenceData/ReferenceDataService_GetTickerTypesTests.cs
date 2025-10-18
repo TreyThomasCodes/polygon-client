@@ -1,8 +1,12 @@
 // Copyright 2025 Trey Thomas
 // SPDX-License-Identifier: MPL-2.0
 
+using FluentValidation;
+using FluentValidation.Results;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using TreyThomasCodes.Polygon.RestClient.Api;
+using TreyThomasCodes.Polygon.RestClient.Requests.Reference;
 using TreyThomasCodes.Polygon.RestClient.Services;
 using TreyThomasCodes.Polygon.Models.Reference;
 using TreyThomasCodes.Polygon.Models.Common;
@@ -16,16 +20,88 @@ namespace TreyThomasCodes.Polygon.RestClient.Tests.Services;
 public class ReferenceDataService_GetTickerTypesTests
 {
     private readonly Mock<IPolygonReferenceApi> _mockApi;
+    private readonly Mock<IServiceProvider> _mockServiceProvider;
+    private readonly Mock<IValidator<GetTickerTypesRequest>> _mockValidator;
     private readonly ReferenceDataService _service;
 
     /// <summary>
     /// Initializes a new instance of the ReferenceDataService_GetTickerTypesTests class.
-    /// Sets up the mock API and service instance for testing.
+    /// Sets up the mock API, service provider, validator, and service instance for testing.
     /// </summary>
     public ReferenceDataService_GetTickerTypesTests()
     {
         _mockApi = new Mock<IPolygonReferenceApi>();
-        _service = new ReferenceDataService(_mockApi.Object);
+        _mockServiceProvider = new Mock<IServiceProvider>();
+        _mockValidator = new Mock<IValidator<GetTickerTypesRequest>>();
+
+        // Setup service provider to return the validator
+        _mockServiceProvider
+            .Setup(x => x.GetService(typeof(IValidator<GetTickerTypesRequest>)))
+            .Returns(_mockValidator.Object);
+
+        // Setup validator to return success by default
+        _mockValidator
+            .Setup(x => x.ValidateAsync(It.IsAny<ValidationContext<GetTickerTypesRequest>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ValidationResult());
+
+        _service = new ReferenceDataService(_mockApi.Object, _mockServiceProvider.Object);
+    }
+
+    /// <summary>
+    /// Tests that the constructor throws ArgumentNullException when api parameter is null.
+    /// </summary>
+    [Fact]
+    public void Constructor_WhenApiIsNull_ThrowsArgumentNullException()
+    {
+        // Act & Assert
+        Assert.Throws<ArgumentNullException>(() => new ReferenceDataService(null!, _mockServiceProvider.Object));
+    }
+
+    /// <summary>
+    /// Tests that the constructor throws ArgumentNullException when serviceProvider parameter is null.
+    /// </summary>
+    [Fact]
+    public void Constructor_WhenServiceProviderIsNull_ThrowsArgumentNullException()
+    {
+        // Act & Assert
+        Assert.Throws<ArgumentNullException>(() => new ReferenceDataService(_mockApi.Object, null!));
+    }
+
+    /// <summary>
+    /// Tests that GetTickerTypesAsync validates the request and calls the API.
+    /// </summary>
+    [Fact]
+    public async Task GetTickerTypesAsync_ValidatesRequest_AndCallsApi()
+    {
+        // Arrange
+        var request = new GetTickerTypesRequest();
+        var expectedResponse = new TickerTypesResponse
+        {
+            Results = new List<TickerType>
+            {
+                new TickerType
+                {
+                    Code = "CS",
+                    Description = "Common Stock",
+                    AssetClass = "stocks",
+                    Locale = "us"
+                }
+            },
+            Count = 1,
+            Status = "OK",
+            RequestId = "test-request-id"
+        };
+
+        _mockApi.Setup(x => x.GetTickerTypesAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(expectedResponse);
+
+        // Act
+        var result = await _service.GetTickerTypesAsync(request, TestContext.Current.CancellationToken);
+
+        // Assert
+        _mockValidator.Verify(x => x.ValidateAsync(It.IsAny<ValidationContext<GetTickerTypesRequest>>(), It.IsAny<CancellationToken>()), Times.Once);
+        _mockApi.Verify(x => x.GetTickerTypesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        Assert.NotNull(result);
     }
 
     /// <summary>
@@ -35,6 +111,7 @@ public class ReferenceDataService_GetTickerTypesTests
     public async Task GetTickerTypesAsync_CallsApi_ReturnsTickerTypes()
     {
         // Arrange
+        var request = new GetTickerTypesRequest();
         var expectedResponse = new TickerTypesResponse
         {
             Results = new List<TickerType>
@@ -63,7 +140,7 @@ public class ReferenceDataService_GetTickerTypesTests
             .ReturnsAsync(expectedResponse);
 
         // Act
-        var result = await _service.GetTickerTypesAsync(TestContext.Current.CancellationToken);
+        var result = await _service.GetTickerTypesAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.NotNull(result);
@@ -93,6 +170,7 @@ public class ReferenceDataService_GetTickerTypesTests
     public async Task GetTickerTypesAsync_PassesCancellationToken()
     {
         // Arrange
+        var request = new GetTickerTypesRequest();
         var cancellationToken = new CancellationToken();
         var expectedResponse = new TickerTypesResponse
         {
@@ -106,9 +184,10 @@ public class ReferenceDataService_GetTickerTypesTests
             .ReturnsAsync(expectedResponse);
 
         // Act
-        await _service.GetTickerTypesAsync(cancellationToken);
+        await _service.GetTickerTypesAsync(request, cancellationToken);
 
         // Assert
+        _mockValidator.Verify(x => x.ValidateAsync(It.IsAny<ValidationContext<GetTickerTypesRequest>>(), cancellationToken), Times.Once);
         _mockApi.Verify(x => x.GetTickerTypesAsync(cancellationToken), Times.Once);
     }
 
@@ -119,6 +198,7 @@ public class ReferenceDataService_GetTickerTypesTests
     public async Task GetTickerTypesAsync_WithEmptyResults_ReturnsEmptyList()
     {
         // Arrange
+        var request = new GetTickerTypesRequest();
         var expectedResponse = new TickerTypesResponse
         {
             Results = new List<TickerType>(),
@@ -131,7 +211,7 @@ public class ReferenceDataService_GetTickerTypesTests
             .ReturnsAsync(expectedResponse);
 
         // Act
-        var result = await _service.GetTickerTypesAsync(TestContext.Current.CancellationToken);
+        var result = await _service.GetTickerTypesAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.NotNull(result);
@@ -147,11 +227,12 @@ public class ReferenceDataService_GetTickerTypesTests
     public async Task GetTickerTypesAsync_WhenApiReturnsNull_ReturnsNull()
     {
         // Arrange
+        var request = new GetTickerTypesRequest();
         _mockApi.Setup(x => x.GetTickerTypesAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync((TickerTypesResponse)null!);
 
         // Act
-        var result = await _service.GetTickerTypesAsync(TestContext.Current.CancellationToken);
+        var result = await _service.GetTickerTypesAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Null(result);
@@ -165,13 +246,14 @@ public class ReferenceDataService_GetTickerTypesTests
     public async Task GetTickerTypesAsync_WhenApiThrowsException_PropagatesException()
     {
         // Arrange
+        var request = new GetTickerTypesRequest();
         var expectedException = new HttpRequestException("Network error");
         _mockApi.Setup(x => x.GetTickerTypesAsync(It.IsAny<CancellationToken>()))
             .ThrowsAsync(expectedException);
 
         // Act & Assert
         var actualException = await Assert.ThrowsAsync<HttpRequestException>(
-            () => _service.GetTickerTypesAsync(TestContext.Current.CancellationToken));
+            () => _service.GetTickerTypesAsync(request, TestContext.Current.CancellationToken));
         Assert.Equal(expectedException.Message, actualException.Message);
     }
 
@@ -182,6 +264,7 @@ public class ReferenceDataService_GetTickerTypesTests
     public async Task GetTickerTypesAsync_WithAllTickerTypes_ReturnsCompleteData()
     {
         // Arrange
+        var request = new GetTickerTypesRequest();
         var expectedResponse = new TickerTypesResponse
         {
             Results = new List<TickerType>
@@ -203,7 +286,7 @@ public class ReferenceDataService_GetTickerTypesTests
             .ReturnsAsync(expectedResponse);
 
         // Act
-        var result = await _service.GetTickerTypesAsync(TestContext.Current.CancellationToken);
+        var result = await _service.GetTickerTypesAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.NotNull(result);

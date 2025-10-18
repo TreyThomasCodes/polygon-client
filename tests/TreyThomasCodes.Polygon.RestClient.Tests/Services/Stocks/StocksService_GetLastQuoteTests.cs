@@ -1,8 +1,12 @@
 // Copyright 2025 Trey Thomas
 // SPDX-License-Identifier: MPL-2.0
 
+using FluentValidation;
+using FluentValidation.Results;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using TreyThomasCodes.Polygon.RestClient.Api;
+using TreyThomasCodes.Polygon.RestClient.Requests.Stocks;
 using TreyThomasCodes.Polygon.RestClient.Services;
 using TreyThomasCodes.Polygon.Models.Stocks;
 
@@ -15,16 +19,85 @@ namespace TreyThomasCodes.Polygon.RestClient.Tests.Services;
 public class StocksService_GetLastQuoteTests
 {
     private readonly Mock<IPolygonStocksApi> _mockApi;
+    private readonly Mock<IServiceProvider> _mockServiceProvider;
+    private readonly Mock<IValidator<GetLastQuoteRequest>> _mockValidator;
     private readonly StocksService _service;
 
     /// <summary>
     /// Initializes a new instance of the StocksService_GetLastQuoteTests class.
-    /// Sets up the mock API and service instance for testing.
+    /// Sets up the mock API, service provider, validator, and service instance for testing.
     /// </summary>
     public StocksService_GetLastQuoteTests()
     {
         _mockApi = new Mock<IPolygonStocksApi>();
-        _service = new StocksService(_mockApi.Object);
+        _mockServiceProvider = new Mock<IServiceProvider>();
+        _mockValidator = new Mock<IValidator<GetLastQuoteRequest>>();
+
+        // Setup service provider to return the validator
+        _mockServiceProvider
+            .Setup(x => x.GetService(typeof(IValidator<GetLastQuoteRequest>)))
+            .Returns(_mockValidator.Object);
+
+        // Setup validator to return success by default
+        _mockValidator
+            .Setup(x => x.ValidateAsync(It.IsAny<ValidationContext<GetLastQuoteRequest>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ValidationResult());
+
+        _service = new StocksService(_mockApi.Object, _mockServiceProvider.Object);
+    }
+
+    /// <summary>
+    /// Tests that the constructor throws ArgumentNullException when api parameter is null.
+    /// </summary>
+    [Fact]
+    public void Constructor_WhenApiIsNull_ThrowsArgumentNullException()
+    {
+        // Act & Assert
+        Assert.Throws<ArgumentNullException>(() => new StocksService(null!, _mockServiceProvider.Object));
+    }
+
+    /// <summary>
+    /// Tests that the constructor throws ArgumentNullException when serviceProvider parameter is null.
+    /// </summary>
+    [Fact]
+    public void Constructor_WhenServiceProviderIsNull_ThrowsArgumentNullException()
+    {
+        // Act & Assert
+        Assert.Throws<ArgumentNullException>(() => new StocksService(_mockApi.Object, null!));
+    }
+
+    /// <summary>
+    /// Tests that GetLastQuoteAsync validates the request and calls the API.
+    /// </summary>
+    [Fact]
+    public async Task GetLastQuoteAsync_ValidatesRequest_AndCallsApi()
+    {
+        // Arrange
+        var request = new GetLastQuoteRequest
+        {
+            Ticker = "AAPL"
+        };
+        var expectedResponse = new Models.Common.PolygonResponse<LastQuoteResult>
+        {
+            Results = new LastQuoteResult
+            {
+                Ticker = "AAPL",
+                BidPrice = 254.05m,
+                AskPrice = 254m
+            },
+            Status = "OK"
+        };
+
+        _mockApi.Setup(x => x.GetLastQuoteAsync(request.Ticker, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(expectedResponse);
+
+        // Act
+        var result = await _service.GetLastQuoteAsync(request, TestContext.Current.CancellationToken);
+
+        // Assert
+        _mockValidator.Verify(x => x.ValidateAsync(It.Is<ValidationContext<GetLastQuoteRequest>>(ctx => ctx.InstanceToValidate == request), It.IsAny<CancellationToken>()), Times.Once);
+        _mockApi.Verify(x => x.GetLastQuoteAsync(request.Ticker, It.IsAny<CancellationToken>()), Times.Once);
+        Assert.NotNull(result);
     }
 
     /// <summary>
@@ -34,7 +107,10 @@ public class StocksService_GetLastQuoteTests
     public async Task GetLastQuoteAsync_CallsApi_ReturnsLastQuoteResponse()
     {
         // Arrange
-        var ticker = "AAPL";
+        var request = new GetLastQuoteRequest
+        {
+            Ticker = "AAPL"
+        };
         var expectedResponse = new Models.Common.PolygonResponse<LastQuoteResult>
         {
             Results = new LastQuoteResult
@@ -56,11 +132,11 @@ public class StocksService_GetLastQuoteTests
             RequestId = "232e88d413f65da04b9bcd6063adbfcb"
         };
 
-        _mockApi.Setup(x => x.GetLastQuoteAsync(ticker, It.IsAny<CancellationToken>()))
+        _mockApi.Setup(x => x.GetLastQuoteAsync(request.Ticker, It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedResponse);
 
         // Act
-        var result = await _service.GetLastQuoteAsync(ticker, TestContext.Current.CancellationToken);
+        var result = await _service.GetLastQuoteAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.NotNull(result);
@@ -80,7 +156,7 @@ public class StocksService_GetLastQuoteTests
         Assert.Equal(expectedResponse.Results.Sequence, result.Results.Sequence);
         Assert.Equal(expectedResponse.Results.Indicators, result.Results.Indicators);
 
-        _mockApi.Verify(x => x.GetLastQuoteAsync(ticker, It.IsAny<CancellationToken>()), Times.Once);
+        _mockApi.Verify(x => x.GetLastQuoteAsync(request.Ticker, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     /// <summary>
@@ -90,22 +166,26 @@ public class StocksService_GetLastQuoteTests
     public async Task GetLastQuoteAsync_PassesCancellationToken()
     {
         // Arrange
-        var ticker = "MSFT";
+        var request = new GetLastQuoteRequest
+        {
+            Ticker = "MSFT"
+        };
         var cancellationToken = new CancellationToken();
         var expectedResponse = new Models.Common.PolygonResponse<LastQuoteResult>
         {
             Status = "OK",
-            Results = new LastQuoteResult { Ticker = ticker }
+            Results = new LastQuoteResult { Ticker = request.Ticker }
         };
 
-        _mockApi.Setup(x => x.GetLastQuoteAsync(ticker, cancellationToken))
+        _mockApi.Setup(x => x.GetLastQuoteAsync(request.Ticker, cancellationToken))
             .ReturnsAsync(expectedResponse);
 
         // Act
-        await _service.GetLastQuoteAsync(ticker, cancellationToken);
+        await _service.GetLastQuoteAsync(request, cancellationToken);
 
         // Assert
-        _mockApi.Verify(x => x.GetLastQuoteAsync(ticker, cancellationToken), Times.Once);
+        _mockValidator.Verify(x => x.ValidateAsync(It.Is<ValidationContext<GetLastQuoteRequest>>(ctx => ctx.InstanceToValidate == request), cancellationToken), Times.Once);
+        _mockApi.Verify(x => x.GetLastQuoteAsync(request.Ticker, cancellationToken), Times.Once);
     }
 
     /// <summary>
@@ -119,6 +199,10 @@ public class StocksService_GetLastQuoteTests
     public async Task GetLastQuoteAsync_WithDifferentTickers_CallsApiWithCorrectTicker(string ticker)
     {
         // Arrange
+        var request = new GetLastQuoteRequest
+        {
+            Ticker = ticker
+        };
         var expectedResponse = new Models.Common.PolygonResponse<LastQuoteResult>
         {
             Results = new LastQuoteResult
@@ -134,7 +218,7 @@ public class StocksService_GetLastQuoteTests
             .ReturnsAsync(expectedResponse);
 
         // Act
-        var result = await _service.GetLastQuoteAsync(ticker, TestContext.Current.CancellationToken);
+        var result = await _service.GetLastQuoteAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.NotNull(result);
@@ -149,16 +233,19 @@ public class StocksService_GetLastQuoteTests
     public async Task GetLastQuoteAsync_WhenApiReturnsNull_ReturnsNull()
     {
         // Arrange
-        var ticker = "INVALID";
-        _mockApi.Setup(x => x.GetLastQuoteAsync(ticker, It.IsAny<CancellationToken>()))
+        var request = new GetLastQuoteRequest
+        {
+            Ticker = "INVALID"
+        };
+        _mockApi.Setup(x => x.GetLastQuoteAsync(request.Ticker, It.IsAny<CancellationToken>()))
             .ReturnsAsync((Models.Common.PolygonResponse<LastQuoteResult>)null!);
 
         // Act
-        var result = await _service.GetLastQuoteAsync(ticker, TestContext.Current.CancellationToken);
+        var result = await _service.GetLastQuoteAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Null(result);
-        _mockApi.Verify(x => x.GetLastQuoteAsync(ticker, It.IsAny<CancellationToken>()), Times.Once);
+        _mockApi.Verify(x => x.GetLastQuoteAsync(request.Ticker, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     /// <summary>
@@ -168,15 +255,47 @@ public class StocksService_GetLastQuoteTests
     public async Task GetLastQuoteAsync_WhenApiThrowsException_PropagatesException()
     {
         // Arrange
-        var ticker = "AAPL";
+        var request = new GetLastQuoteRequest
+        {
+            Ticker = "AAPL"
+        };
         var expectedException = new HttpRequestException("Network error");
-        _mockApi.Setup(x => x.GetLastQuoteAsync(ticker, It.IsAny<CancellationToken>()))
+        _mockApi.Setup(x => x.GetLastQuoteAsync(request.Ticker, It.IsAny<CancellationToken>()))
             .ThrowsAsync(expectedException);
 
         // Act & Assert
         var actualException = await Assert.ThrowsAsync<HttpRequestException>(
-            () => _service.GetLastQuoteAsync(ticker, TestContext.Current.CancellationToken));
+            () => _service.GetLastQuoteAsync(request, TestContext.Current.CancellationToken));
         Assert.Equal(expectedException.Message, actualException.Message);
+    }
+
+    /// <summary>
+    /// Tests that GetLastQuoteAsync throws ValidationException when request is invalid.
+    /// </summary>
+    [Fact]
+    public async Task GetLastQuoteAsync_WithInvalidRequest_ThrowsValidationException()
+    {
+        // Arrange
+        var request = new GetLastQuoteRequest
+        {
+            Ticker = ""
+        };
+        var validationFailures = new List<ValidationFailure>
+        {
+            new ValidationFailure("Ticker", "Ticker must not be empty.")
+        };
+
+        _mockValidator.Reset();
+        _mockValidator
+            .Setup(x => x.ValidateAsync(It.IsAny<ValidationContext<GetLastQuoteRequest>>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new ValidationException(validationFailures));
+
+        // Act & Assert
+        await Assert.ThrowsAsync<ValidationException>(
+            () => _service.GetLastQuoteAsync(request, TestContext.Current.CancellationToken));
+
+        _mockValidator.Verify(x => x.ValidateAsync(It.Is<ValidationContext<GetLastQuoteRequest>>(ctx => ctx.InstanceToValidate == request), It.IsAny<CancellationToken>()), Times.Once);
+        _mockApi.Verify(x => x.GetLastQuoteAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     /// <summary>
@@ -186,7 +305,10 @@ public class StocksService_GetLastQuoteTests
     public async Task GetLastQuoteAsync_WithNullResults_ReturnsResponseWithNullResults()
     {
         // Arrange
-        var ticker = "AAPL";
+        var request = new GetLastQuoteRequest
+        {
+            Ticker = "AAPL"
+        };
         var expectedResponse = new Models.Common.PolygonResponse<LastQuoteResult>
         {
             Results = null,
@@ -194,11 +316,11 @@ public class StocksService_GetLastQuoteTests
             RequestId = "test-request-id"
         };
 
-        _mockApi.Setup(x => x.GetLastQuoteAsync(ticker, It.IsAny<CancellationToken>()))
+        _mockApi.Setup(x => x.GetLastQuoteAsync(request.Ticker, It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedResponse);
 
         // Act
-        var result = await _service.GetLastQuoteAsync(ticker, TestContext.Current.CancellationToken);
+        var result = await _service.GetLastQuoteAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.NotNull(result);
@@ -214,7 +336,10 @@ public class StocksService_GetLastQuoteTests
     public async Task GetLastQuoteAsync_WithCompleteQuoteData_ReturnsCompleteData()
     {
         // Arrange
-        var ticker = "AAPL";
+        var request = new GetLastQuoteRequest
+        {
+            Ticker = "AAPL"
+        };
         var expectedResponse = new Models.Common.PolygonResponse<LastQuoteResult>
         {
             Results = new LastQuoteResult
@@ -236,11 +361,11 @@ public class StocksService_GetLastQuoteTests
             RequestId = "232e88d413f65da04b9bcd6063adbfcb"
         };
 
-        _mockApi.Setup(x => x.GetLastQuoteAsync(ticker, It.IsAny<CancellationToken>()))
+        _mockApi.Setup(x => x.GetLastQuoteAsync(request.Ticker, It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedResponse);
 
         // Act
-        var result = await _service.GetLastQuoteAsync(ticker, TestContext.Current.CancellationToken);
+        var result = await _service.GetLastQuoteAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.NotNull(result);

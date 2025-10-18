@@ -1,6 +1,8 @@
 // Copyright 2025 Trey Thomas
 // SPDX-License-Identifier: MPL-2.0
 
+using TreyThomasCodes.Polygon.RestClient.Requests.Options;
+
 namespace TreyThomasCodes.Polygon.IntegrationTests.Options;
 
 /// <summary>
@@ -17,12 +19,15 @@ public class GetSnapshotIntegrationTests : IntegrationTestBase
     public async Task GetSnapshotAsync_ForSPYCallOption_ShouldReturnValidResponse()
     {
         // Arrange
-        var underlyingAsset = "SPY";
-        var optionContract = "O:SPY251219C00650000";
+        var request = new GetSnapshotRequest
+        {
+            UnderlyingAsset = "SPY",
+            OptionContract = "O:SPY251219C00650000"
+        };
         var optionsService = PolygonClient.Options;
 
         // Act
-        var response = await optionsService.GetSnapshotAsync(underlyingAsset, optionContract, TestContext.Current.CancellationToken);
+        var response = await optionsService.GetSnapshotAsync(request, TestContext.Current.CancellationToken);
 
         // Assert - Verify client successfully made the call and deserialized the response
         Assert.NotNull(response);
@@ -40,12 +45,15 @@ public class GetSnapshotIntegrationTests : IntegrationTestBase
     public async Task GetSnapshotAsync_ShouldHaveCorrectDataTypes()
     {
         // Arrange
-        var underlyingAsset = "SPY";
-        var optionContract = "O:SPY251219C00650000";
+        var request = new GetSnapshotRequest
+        {
+            UnderlyingAsset = "SPY",
+            OptionContract = "O:SPY251219C00650000"
+        };
         var optionsService = PolygonClient.Options;
 
         // Act
-        var response = await optionsService.GetSnapshotAsync(underlyingAsset, optionContract, TestContext.Current.CancellationToken);
+        var response = await optionsService.GetSnapshotAsync(request, TestContext.Current.CancellationToken);
 
         // Assert - Verify client deserialized the response correctly
         Assert.NotNull(response);
@@ -84,13 +92,16 @@ public class GetSnapshotIntegrationTests : IntegrationTestBase
     public async Task GetSnapshotAsync_ForInvalidContract_ShouldThrowApiException()
     {
         // Arrange
-        var underlyingAsset = "INVALID";
-        var optionContract = "O:INVALID000000C00000000";
+        var request = new GetSnapshotRequest
+        {
+            UnderlyingAsset = "INVALID",
+            OptionContract = "O:INVALID000000C00000000"
+        };
         var optionsService = PolygonClient.Options;
 
         // Act & Assert - Verify client properly handles API errors
         var exception = await Assert.ThrowsAsync<Refit.ApiException>(
-            () => optionsService.GetSnapshotAsync(underlyingAsset, optionContract, TestContext.Current.CancellationToken));
+            () => optionsService.GetSnapshotAsync(request, TestContext.Current.CancellationToken));
 
         Assert.Equal(System.Net.HttpStatusCode.NotFound, exception.StatusCode);
         Assert.Contains("404", exception.Message);

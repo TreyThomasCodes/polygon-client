@@ -1,8 +1,12 @@
 // Copyright 2025 Trey Thomas
 // SPDX-License-Identifier: MPL-2.0
 
+using FluentValidation;
+using FluentValidation.Results;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using TreyThomasCodes.Polygon.RestClient.Api;
+using TreyThomasCodes.Polygon.RestClient.Requests.Reference;
 using TreyThomasCodes.Polygon.RestClient.Services;
 using TreyThomasCodes.Polygon.Models.Reference;
 using TreyThomasCodes.Polygon.Models.Common;
@@ -16,16 +20,127 @@ namespace TreyThomasCodes.Polygon.RestClient.Tests.Services;
 public class ReferenceDataService_GetConditionCodesTests
 {
     private readonly Mock<IPolygonReferenceApi> _mockApi;
+    private readonly Mock<IServiceProvider> _mockServiceProvider;
+    private readonly Mock<IValidator<GetConditionCodesRequest>> _mockValidator;
     private readonly ReferenceDataService _service;
 
     /// <summary>
     /// Initializes a new instance of the ReferenceDataService_GetConditionCodesTests class.
-    /// Sets up the mock API and service instance for testing.
+    /// Sets up the mock API, service provider, validator, and service instance for testing.
     /// </summary>
     public ReferenceDataService_GetConditionCodesTests()
     {
         _mockApi = new Mock<IPolygonReferenceApi>();
-        _service = new ReferenceDataService(_mockApi.Object);
+        _mockServiceProvider = new Mock<IServiceProvider>();
+        _mockValidator = new Mock<IValidator<GetConditionCodesRequest>>();
+
+        // Setup service provider to return the validator
+        _mockServiceProvider
+            .Setup(x => x.GetService(typeof(IValidator<GetConditionCodesRequest>)))
+            .Returns(_mockValidator.Object);
+
+        // Setup validator to return success by default
+        _mockValidator
+            .Setup(x => x.ValidateAsync(It.IsAny<ValidationContext<GetConditionCodesRequest>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ValidationResult());
+
+        _service = new ReferenceDataService(_mockApi.Object, _mockServiceProvider.Object);
+    }
+
+    /// <summary>
+    /// Tests that the constructor throws ArgumentNullException when api parameter is null.
+    /// </summary>
+    [Fact]
+    public void Constructor_WhenApiIsNull_ThrowsArgumentNullException()
+    {
+        // Act & Assert
+        Assert.Throws<ArgumentNullException>(() => new ReferenceDataService(null!, _mockServiceProvider.Object));
+    }
+
+    /// <summary>
+    /// Tests that the constructor throws ArgumentNullException when serviceProvider parameter is null.
+    /// </summary>
+    [Fact]
+    public void Constructor_WhenServiceProviderIsNull_ThrowsArgumentNullException()
+    {
+        // Act & Assert
+        Assert.Throws<ArgumentNullException>(() => new ReferenceDataService(_mockApi.Object, null!));
+    }
+
+    /// <summary>
+    /// Tests that GetConditionCodesAsync validates the request and calls the API.
+    /// </summary>
+    [Fact]
+    public async Task GetConditionCodesAsync_ValidatesRequest_AndCallsApi()
+    {
+        // Arrange
+        var request = new GetConditionCodesRequest
+        {
+            AssetClass = AssetClass.Stocks,
+            Order = SortOrder.Ascending,
+            Limit = 10,
+            Sort = "asset_class"
+        };
+        var expectedResponse = new PolygonResponse<List<ConditionCode>>
+        {
+            Results = new List<ConditionCode>
+            {
+                new ConditionCode
+                {
+                    Id = 1,
+                    Type = "sale_condition",
+                    Name = "Acquisition",
+                    AssetClass = "stocks",
+                    SipMapping = new SipMapping { Utp = "A" },
+                    UpdateRules = new UpdateRules
+                    {
+                        Consolidated = new UpdateRule
+                        {
+                            UpdatesHighLow = true,
+                            UpdatesOpenClose = true,
+                            UpdatesVolume = true
+                        },
+                        MarketCenter = new UpdateRule
+                        {
+                            UpdatesHighLow = true,
+                            UpdatesOpenClose = true,
+                            UpdatesVolume = true
+                        }
+                    },
+                    DataTypes = new List<string> { "trade" }
+                }
+            },
+            Status = "OK",
+            RequestId = "test-request-id",
+            Count = 1
+        };
+
+        _mockApi.Setup(x => x.GetConditionCodesAsync(
+                It.IsAny<AssetClass?>(),
+                It.IsAny<DataType?>(),
+                It.IsAny<string>(),
+                It.IsAny<SipMappingType?>(),
+                It.IsAny<SortOrder?>(),
+                It.IsAny<int?>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(expectedResponse);
+
+        // Act
+        var result = await _service.GetConditionCodesAsync(request, TestContext.Current.CancellationToken);
+
+        // Assert
+        _mockValidator.Verify(x => x.ValidateAsync(It.IsAny<ValidationContext<GetConditionCodesRequest>>(), It.IsAny<CancellationToken>()), Times.Once);
+        _mockApi.Verify(x => x.GetConditionCodesAsync(
+            request.AssetClass,
+            request.DataType,
+            request.Id,
+            request.SipMapping,
+            request.Order,
+            request.Limit,
+            request.Sort,
+            It.IsAny<CancellationToken>()), Times.Once);
+        Assert.NotNull(result);
     }
 
     /// <summary>
@@ -35,6 +150,13 @@ public class ReferenceDataService_GetConditionCodesTests
     public async Task GetConditionCodesAsync_CallsApi_ReturnsConditionCodes()
     {
         // Arrange
+        var request = new GetConditionCodesRequest
+        {
+            AssetClass = AssetClass.Stocks,
+            Order = SortOrder.Ascending,
+            Limit = 10,
+            Sort = "asset_class"
+        };
         var expectedResponse = new PolygonResponse<List<ConditionCode>>
         {
             Results = new List<ConditionCode>
@@ -105,12 +227,7 @@ public class ReferenceDataService_GetConditionCodesTests
             .ReturnsAsync(expectedResponse);
 
         // Act
-        var result = await _service.GetConditionCodesAsync(
-            assetClass: AssetClass.Stocks,
-            order: SortOrder.Ascending,
-            limit: 10,
-            sort: "asset_class",
-            cancellationToken: TestContext.Current.CancellationToken);
+        var result = await _service.GetConditionCodesAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.NotNull(result);
@@ -151,6 +268,16 @@ public class ReferenceDataService_GetConditionCodesTests
     public async Task GetConditionCodesAsync_WithAllParameters_PassesParametersToApi()
     {
         // Arrange
+        var request = new GetConditionCodesRequest
+        {
+            AssetClass = AssetClass.Stocks,
+            DataType = DataType.Trade,
+            Id = "1,2,3",
+            SipMapping = SipMappingType.CTA,
+            Order = SortOrder.Descending,
+            Limit = 100,
+            Sort = "id"
+        };
         var expectedResponse = new PolygonResponse<List<ConditionCode>>
         {
             Results = new List<ConditionCode>(),
@@ -171,15 +298,7 @@ public class ReferenceDataService_GetConditionCodesTests
             .ReturnsAsync(expectedResponse);
 
         // Act
-        await _service.GetConditionCodesAsync(
-            assetClass: AssetClass.Stocks,
-            dataType: DataType.Trade,
-            id: "1,2,3",
-            sipMapping: SipMappingType.CTA,
-            order: SortOrder.Descending,
-            limit: 100,
-            sort: "id",
-            cancellationToken: TestContext.Current.CancellationToken);
+        await _service.GetConditionCodesAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
         _mockApi.Verify(x => x.GetConditionCodesAsync(
@@ -200,6 +319,7 @@ public class ReferenceDataService_GetConditionCodesTests
     public async Task GetConditionCodesAsync_PassesCancellationToken()
     {
         // Arrange
+        var request = new GetConditionCodesRequest();
         var cancellationToken = new CancellationToken();
         var expectedResponse = new PolygonResponse<List<ConditionCode>>
         {
@@ -221,9 +341,10 @@ public class ReferenceDataService_GetConditionCodesTests
             .ReturnsAsync(expectedResponse);
 
         // Act
-        await _service.GetConditionCodesAsync(cancellationToken: cancellationToken);
+        await _service.GetConditionCodesAsync(request, cancellationToken);
 
         // Assert
+        _mockValidator.Verify(x => x.ValidateAsync(It.IsAny<ValidationContext<GetConditionCodesRequest>>(), cancellationToken), Times.Once);
         _mockApi.Verify(x => x.GetConditionCodesAsync(
             null,
             null,
@@ -242,6 +363,7 @@ public class ReferenceDataService_GetConditionCodesTests
     public async Task GetConditionCodesAsync_WhenApiReturnsNull_ReturnsNull()
     {
         // Arrange
+        var request = new GetConditionCodesRequest();
         _mockApi.Setup(x => x.GetConditionCodesAsync(
                 It.IsAny<AssetClass?>(),
                 It.IsAny<DataType?>(),
@@ -254,7 +376,7 @@ public class ReferenceDataService_GetConditionCodesTests
             .ReturnsAsync((PolygonResponse<List<ConditionCode>>)null!);
 
         // Act
-        var result = await _service.GetConditionCodesAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var result = await _service.GetConditionCodesAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Null(result);
@@ -276,6 +398,7 @@ public class ReferenceDataService_GetConditionCodesTests
     public async Task GetConditionCodesAsync_WhenApiThrowsException_PropagatesException()
     {
         // Arrange
+        var request = new GetConditionCodesRequest();
         var expectedException = new HttpRequestException("Network error");
         _mockApi.Setup(x => x.GetConditionCodesAsync(
                 It.IsAny<AssetClass?>(),
@@ -290,7 +413,7 @@ public class ReferenceDataService_GetConditionCodesTests
 
         // Act & Assert
         var actualException = await Assert.ThrowsAsync<HttpRequestException>(
-            () => _service.GetConditionCodesAsync(cancellationToken: TestContext.Current.CancellationToken));
+            () => _service.GetConditionCodesAsync(request, TestContext.Current.CancellationToken));
         Assert.Equal(expectedException.Message, actualException.Message);
     }
 
@@ -301,6 +424,7 @@ public class ReferenceDataService_GetConditionCodesTests
     public async Task GetConditionCodesAsync_WithLegacyConditions_ReturnsCorrectData()
     {
         // Arrange
+        var request = new GetConditionCodesRequest();
         var expectedResponse = new PolygonResponse<List<ConditionCode>>
         {
             Results = new List<ConditionCode>
@@ -348,7 +472,7 @@ public class ReferenceDataService_GetConditionCodesTests
             .ReturnsAsync(expectedResponse);
 
         // Act
-        var result = await _service.GetConditionCodesAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var result = await _service.GetConditionCodesAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.NotNull(result);

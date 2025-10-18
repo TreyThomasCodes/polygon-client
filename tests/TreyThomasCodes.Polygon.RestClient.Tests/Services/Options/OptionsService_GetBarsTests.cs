@@ -1,10 +1,14 @@
 // Copyright 2025 Trey Thomas
 // SPDX-License-Identifier: MPL-2.0
 
+using FluentValidation;
+using FluentValidation.Results;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using TreyThomasCodes.Polygon.Models.Common;
 using TreyThomasCodes.Polygon.Models.Options;
 using TreyThomasCodes.Polygon.RestClient.Api;
+using TreyThomasCodes.Polygon.RestClient.Requests.Options;
 using TreyThomasCodes.Polygon.RestClient.Services;
 
 namespace TreyThomasCodes.Polygon.RestClient.Tests.Services.Options;
@@ -16,16 +20,41 @@ namespace TreyThomasCodes.Polygon.RestClient.Tests.Services.Options;
 public class OptionsService_GetBarsTests
 {
     private readonly Mock<IPolygonOptionsApi> _mockApi;
+    private readonly Mock<IServiceProvider> _mockServiceProvider;
+    private readonly Mock<IValidator<GetBarsRequest>> _mockValidator;
     private readonly OptionsService _service;
 
     /// <summary>
     /// Initializes a new instance of the OptionsService_GetBarsTests class.
-    /// Sets up the mock API and service instance for testing.
+    /// Sets up the mock API, service provider, validator, and service instance for testing.
     /// </summary>
     public OptionsService_GetBarsTests()
     {
         _mockApi = new Mock<IPolygonOptionsApi>();
-        _service = new OptionsService(_mockApi.Object);
+        _mockServiceProvider = new Mock<IServiceProvider>();
+        _mockValidator = new Mock<IValidator<GetBarsRequest>>();
+
+        // Setup service provider to return the validator
+        _mockServiceProvider
+            .Setup(x => x.GetService(typeof(IValidator<GetBarsRequest>)))
+            .Returns(_mockValidator.Object);
+
+        // Setup validator to return success by default
+        _mockValidator
+            .Setup(x => x.ValidateAsync(It.IsAny<ValidationContext<GetBarsRequest>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ValidationResult());
+
+        _service = new OptionsService(_mockApi.Object, _mockServiceProvider.Object);
+    }
+
+    /// <summary>
+    /// Tests that the constructor throws ArgumentNullException when serviceProvider parameter is null.
+    /// </summary>
+    [Fact]
+    public void Constructor_WhenServiceProviderIsNull_ThrowsArgumentNullException()
+    {
+        // Act & Assert
+        Assert.Throws<ArgumentNullException>(() => new OptionsService(_mockApi.Object, null!));
     }
 
 
@@ -36,14 +65,17 @@ public class OptionsService_GetBarsTests
 public async Task GetBarsAsync_CallsApi_ReturnsBarsResponse()
 {
     // Arrange
-    var optionsTicker = "O:SPY251219C00650000";
-    var multiplier = 1;
-    var timespan = AggregateInterval.Day;
-    var from = "2023-01-09";
-    var to = "2023-02-10";
+    var request = new GetBarsRequest
+    {
+        OptionsTicker = "O:SPY251219C00650000",
+        Multiplier = 1,
+        Timespan = AggregateInterval.Day,
+        From = "2023-01-09",
+        To = "2023-02-10"
+    };
     var expectedResponse = new PolygonResponse<List<OptionBar>>
     {
-        Ticker = optionsTicker,
+        Ticker = request.OptionsTicker,
         QueryCount = 23,
         ResultsCount = 23,
         Adjusted = true,
@@ -78,11 +110,11 @@ public async Task GetBarsAsync_CallsApi_ReturnsBarsResponse()
     };
 
     _mockApi.Setup(x => x.GetBarsAsync(
-        optionsTicker,
-        multiplier,
-        timespan,
-        from,
-        to,
+        request.OptionsTicker,
+        request.Multiplier,
+        request.Timespan,
+        request.From,
+        request.To,
         It.IsAny<bool?>(),
         It.IsAny<SortOrder?>(),
         It.IsAny<int?>(),
@@ -90,9 +122,10 @@ public async Task GetBarsAsync_CallsApi_ReturnsBarsResponse()
         .ReturnsAsync(expectedResponse);
 
     // Act
-    var result = await _service.GetBarsAsync(optionsTicker, multiplier, timespan, from, to, cancellationToken: TestContext.Current.CancellationToken);
+    var result = await _service.GetBarsAsync(request, TestContext.Current.CancellationToken);
 
     // Assert
+    _mockValidator.Verify(x => x.ValidateAsync(It.Is<ValidationContext<GetBarsRequest>>(ctx => ctx.InstanceToValidate == request), It.IsAny<CancellationToken>()), Times.Once);
     Assert.NotNull(result);
     Assert.Equal(expectedResponse.Status, result.Status);
     Assert.Equal(expectedResponse.RequestId, result.RequestId);
@@ -115,11 +148,11 @@ public async Task GetBarsAsync_CallsApi_ReturnsBarsResponse()
     Assert.Equal(2, firstBar.NumberOfTransactions);
 
     _mockApi.Verify(x => x.GetBarsAsync(
-        optionsTicker,
-        multiplier,
-        timespan,
-        from,
-        to,
+        request.OptionsTicker,
+        request.Multiplier,
+        request.Timespan,
+        request.From,
+        request.To,
         It.IsAny<bool?>(),
         It.IsAny<SortOrder?>(),
         It.IsAny<int?>(),
@@ -133,20 +166,23 @@ public async Task GetBarsAsync_CallsApi_ReturnsBarsResponse()
 public async Task GetBarsAsync_PassesCancellationToken()
 {
     // Arrange
-    var optionsTicker = "O:SPY251219C00650000";
-    var multiplier = 1;
-    var timespan = AggregateInterval.Day;
-    var from = "2023-01-09";
-    var to = "2023-02-10";
+    var request = new GetBarsRequest
+    {
+        OptionsTicker = "O:SPY251219C00650000",
+        Multiplier = 1,
+        Timespan = AggregateInterval.Day,
+        From = "2023-01-09",
+        To = "2023-02-10"
+    };
     var cancellationToken = new CancellationToken();
     var expectedResponse = new PolygonResponse<List<OptionBar>> { Status = "OK" };
 
     _mockApi.Setup(x => x.GetBarsAsync(
-        optionsTicker,
-        multiplier,
-        timespan,
-        from,
-        to,
+        request.OptionsTicker,
+        request.Multiplier,
+        request.Timespan,
+        request.From,
+        request.To,
         It.IsAny<bool?>(),
         It.IsAny<SortOrder?>(),
         It.IsAny<int?>(),
@@ -154,15 +190,16 @@ public async Task GetBarsAsync_PassesCancellationToken()
         .ReturnsAsync(expectedResponse);
 
     // Act
-    await _service.GetBarsAsync(optionsTicker, multiplier, timespan, from, to, cancellationToken: cancellationToken);
+    await _service.GetBarsAsync(request, cancellationToken);
 
     // Assert
+    _mockValidator.Verify(x => x.ValidateAsync(It.Is<ValidationContext<GetBarsRequest>>(ctx => ctx.InstanceToValidate == request), cancellationToken), Times.Once);
     _mockApi.Verify(x => x.GetBarsAsync(
-        optionsTicker,
-        multiplier,
-        timespan,
-        from,
-        to,
+        request.OptionsTicker,
+        request.Multiplier,
+        request.Timespan,
+        request.From,
+        request.To,
         It.IsAny<bool?>(),
         It.IsAny<SortOrder?>(),
         It.IsAny<int?>(),
@@ -176,41 +213,45 @@ public async Task GetBarsAsync_PassesCancellationToken()
 public async Task GetBarsAsync_PassesOptionalParameters()
 {
     // Arrange
-    var optionsTicker = "O:SPY251219C00650000";
-    var multiplier = 5;
-    var timespan = AggregateInterval.Minute;
-    var from = "2023-01-09";
-    var to = "2023-01-10";
-    var adjusted = true;
-    var sort = SortOrder.Ascending;
-    var limit = 100;
+    var request = new GetBarsRequest
+    {
+        OptionsTicker = "O:SPY251219C00650000",
+        Multiplier = 5,
+        Timespan = AggregateInterval.Minute,
+        From = "2023-01-09",
+        To = "2023-01-10",
+        Adjusted = true,
+        Sort = SortOrder.Ascending,
+        Limit = 100
+    };
     var expectedResponse = new PolygonResponse<List<OptionBar>> { Status = "OK" };
 
     _mockApi.Setup(x => x.GetBarsAsync(
-        optionsTicker,
-        multiplier,
-        timespan,
-        from,
-        to,
-        adjusted,
-        sort,
-        limit,
+        request.OptionsTicker,
+        request.Multiplier,
+        request.Timespan,
+        request.From,
+        request.To,
+        request.Adjusted,
+        request.Sort,
+        request.Limit,
         It.IsAny<CancellationToken>()))
         .ReturnsAsync(expectedResponse);
 
     // Act
-    await _service.GetBarsAsync(optionsTicker, multiplier, timespan, from, to, adjusted, sort, limit, TestContext.Current.CancellationToken);
+    await _service.GetBarsAsync(request, TestContext.Current.CancellationToken);
 
     // Assert
+    _mockValidator.Verify(x => x.ValidateAsync(It.Is<ValidationContext<GetBarsRequest>>(ctx => ctx.InstanceToValidate == request), It.IsAny<CancellationToken>()), Times.Once);
     _mockApi.Verify(x => x.GetBarsAsync(
-        optionsTicker,
-        multiplier,
-        timespan,
-        from,
-        to,
-        adjusted,
-        sort,
-        limit,
+        request.OptionsTicker,
+        request.Multiplier,
+        request.Timespan,
+        request.From,
+        request.To,
+        request.Adjusted,
+        request.Sort,
+        request.Limit,
         It.IsAny<CancellationToken>()), Times.Once);
 }
 
@@ -221,11 +262,14 @@ public async Task GetBarsAsync_PassesOptionalParameters()
 public async Task GetBarsAsync_MarketTimestamp_ConvertsToEasternTime()
 {
     // Arrange
-    var optionsTicker = "O:SPY251219C00650000";
-    var multiplier = 1;
-    var timespan = AggregateInterval.Day;
-    var from = "2023-01-09";
-    var to = "2023-02-10";
+    var request = new GetBarsRequest
+    {
+        OptionsTicker = "O:SPY251219C00650000",
+        Multiplier = 1,
+        Timespan = AggregateInterval.Day,
+        From = "2023-01-09",
+        To = "2023-02-10"
+    };
     var timestamp = 1673240400000ul;
     var expectedResponse = new PolygonResponse<List<OptionBar>>
     {
@@ -247,11 +291,11 @@ public async Task GetBarsAsync_MarketTimestamp_ConvertsToEasternTime()
     };
 
     _mockApi.Setup(x => x.GetBarsAsync(
-        optionsTicker,
-        multiplier,
-        timespan,
-        from,
-        to,
+        request.OptionsTicker,
+        request.Multiplier,
+        request.Timespan,
+        request.From,
+        request.To,
         It.IsAny<bool?>(),
         It.IsAny<SortOrder?>(),
         It.IsAny<int?>(),
@@ -259,7 +303,7 @@ public async Task GetBarsAsync_MarketTimestamp_ConvertsToEasternTime()
         .ReturnsAsync(expectedResponse);
 
     // Act
-    var result = await _service.GetBarsAsync(optionsTicker, multiplier, timespan, from, to, cancellationToken: TestContext.Current.CancellationToken);
+    var result = await _service.GetBarsAsync(request, TestContext.Current.CancellationToken);
 
     // Assert
     Assert.NotNull(result);
@@ -277,11 +321,14 @@ public async Task GetBarsAsync_MarketTimestamp_ConvertsToEasternTime()
 public async Task GetBarsAsync_MarketTimestamp_WhenTimestampIsNull_ReturnsNull()
 {
     // Arrange
-    var optionsTicker = "O:SPY251219C00650000";
-    var multiplier = 1;
-    var timespan = AggregateInterval.Day;
-    var from = "2023-01-09";
-    var to = "2023-02-10";
+    var request = new GetBarsRequest
+    {
+        OptionsTicker = "O:SPY251219C00650000",
+        Multiplier = 1,
+        Timespan = AggregateInterval.Day,
+        From = "2023-01-09",
+        To = "2023-02-10"
+    };
     var expectedResponse = new PolygonResponse<List<OptionBar>>
     {
         Results = new List<OptionBar>
@@ -302,11 +349,11 @@ public async Task GetBarsAsync_MarketTimestamp_WhenTimestampIsNull_ReturnsNull()
     };
 
     _mockApi.Setup(x => x.GetBarsAsync(
-        optionsTicker,
-        multiplier,
-        timespan,
-        from,
-        to,
+        request.OptionsTicker,
+        request.Multiplier,
+        request.Timespan,
+        request.From,
+        request.To,
         It.IsAny<bool?>(),
         It.IsAny<SortOrder?>(),
         It.IsAny<int?>(),
@@ -314,7 +361,7 @@ public async Task GetBarsAsync_MarketTimestamp_WhenTimestampIsNull_ReturnsNull()
         .ReturnsAsync(expectedResponse);
 
     // Act
-    var result = await _service.GetBarsAsync(optionsTicker, multiplier, timespan, from, to, cancellationToken: TestContext.Current.CancellationToken);
+    var result = await _service.GetBarsAsync(request, TestContext.Current.CancellationToken);
 
     // Assert
     Assert.NotNull(result);
@@ -324,5 +371,40 @@ public async Task GetBarsAsync_MarketTimestamp_WhenTimestampIsNull_ReturnsNull()
     Assert.Null(result.Results[0].MarketTimestamp);
 }
 
+    /// <summary>
+    /// Tests that GetBarsAsync throws ValidationException when request is invalid.
+    /// </summary>
+    [Fact]
+    public async Task GetBarsAsync_WithInvalidRequest_ThrowsValidationException()
+    {
+        // Arrange
+        var request = new GetBarsRequest { OptionsTicker = "" };
+        var validationFailures = new List<ValidationFailure>
+        {
+            new ValidationFailure("OptionsTicker", "Options ticker must not be empty.")
+        };
+        var validationResult = new ValidationResult(validationFailures);
 
+        // Reset and setup the validator to throw ValidationException directly
+        _mockValidator.Reset();
+        _mockValidator
+            .Setup(x => x.ValidateAsync(It.IsAny<ValidationContext<GetBarsRequest>>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new ValidationException(validationFailures));
+
+        // Act & Assert
+        await Assert.ThrowsAsync<ValidationException>(
+            () => _service.GetBarsAsync(request, TestContext.Current.CancellationToken));
+
+        _mockValidator.Verify(x => x.ValidateAsync(It.Is<ValidationContext<GetBarsRequest>>(ctx => ctx.InstanceToValidate == request), It.IsAny<CancellationToken>()), Times.Once);
+        _mockApi.Verify(x => x.GetBarsAsync(
+            It.IsAny<string>(),
+            It.IsAny<int>(),
+            It.IsAny<AggregateInterval>(),
+            It.IsAny<string>(),
+            It.IsAny<string>(),
+            It.IsAny<bool?>(),
+            It.IsAny<SortOrder?>(),
+            It.IsAny<int?>(),
+            It.IsAny<CancellationToken>()), Times.Never);
+    }
 }

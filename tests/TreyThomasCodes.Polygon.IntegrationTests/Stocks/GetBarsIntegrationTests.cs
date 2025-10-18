@@ -4,6 +4,7 @@
 using NodaTime;
 using TreyThomasCodes.Polygon.Models.Common;
 using TreyThomasCodes.Polygon.Models.Stocks;
+using TreyThomasCodes.Polygon.RestClient.Requests.Stocks;
 
 namespace TreyThomasCodes.Polygon.IntegrationTests.Stocks;
 
@@ -25,13 +26,22 @@ public class GetBarsIntegrationTests : IntegrationTestBase
         var weekEnd = new DateOnly(2025, 9, 19);
         var stocksService = PolygonClient.Stocks;
 
+        var request = new GetBarsRequest
+        {
+            Ticker = "TSLA",
+            Multiplier = 1,
+            Timespan = AggregateInterval.Day,
+            From = weekStart.ToString("yyyy-MM-dd"),
+            To = weekEnd.ToString("yyyy-MM-dd")
+        };
+
         // Act
-        var response = await stocksService.GetBarsAsync("TSLA", 1, AggregateInterval.Day, weekStart.ToString("yyyy-MM-dd"), weekEnd.ToString("yyyy-MM-dd"), cancellationToken: TestContext.Current.CancellationToken);
+        var response = await stocksService.GetBarsAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.NotNull(response);
         Assert.Equal("OK", response.Status);
-        Assert.Equal("TSLA", response.Ticker);
+        Assert.Equal(request.Ticker, response.Ticker);
 
         if (response.Results != null && response.ResultsCount > 0)
         {
@@ -88,8 +98,17 @@ public class GetBarsIntegrationTests : IntegrationTestBase
         var weekEnd = new DateOnly(2025, 9, 19);
         var stocksService = PolygonClient.Stocks;
 
+        var request = new GetBarsRequest
+        {
+            Ticker = "TSLA",
+            Multiplier = 1,
+            Timespan = AggregateInterval.Day,
+            From = weekStart.ToString("yyyy-MM-dd"),
+            To = weekEnd.ToString("yyyy-MM-dd")
+        };
+
         // Act
-        var response = await stocksService.GetBarsAsync("TSLA", 1, AggregateInterval.Day, weekStart.ToString("yyyy-MM-dd"), weekEnd.ToString("yyyy-MM-dd"), cancellationToken: TestContext.Current.CancellationToken);
+        var response = await stocksService.GetBarsAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.NotNull(response);
@@ -132,8 +151,17 @@ public class GetBarsIntegrationTests : IntegrationTestBase
         var weekEnd = new DateOnly(2025, 9, 19);
         var stocksService = PolygonClient.Stocks;
 
+        var request = new GetBarsRequest
+        {
+            Ticker = "TSLA",
+            Multiplier = 1,
+            Timespan = AggregateInterval.Day,
+            From = weekStart.ToString("yyyy-MM-dd"),
+            To = weekEnd.ToString("yyyy-MM-dd")
+        };
+
         // Act
-        var response = await stocksService.GetBarsAsync("TSLA", 1, AggregateInterval.Day, weekStart.ToString("yyyy-MM-dd"), weekEnd.ToString("yyyy-MM-dd"), cancellationToken: TestContext.Current.CancellationToken);
+        var response = await stocksService.GetBarsAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.NotNull(response);

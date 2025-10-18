@@ -1,10 +1,14 @@
 // Copyright 2025 Trey Thomas
 // SPDX-License-Identifier: MPL-2.0
 
+using FluentValidation;
+using FluentValidation.Results;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using TreyThomasCodes.Polygon.Models.Common;
 using TreyThomasCodes.Polygon.Models.Options;
 using TreyThomasCodes.Polygon.RestClient.Api;
+using TreyThomasCodes.Polygon.RestClient.Requests.Options;
 using TreyThomasCodes.Polygon.RestClient.Services;
 
 namespace TreyThomasCodes.Polygon.RestClient.Tests.Services.Options;
@@ -16,16 +20,41 @@ namespace TreyThomasCodes.Polygon.RestClient.Tests.Services.Options;
 public class OptionsService_GetChainSnapshotTests
 {
     private readonly Mock<IPolygonOptionsApi> _mockApi;
+    private readonly Mock<IServiceProvider> _mockServiceProvider;
+    private readonly Mock<IValidator<GetChainSnapshotRequest>> _mockValidator;
     private readonly OptionsService _service;
 
     /// <summary>
     /// Initializes a new instance of the OptionsService_GetChainSnapshotTests class.
-    /// Sets up the mock API and service instance for testing.
+    /// Sets up the mock API, service provider, validator, and service instance for testing.
     /// </summary>
     public OptionsService_GetChainSnapshotTests()
     {
         _mockApi = new Mock<IPolygonOptionsApi>();
-        _service = new OptionsService(_mockApi.Object);
+        _mockServiceProvider = new Mock<IServiceProvider>();
+        _mockValidator = new Mock<IValidator<GetChainSnapshotRequest>>();
+
+        // Setup service provider to return the validator
+        _mockServiceProvider
+            .Setup(x => x.GetService(typeof(IValidator<GetChainSnapshotRequest>)))
+            .Returns(_mockValidator.Object);
+
+        // Setup validator to return success by default
+        _mockValidator
+            .Setup(x => x.ValidateAsync(It.IsAny<ValidationContext<GetChainSnapshotRequest>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ValidationResult());
+
+        _service = new OptionsService(_mockApi.Object, _mockServiceProvider.Object);
+    }
+
+    /// <summary>
+    /// Tests that the constructor throws ArgumentNullException when serviceProvider parameter is null.
+    /// </summary>
+    [Fact]
+    public void Constructor_WhenServiceProviderIsNull_ThrowsArgumentNullException()
+    {
+        // Act & Assert
+        Assert.Throws<ArgumentNullException>(() => new OptionsService(_mockApi.Object, null!));
     }
 
     /// <summary>
@@ -35,7 +64,7 @@ public class OptionsService_GetChainSnapshotTests
     public async Task GetChainSnapshotAsync_CallsApi_ReturnsChainSnapshotResponse()
     {
         // Arrange
-        var underlyingAsset = "MSTR";
+        var request = new GetChainSnapshotRequest { UnderlyingAsset = "MSTR" };
         var expectedResponse = new PolygonResponse<List<OptionSnapshot>>
         {
             Results = new List<OptionSnapshot>
@@ -125,7 +154,7 @@ public class OptionsService_GetChainSnapshotTests
         };
 
         _mockApi.Setup(x => x.GetChainSnapshotAsync(
-            underlyingAsset,
+            request.UnderlyingAsset,
             It.IsAny<decimal?>(),
             It.IsAny<string?>(),
             It.IsAny<string?>(),
@@ -138,9 +167,10 @@ public class OptionsService_GetChainSnapshotTests
             .ReturnsAsync(expectedResponse);
 
         // Act
-        var result = await _service.GetChainSnapshotAsync(underlyingAsset, cancellationToken: TestContext.Current.CancellationToken);
+        var result = await _service.GetChainSnapshotAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
+        _mockValidator.Verify(x => x.ValidateAsync(It.Is<ValidationContext<GetChainSnapshotRequest>>(ctx => ctx.InstanceToValidate == request), It.IsAny<CancellationToken>()), Times.Once);
         Assert.NotNull(result);
         Assert.Equal(expectedResponse.Status, result.Status);
         Assert.Equal(expectedResponse.RequestId, result.RequestId);
@@ -152,7 +182,7 @@ public class OptionsService_GetChainSnapshotTests
         Assert.Equal("O:MSTR251010C00160000", result.Results[1].Details?.Ticker);
 
         _mockApi.Verify(x => x.GetChainSnapshotAsync(
-            underlyingAsset,
+            request.UnderlyingAsset,
             It.IsAny<decimal?>(),
             It.IsAny<string?>(),
             It.IsAny<string?>(),
@@ -171,15 +201,18 @@ public class OptionsService_GetChainSnapshotTests
     public async Task GetChainSnapshotAsync_WithAllParameters_PassesParametersCorrectly()
     {
         // Arrange
-        var underlyingAsset = "SPY";
-        var strikePrice = 650m;
-        var contractType = "call";
-        var expirationDateGte = "2025-01-01";
-        var expirationDateLte = "2025-12-31";
-        var limit = 10;
-        var order = "asc";
-        var sort = "strike_price";
-        var cursor = "test-cursor";
+        var request = new GetChainSnapshotRequest
+        {
+            UnderlyingAsset = "SPY",
+            StrikePrice = 650m,
+            ContractType = "call",
+            ExpirationDateGte = "2025-01-01",
+            ExpirationDateLte = "2025-12-31",
+            Limit = 10,
+            Order = "asc",
+            Sort = "strike_price",
+            Cursor = "test-cursor"
+        };
         var expectedResponse = new PolygonResponse<List<OptionSnapshot>>
         {
             Results = new List<OptionSnapshot>(),
@@ -188,43 +221,34 @@ public class OptionsService_GetChainSnapshotTests
         };
 
         _mockApi.Setup(x => x.GetChainSnapshotAsync(
-            underlyingAsset,
-            strikePrice,
-            contractType,
-            expirationDateGte,
-            expirationDateLte,
-            limit,
-            order,
-            sort,
-            cursor,
+            request.UnderlyingAsset,
+            request.StrikePrice,
+            request.ContractType,
+            request.ExpirationDateGte,
+            request.ExpirationDateLte,
+            request.Limit,
+            request.Order,
+            request.Sort,
+            request.Cursor,
             It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedResponse);
 
         // Act
-        var result = await _service.GetChainSnapshotAsync(
-            underlyingAsset,
-            strikePrice,
-            contractType,
-            expirationDateGte,
-            expirationDateLte,
-            limit,
-            order,
-            sort,
-            cursor,
-            TestContext.Current.CancellationToken);
+        var result = await _service.GetChainSnapshotAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
+        _mockValidator.Verify(x => x.ValidateAsync(It.Is<ValidationContext<GetChainSnapshotRequest>>(ctx => ctx.InstanceToValidate == request), It.IsAny<CancellationToken>()), Times.Once);
         Assert.NotNull(result);
         _mockApi.Verify(x => x.GetChainSnapshotAsync(
-            underlyingAsset,
-            strikePrice,
-            contractType,
-            expirationDateGte,
-            expirationDateLte,
-            limit,
-            order,
-            sort,
-            cursor,
+            request.UnderlyingAsset,
+            request.StrikePrice,
+            request.ContractType,
+            request.ExpirationDateGte,
+            request.ExpirationDateLte,
+            request.Limit,
+            request.Order,
+            request.Sort,
+            request.Cursor,
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -235,12 +259,12 @@ public class OptionsService_GetChainSnapshotTests
     public async Task GetChainSnapshotAsync_PassesCancellationToken()
     {
         // Arrange
-        var underlyingAsset = "SPY";
+        var request = new GetChainSnapshotRequest { UnderlyingAsset = "SPY" };
         var cancellationToken = new CancellationToken();
         var expectedResponse = new PolygonResponse<List<OptionSnapshot>> { Status = "OK" };
 
         _mockApi.Setup(x => x.GetChainSnapshotAsync(
-            underlyingAsset,
+            request.UnderlyingAsset,
             It.IsAny<decimal?>(),
             It.IsAny<string?>(),
             It.IsAny<string?>(),
@@ -253,11 +277,12 @@ public class OptionsService_GetChainSnapshotTests
             .ReturnsAsync(expectedResponse);
 
         // Act
-        await _service.GetChainSnapshotAsync(underlyingAsset, cancellationToken: cancellationToken);
+        await _service.GetChainSnapshotAsync(request, cancellationToken);
 
         // Assert
+        _mockValidator.Verify(x => x.ValidateAsync(It.Is<ValidationContext<GetChainSnapshotRequest>>(ctx => ctx.InstanceToValidate == request), cancellationToken), Times.Once);
         _mockApi.Verify(x => x.GetChainSnapshotAsync(
-            underlyingAsset,
+            request.UnderlyingAsset,
             It.IsAny<decimal?>(),
             It.IsAny<string?>(),
             It.IsAny<string?>(),
@@ -280,6 +305,7 @@ public class OptionsService_GetChainSnapshotTests
     public async Task GetChainSnapshotAsync_WithDifferentUnderlyingAssets_CallsApiWithCorrectAsset(string underlyingAsset)
     {
         // Arrange
+        var request = new GetChainSnapshotRequest { UnderlyingAsset = underlyingAsset };
         var expectedResponse = new PolygonResponse<List<OptionSnapshot>>
         {
             Results = new List<OptionSnapshot>
@@ -309,7 +335,7 @@ public class OptionsService_GetChainSnapshotTests
             .ReturnsAsync(expectedResponse);
 
         // Act
-        var result = await _service.GetChainSnapshotAsync(underlyingAsset, cancellationToken: TestContext.Current.CancellationToken);
+        var result = await _service.GetChainSnapshotAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.NotNull(result);
@@ -334,9 +360,9 @@ public class OptionsService_GetChainSnapshotTests
     public async Task GetChainSnapshotAsync_WhenApiReturnsNull_ReturnsNull()
     {
         // Arrange
-        var underlyingAsset = "INVALID";
+        var request = new GetChainSnapshotRequest { UnderlyingAsset = "INVALID" };
         _mockApi.Setup(x => x.GetChainSnapshotAsync(
-            underlyingAsset,
+            request.UnderlyingAsset,
             It.IsAny<decimal?>(),
             It.IsAny<string?>(),
             It.IsAny<string?>(),
@@ -349,12 +375,12 @@ public class OptionsService_GetChainSnapshotTests
             .ReturnsAsync((PolygonResponse<List<OptionSnapshot>>)null!);
 
         // Act
-        var result = await _service.GetChainSnapshotAsync(underlyingAsset, cancellationToken: TestContext.Current.CancellationToken);
+        var result = await _service.GetChainSnapshotAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Null(result);
         _mockApi.Verify(x => x.GetChainSnapshotAsync(
-            underlyingAsset,
+            request.UnderlyingAsset,
             It.IsAny<decimal?>(),
             It.IsAny<string?>(),
             It.IsAny<string?>(),
@@ -373,10 +399,10 @@ public class OptionsService_GetChainSnapshotTests
     public async Task GetChainSnapshotAsync_WhenApiThrowsException_PropagatesException()
     {
         // Arrange
-        var underlyingAsset = "SPY";
+        var request = new GetChainSnapshotRequest { UnderlyingAsset = "SPY" };
         var expectedException = new HttpRequestException("Network error");
         _mockApi.Setup(x => x.GetChainSnapshotAsync(
-            underlyingAsset,
+            request.UnderlyingAsset,
             It.IsAny<decimal?>(),
             It.IsAny<string?>(),
             It.IsAny<string?>(),
@@ -390,7 +416,7 @@ public class OptionsService_GetChainSnapshotTests
 
         // Act & Assert
         var actualException = await Assert.ThrowsAsync<HttpRequestException>(
-            () => _service.GetChainSnapshotAsync(underlyingAsset, cancellationToken: TestContext.Current.CancellationToken));
+            () => _service.GetChainSnapshotAsync(request, TestContext.Current.CancellationToken));
         Assert.Equal(expectedException.Message, actualException.Message);
     }
 
@@ -401,7 +427,7 @@ public class OptionsService_GetChainSnapshotTests
     public async Task GetChainSnapshotAsync_WithNullResults_ReturnsResponseWithNullResults()
     {
         // Arrange
-        var underlyingAsset = "SPY";
+        var request = new GetChainSnapshotRequest { UnderlyingAsset = "SPY" };
         var expectedResponse = new PolygonResponse<List<OptionSnapshot>>
         {
             Results = null,
@@ -410,7 +436,7 @@ public class OptionsService_GetChainSnapshotTests
         };
 
         _mockApi.Setup(x => x.GetChainSnapshotAsync(
-            underlyingAsset,
+            request.UnderlyingAsset,
             It.IsAny<decimal?>(),
             It.IsAny<string?>(),
             It.IsAny<string?>(),
@@ -423,7 +449,7 @@ public class OptionsService_GetChainSnapshotTests
             .ReturnsAsync(expectedResponse);
 
         // Act
-        var result = await _service.GetChainSnapshotAsync(underlyingAsset, cancellationToken: TestContext.Current.CancellationToken);
+        var result = await _service.GetChainSnapshotAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.NotNull(result);
@@ -439,7 +465,7 @@ public class OptionsService_GetChainSnapshotTests
     public async Task GetChainSnapshotAsync_WithEmptyResults_ReturnsEmptyList()
     {
         // Arrange
-        var underlyingAsset = "SPY";
+        var request = new GetChainSnapshotRequest { UnderlyingAsset = "SPY" };
         var expectedResponse = new PolygonResponse<List<OptionSnapshot>>
         {
             Results = new List<OptionSnapshot>(),
@@ -448,7 +474,7 @@ public class OptionsService_GetChainSnapshotTests
         };
 
         _mockApi.Setup(x => x.GetChainSnapshotAsync(
-            underlyingAsset,
+            request.UnderlyingAsset,
             It.IsAny<decimal?>(),
             It.IsAny<string?>(),
             It.IsAny<string?>(),
@@ -461,7 +487,7 @@ public class OptionsService_GetChainSnapshotTests
             .ReturnsAsync(expectedResponse);
 
         // Act
-        var result = await _service.GetChainSnapshotAsync(underlyingAsset, cancellationToken: TestContext.Current.CancellationToken);
+        var result = await _service.GetChainSnapshotAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.NotNull(result);
@@ -476,8 +502,11 @@ public class OptionsService_GetChainSnapshotTests
     public async Task GetChainSnapshotAsync_WithStrikePrice_PassesStrikePriceCorrectly()
     {
         // Arrange
-        var underlyingAsset = "SPY";
-        var strikePrice = 650m;
+        var request = new GetChainSnapshotRequest
+        {
+            UnderlyingAsset = "SPY",
+            StrikePrice = 650m
+        };
         var expectedResponse = new PolygonResponse<List<OptionSnapshot>>
         {
             Results = new List<OptionSnapshot>
@@ -486,7 +515,7 @@ public class OptionsService_GetChainSnapshotTests
                 {
                     Details = new OptionContractDetails
                     {
-                        StrikePrice = strikePrice
+                        StrikePrice = 650m
                     }
                 }
             },
@@ -494,8 +523,8 @@ public class OptionsService_GetChainSnapshotTests
         };
 
         _mockApi.Setup(x => x.GetChainSnapshotAsync(
-            underlyingAsset,
-            strikePrice,
+            request.UnderlyingAsset,
+            request.StrikePrice,
             It.IsAny<string?>(),
             It.IsAny<string?>(),
             It.IsAny<string?>(),
@@ -507,14 +536,14 @@ public class OptionsService_GetChainSnapshotTests
             .ReturnsAsync(expectedResponse);
 
         // Act
-        var result = await _service.GetChainSnapshotAsync(underlyingAsset, strikePrice: strikePrice, cancellationToken: TestContext.Current.CancellationToken);
+        var result = await _service.GetChainSnapshotAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.NotNull(result);
-        Assert.Equal(strikePrice, result.Results?[0].Details?.StrikePrice);
+        Assert.Equal(650m, result.Results?[0].Details?.StrikePrice);
         _mockApi.Verify(x => x.GetChainSnapshotAsync(
-            underlyingAsset,
-            strikePrice,
+            request.UnderlyingAsset,
+            request.StrikePrice,
             It.IsAny<string?>(),
             It.IsAny<string?>(),
             It.IsAny<string?>(),
@@ -534,7 +563,11 @@ public class OptionsService_GetChainSnapshotTests
     public async Task GetChainSnapshotAsync_WithContractType_FiltersCorrectly(string contractType)
     {
         // Arrange
-        var underlyingAsset = "SPY";
+        var request = new GetChainSnapshotRequest
+        {
+            UnderlyingAsset = "SPY",
+            ContractType = contractType
+        };
         var expectedResponse = new PolygonResponse<List<OptionSnapshot>>
         {
             Results = new List<OptionSnapshot>
@@ -551,7 +584,7 @@ public class OptionsService_GetChainSnapshotTests
         };
 
         _mockApi.Setup(x => x.GetChainSnapshotAsync(
-            underlyingAsset,
+            request.UnderlyingAsset,
             It.IsAny<decimal?>(),
             contractType,
             It.IsAny<string?>(),
@@ -564,13 +597,13 @@ public class OptionsService_GetChainSnapshotTests
             .ReturnsAsync(expectedResponse);
 
         // Act
-        var result = await _service.GetChainSnapshotAsync(underlyingAsset, contractType: contractType, cancellationToken: TestContext.Current.CancellationToken);
+        var result = await _service.GetChainSnapshotAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.NotNull(result);
         Assert.Equal(contractType, result.Results?[0].Details?.ContractType);
         _mockApi.Verify(x => x.GetChainSnapshotAsync(
-            underlyingAsset,
+            request.UnderlyingAsset,
             It.IsAny<decimal?>(),
             contractType,
             It.IsAny<string?>(),
@@ -589,7 +622,7 @@ public class OptionsService_GetChainSnapshotTests
     public async Task GetChainSnapshotAsync_WithPagination_ReturnsNextUrl()
     {
         // Arrange
-        var underlyingAsset = "MSTR";
+        var request = new GetChainSnapshotRequest { UnderlyingAsset = "MSTR" };
         var nextUrl = "https://api.polygon.io/v3/snapshot/options/MSTR?cursor=test-cursor";
         var expectedResponse = new PolygonResponse<List<OptionSnapshot>>
         {
@@ -609,7 +642,7 @@ public class OptionsService_GetChainSnapshotTests
         };
 
         _mockApi.Setup(x => x.GetChainSnapshotAsync(
-            underlyingAsset,
+            request.UnderlyingAsset,
             It.IsAny<decimal?>(),
             It.IsAny<string?>(),
             It.IsAny<string?>(),
@@ -622,10 +655,48 @@ public class OptionsService_GetChainSnapshotTests
             .ReturnsAsync(expectedResponse);
 
         // Act
-        var result = await _service.GetChainSnapshotAsync(underlyingAsset, cancellationToken: TestContext.Current.CancellationToken);
+        var result = await _service.GetChainSnapshotAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.NotNull(result);
         Assert.Equal(nextUrl, result.NextUrl);
+    }
+
+    /// <summary>
+    /// Tests that GetChainSnapshotAsync throws ValidationException when request is invalid.
+    /// </summary>
+    [Fact]
+    public async Task GetChainSnapshotAsync_WithInvalidRequest_ThrowsValidationException()
+    {
+        // Arrange
+        var request = new GetChainSnapshotRequest { UnderlyingAsset = "" };
+        var validationFailures = new List<ValidationFailure>
+        {
+            new ValidationFailure("UnderlyingAsset", "Underlying asset must not be empty.")
+        };
+        var validationResult = new ValidationResult(validationFailures);
+
+        // Reset and setup the validator to throw ValidationException directly
+        _mockValidator.Reset();
+        _mockValidator
+            .Setup(x => x.ValidateAsync(It.IsAny<ValidationContext<GetChainSnapshotRequest>>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new ValidationException(validationFailures));
+
+        // Act & Assert
+        await Assert.ThrowsAsync<ValidationException>(
+            () => _service.GetChainSnapshotAsync(request, TestContext.Current.CancellationToken));
+
+        _mockValidator.Verify(x => x.ValidateAsync(It.Is<ValidationContext<GetChainSnapshotRequest>>(ctx => ctx.InstanceToValidate == request), It.IsAny<CancellationToken>()), Times.Once);
+        _mockApi.Verify(x => x.GetChainSnapshotAsync(
+            It.IsAny<string>(),
+            It.IsAny<decimal?>(),
+            It.IsAny<string?>(),
+            It.IsAny<string?>(),
+            It.IsAny<string?>(),
+            It.IsAny<int?>(),
+            It.IsAny<string?>(),
+            It.IsAny<string?>(),
+            It.IsAny<string?>(),
+            It.IsAny<CancellationToken>()), Times.Never);
     }
 }
