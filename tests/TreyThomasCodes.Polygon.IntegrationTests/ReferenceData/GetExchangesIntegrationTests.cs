@@ -3,6 +3,7 @@
 
 using TreyThomasCodes.Polygon.Models.Common;
 using TreyThomasCodes.Polygon.Models.Reference;
+using TreyThomasCodes.Polygon.RestClient.Requests.Reference;
 
 namespace TreyThomasCodes.Polygon.IntegrationTests.ReferenceData;
 
@@ -21,12 +22,16 @@ public class GetExchangesIntegrationTests : IntegrationTestBase
     {
         // Arrange
         var referenceDataService = PolygonClient.ReferenceData;
+        var request = new GetExchangesRequest
+        {
+            AssetClass = AssetClass.Stocks,
+            Locale = Locale.UnitedStates
+        };
 
         // Act
         var exchangesResponse = await referenceDataService.GetExchangesAsync(
-            assetClass: AssetClass.Stocks,
-            locale: Locale.UnitedStates,
-            cancellationToken: TestContext.Current.CancellationToken);
+            request,
+            TestContext.Current.CancellationToken);
 
         // Assert - Verify client successfully made the call and deserialized the response
         Assert.NotNull(exchangesResponse);
@@ -46,12 +51,16 @@ public class GetExchangesIntegrationTests : IntegrationTestBase
     {
         // Arrange
         var referenceDataService = PolygonClient.ReferenceData;
+        var request = new GetExchangesRequest
+        {
+            AssetClass = AssetClass.Stocks,
+            Locale = Locale.UnitedStates
+        };
 
         // Act
         var exchangesResponse = await referenceDataService.GetExchangesAsync(
-            assetClass: AssetClass.Stocks,
-            locale: Locale.UnitedStates,
-            cancellationToken: TestContext.Current.CancellationToken);
+            request,
+            TestContext.Current.CancellationToken);
 
         // Assert - Verify client deserialized the response correctly
         Assert.NotNull(exchangesResponse);

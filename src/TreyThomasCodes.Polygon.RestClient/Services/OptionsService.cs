@@ -1,9 +1,12 @@
 // Copyright 2025 Trey Thomas
 // SPDX-License-Identifier: MPL-2.0
 
+using FluentValidation;
+using Microsoft.Extensions.DependencyInjection;
 using TreyThomasCodes.Polygon.Models.Common;
 using TreyThomasCodes.Polygon.Models.Options;
 using TreyThomasCodes.Polygon.RestClient.Api;
+using TreyThomasCodes.Polygon.RestClient.Requests.Options;
 
 namespace TreyThomasCodes.Polygon.RestClient.Services;
 
@@ -15,163 +18,157 @@ namespace TreyThomasCodes.Polygon.RestClient.Services;
 public class OptionsService : IOptionsService
 {
     private readonly IPolygonOptionsApi _api;
+    private readonly IServiceProvider _serviceProvider;
 
     /// <summary>
-    /// Initializes a new instance of the OptionsService with the specified API client.
+    /// Initializes a new instance of the OptionsService with the specified API client and service provider.
     /// </summary>
     /// <param name="api">The Polygon.io options API client used for making HTTP requests.</param>
-    /// <exception cref="ArgumentNullException">Thrown when the api parameter is null.</exception>
-    public OptionsService(IPolygonOptionsApi api)
+    /// <param name="serviceProvider">The service provider used to retrieve validators for request objects.</param>
+    /// <exception cref="ArgumentNullException">Thrown when the api or serviceProvider parameter is null.</exception>
+    public OptionsService(IPolygonOptionsApi api, IServiceProvider serviceProvider)
     {
         _api = api ?? throw new ArgumentNullException(nameof(api));
+        _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
     }
 
     /// <inheritdoc />
-    public Task<PolygonResponse<OptionsContract>> GetContractDetailsAsync(
-        string optionsTicker,
+    public async Task<PolygonResponse<OptionsContract>> GetContractDetailsAsync(
+        GetContractDetailsRequest request,
         CancellationToken cancellationToken = default)
     {
-        return _api.GetContractDetailsAsync(optionsTicker, cancellationToken);
+        var validator = _serviceProvider.GetRequiredService<IValidator<GetContractDetailsRequest>>();
+        await validator.ValidateAndThrowAsync(request, cancellationToken);
+
+        return await _api.GetContractDetailsAsync(request.OptionsTicker, cancellationToken);
     }
 
     /// <inheritdoc />
-    public Task<PolygonResponse<OptionSnapshot>> GetSnapshotAsync(
-        string underlyingAsset,
-        string optionContract,
+    public async Task<PolygonResponse<OptionSnapshot>> GetSnapshotAsync(
+        GetSnapshotRequest request,
         CancellationToken cancellationToken = default)
     {
-        return _api.GetSnapshotAsync(underlyingAsset, optionContract, cancellationToken);
+        var validator = _serviceProvider.GetRequiredService<IValidator<GetSnapshotRequest>>();
+        await validator.ValidateAndThrowAsync(request, cancellationToken);
+
+        return await _api.GetSnapshotAsync(request.UnderlyingAsset, request.OptionContract, cancellationToken);
     }
 
     /// <inheritdoc />
-    public Task<PolygonResponse<List<OptionSnapshot>>> GetChainSnapshotAsync(
-        string underlyingAsset,
-        decimal? strikePrice = null,
-        string? contractType = null,
-        string? expirationDateGte = null,
-        string? expirationDateLte = null,
-        int? limit = null,
-        string? order = null,
-        string? sort = null,
-        string? cursor = null,
+    public async Task<PolygonResponse<List<OptionSnapshot>>> GetChainSnapshotAsync(
+        GetChainSnapshotRequest request,
         CancellationToken cancellationToken = default)
     {
-        return _api.GetChainSnapshotAsync(
-            underlyingAsset,
-            strikePrice,
-            contractType,
-            expirationDateGte,
-            expirationDateLte,
-            limit,
-            order,
-            sort,
-            cursor,
+        var validator = _serviceProvider.GetRequiredService<IValidator<GetChainSnapshotRequest>>();
+        await validator.ValidateAndThrowAsync(request, cancellationToken);
+
+        return await _api.GetChainSnapshotAsync(
+            request.UnderlyingAsset,
+            request.StrikePrice,
+            request.ContractType,
+            request.ExpirationDateGte,
+            request.ExpirationDateLte,
+            request.Limit,
+            request.Order,
+            request.Sort,
+            request.Cursor,
             cancellationToken);
     }
 
     /// <inheritdoc />
-    public Task<PolygonResponse<OptionTrade>> GetLastTradeAsync(
-        string optionsTicker,
+    public async Task<PolygonResponse<OptionTrade>> GetLastTradeAsync(
+        GetLastTradeRequest request,
         CancellationToken cancellationToken = default)
     {
-        return _api.GetLastTradeAsync(optionsTicker, cancellationToken);
+        var validator = _serviceProvider.GetRequiredService<IValidator<GetLastTradeRequest>>();
+        await validator.ValidateAndThrowAsync(request, cancellationToken);
+
+        return await _api.GetLastTradeAsync(request.OptionsTicker, cancellationToken);
     }
 
     /// <inheritdoc />
-    public Task<PolygonResponse<List<OptionQuote>>> GetQuotesAsync(
-        string optionsTicker,
-        string? timestamp = null,
-        string? timestampLt = null,
-        string? timestampLte = null,
-        string? timestampGt = null,
-        string? timestampGte = null,
-        string? order = null,
-        int? limit = null,
-        string? sort = null,
-        string? cursor = null,
+    public async Task<PolygonResponse<List<OptionQuote>>> GetQuotesAsync(
+        GetQuotesRequest request,
         CancellationToken cancellationToken = default)
     {
-        return _api.GetQuotesAsync(
-            optionsTicker,
-            timestamp,
-            timestampLt,
-            timestampLte,
-            timestampGt,
-            timestampGte,
-            order,
-            limit,
-            sort,
-            cursor,
+        var validator = _serviceProvider.GetRequiredService<IValidator<GetQuotesRequest>>();
+        await validator.ValidateAndThrowAsync(request, cancellationToken);
+
+        return await _api.GetQuotesAsync(
+            request.OptionsTicker,
+            request.Timestamp,
+            request.TimestampLt,
+            request.TimestampLte,
+            request.TimestampGt,
+            request.TimestampGte,
+            request.Order,
+            request.Limit,
+            request.Sort,
+            request.Cursor,
             cancellationToken);
     }
 
     /// <inheritdoc />
-    public Task<PolygonResponse<List<OptionTradeV3>>> GetTradesAsync(
-        string optionsTicker,
-        string? timestamp = null,
-        string? timestampLt = null,
-        string? timestampLte = null,
-        string? timestampGt = null,
-        string? timestampGte = null,
-        string? order = null,
-        int? limit = null,
-        string? sort = null,
-        string? cursor = null,
+    public async Task<PolygonResponse<List<OptionTradeV3>>> GetTradesAsync(
+        GetTradesRequest request,
         CancellationToken cancellationToken = default)
     {
-        return _api.GetTradesAsync(
-            optionsTicker,
-            timestamp,
-            timestampLt,
-            timestampLte,
-            timestampGt,
-            timestampGte,
-            order,
-            limit,
-            sort,
-            cursor,
+        var validator = _serviceProvider.GetRequiredService<IValidator<GetTradesRequest>>();
+        await validator.ValidateAndThrowAsync(request, cancellationToken);
+
+        return await _api.GetTradesAsync(
+            request.OptionsTicker,
+            request.Timestamp,
+            request.TimestampLt,
+            request.TimestampLte,
+            request.TimestampGt,
+            request.TimestampGte,
+            request.Order,
+            request.Limit,
+            request.Sort,
+            request.Cursor,
             cancellationToken);
     }
 
     /// <inheritdoc />
-    public Task<PolygonResponse<List<OptionBar>>> GetBarsAsync(
-        string optionsTicker,
-        int multiplier,
-        AggregateInterval timespan,
-        string from,
-        string to,
-        bool? adjusted = null,
-        SortOrder? sort = null,
-        int? limit = null,
+    public async Task<PolygonResponse<List<OptionBar>>> GetBarsAsync(
+        GetBarsRequest request,
         CancellationToken cancellationToken = default)
     {
-        return _api.GetBarsAsync(
-            optionsTicker,
-            multiplier,
-            timespan,
-            from,
-            to,
-            adjusted,
-            sort,
-            limit,
+        var validator = _serviceProvider.GetRequiredService<IValidator<GetBarsRequest>>();
+        await validator.ValidateAndThrowAsync(request, cancellationToken);
+
+        return await _api.GetBarsAsync(
+            request.OptionsTicker,
+            request.Multiplier,
+            request.Timespan,
+            request.From,
+            request.To,
+            request.Adjusted,
+            request.Sort,
+            request.Limit,
             cancellationToken);
     }
 
     /// <inheritdoc />
-    public Task<OptionDailyOpenClose> GetDailyOpenCloseAsync(
-        string optionsTicker,
-        string date,
+    public async Task<OptionDailyOpenClose> GetDailyOpenCloseAsync(
+        GetDailyOpenCloseRequest request,
         CancellationToken cancellationToken = default)
     {
-        return _api.GetDailyOpenCloseAsync(optionsTicker, date, cancellationToken);
+        var validator = _serviceProvider.GetRequiredService<IValidator<GetDailyOpenCloseRequest>>();
+        await validator.ValidateAndThrowAsync(request, cancellationToken);
+
+        return await _api.GetDailyOpenCloseAsync(request.OptionsTicker, request.Date, cancellationToken);
     }
 
     /// <inheritdoc />
-    public Task<PolygonResponse<List<OptionBar>>> GetPreviousDayBarAsync(
-        string optionsTicker,
-        bool? adjusted = null,
+    public async Task<PolygonResponse<List<OptionBar>>> GetPreviousDayBarAsync(
+        GetPreviousDayBarRequest request,
         CancellationToken cancellationToken = default)
     {
-        return _api.GetPreviousDayBarAsync(optionsTicker, adjusted, cancellationToken);
+        var validator = _serviceProvider.GetRequiredService<IValidator<GetPreviousDayBarRequest>>();
+        await validator.ValidateAndThrowAsync(request, cancellationToken);
+
+        return await _api.GetPreviousDayBarAsync(request.OptionsTicker, request.Adjusted, cancellationToken);
     }
 }

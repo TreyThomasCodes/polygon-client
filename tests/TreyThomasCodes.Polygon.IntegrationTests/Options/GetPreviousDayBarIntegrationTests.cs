@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: MPL-2.0
 
 using TreyThomasCodes.Polygon.Models.Common;
+using TreyThomasCodes.Polygon.RestClient.Requests.Options;
 
 namespace TreyThomasCodes.Polygon.IntegrationTests.Options;
 
@@ -19,11 +20,14 @@ public class GetPreviousDayBarIntegrationTests : IntegrationTestBase
     public async Task GetPreviousDayBarAsync_ForSPYCallOption_ShouldReturnValidResponse()
     {
         // Arrange
-        var optionsTicker = "O:SPY251219C00650000";
+        var request = new GetPreviousDayBarRequest
+        {
+            OptionsTicker = "O:SPY251219C00650000"
+        };
         var optionsService = PolygonClient.Options;
 
         // Act
-        var response = await optionsService.GetPreviousDayBarAsync(optionsTicker, cancellationToken: TestContext.Current.CancellationToken);
+        var response = await optionsService.GetPreviousDayBarAsync(request, TestContext.Current.CancellationToken);
 
         // Assert - Verify client successfully made the call and deserialized the response
         Assert.NotNull(response);
@@ -39,11 +43,14 @@ public class GetPreviousDayBarIntegrationTests : IntegrationTestBase
     public async Task GetPreviousDayBarAsync_ShouldHaveCorrectDataTypes()
     {
         // Arrange
-        var optionsTicker = "O:SPY251219C00650000";
+        var request = new GetPreviousDayBarRequest
+        {
+            OptionsTicker = "O:SPY251219C00650000"
+        };
         var optionsService = PolygonClient.Options;
 
         // Act
-        var response = await optionsService.GetPreviousDayBarAsync(optionsTicker, cancellationToken: TestContext.Current.CancellationToken);
+        var response = await optionsService.GetPreviousDayBarAsync(request, TestContext.Current.CancellationToken);
 
         // Assert - Verify client deserialized the response correctly
         Assert.NotNull(response);
@@ -106,15 +113,18 @@ public class GetPreviousDayBarIntegrationTests : IntegrationTestBase
     public async Task GetPreviousDayBarAsync_ShouldDeserializeTickerAndMetadata()
     {
         // Arrange
-        var optionsTicker = "O:SPY251219C00650000";
+        var request = new GetPreviousDayBarRequest
+        {
+            OptionsTicker = "O:SPY251219C00650000"
+        };
         var optionsService = PolygonClient.Options;
 
         // Act
-        var response = await optionsService.GetPreviousDayBarAsync(optionsTicker, cancellationToken: TestContext.Current.CancellationToken);
+        var response = await optionsService.GetPreviousDayBarAsync(request, TestContext.Current.CancellationToken);
 
         // Assert - Verify ticker and metadata are properly deserialized
         Assert.NotNull(response);
-        Assert.Equal(optionsTicker, response.Ticker);
+        Assert.Equal(request.OptionsTicker, response.Ticker);
         Assert.True(response.QueryCount >= 0, "QueryCount should be >= 0");
         Assert.True(response.ResultsCount >= 0, "ResultsCount should be >= 0");
     }
@@ -126,11 +136,14 @@ public class GetPreviousDayBarIntegrationTests : IntegrationTestBase
     public async Task GetPreviousDayBarAsync_ShouldDeserializeOHLCPrices()
     {
         // Arrange
-        var optionsTicker = "O:SPY251219C00650000";
+        var request = new GetPreviousDayBarRequest
+        {
+            OptionsTicker = "O:SPY251219C00650000"
+        };
         var optionsService = PolygonClient.Options;
 
         // Act
-        var response = await optionsService.GetPreviousDayBarAsync(optionsTicker, cancellationToken: TestContext.Current.CancellationToken);
+        var response = await optionsService.GetPreviousDayBarAsync(request, TestContext.Current.CancellationToken);
 
         // Assert - Verify OHLC prices are properly deserialized
         Assert.NotNull(response);
@@ -168,11 +181,14 @@ public class GetPreviousDayBarIntegrationTests : IntegrationTestBase
     public async Task GetPreviousDayBarAsync_ShouldDeserializeVolumeAndVWAP()
     {
         // Arrange
-        var optionsTicker = "O:SPY251219C00650000";
+        var request = new GetPreviousDayBarRequest
+        {
+            OptionsTicker = "O:SPY251219C00650000"
+        };
         var optionsService = PolygonClient.Options;
 
         // Act
-        var response = await optionsService.GetPreviousDayBarAsync(optionsTicker, cancellationToken: TestContext.Current.CancellationToken);
+        var response = await optionsService.GetPreviousDayBarAsync(request, TestContext.Current.CancellationToken);
 
         // Assert - Verify volume and VWAP are properly deserialized
         Assert.NotNull(response);
@@ -203,11 +219,14 @@ public class GetPreviousDayBarIntegrationTests : IntegrationTestBase
     public async Task GetPreviousDayBarAsync_ShouldDeserializeTimestampAndTransactionCount()
     {
         // Arrange
-        var optionsTicker = "O:SPY251219C00650000";
+        var request = new GetPreviousDayBarRequest
+        {
+            OptionsTicker = "O:SPY251219C00650000"
+        };
         var optionsService = PolygonClient.Options;
 
         // Act
-        var response = await optionsService.GetPreviousDayBarAsync(optionsTicker, cancellationToken: TestContext.Current.CancellationToken);
+        var response = await optionsService.GetPreviousDayBarAsync(request, TestContext.Current.CancellationToken);
 
         // Assert - Verify timestamp and transaction count are properly deserialized
         Assert.NotNull(response);
@@ -238,11 +257,15 @@ public class GetPreviousDayBarIntegrationTests : IntegrationTestBase
     public async Task GetPreviousDayBarAsync_WithAdjustedParameter_ShouldReturnValidResponse()
     {
         // Arrange
-        var optionsTicker = "O:SPY251219C00650000";
+        var request = new GetPreviousDayBarRequest
+        {
+            OptionsTicker = "O:SPY251219C00650000",
+            Adjusted = true
+        };
         var optionsService = PolygonClient.Options;
 
         // Act
-        var response = await optionsService.GetPreviousDayBarAsync(optionsTicker, adjusted: true, cancellationToken: TestContext.Current.CancellationToken);
+        var response = await optionsService.GetPreviousDayBarAsync(request, TestContext.Current.CancellationToken);
 
         // Assert - Verify client successfully made the call with the adjusted parameter
         Assert.NotNull(response);

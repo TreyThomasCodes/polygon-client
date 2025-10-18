@@ -1,6 +1,7 @@
 // Copyright 2025 Trey Thomas
 // SPDX-License-Identifier: MPL-2.0
 
+using FluentValidation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -10,6 +11,7 @@ using TreyThomasCodes.Polygon.RestClient.Api;
 using TreyThomasCodes.Polygon.RestClient.Authentication;
 using TreyThomasCodes.Polygon.RestClient.Configuration;
 using TreyThomasCodes.Polygon.RestClient.Services;
+using TreyThomasCodes.Polygon.RestClient.Validators.Options;
 
 namespace TreyThomasCodes.Polygon.RestClient.Extensions;
 
@@ -90,6 +92,9 @@ public static class ServiceCollectionExtensions
     private static IServiceCollection AddPolygonClientCore(this IServiceCollection services)
     {
         services.AddTransient<PolygonAuthenticationHandler>();
+
+        // Register all FluentValidation validators from the assembly
+        services.AddValidatorsFromAssemblyContaining<GetContractDetailsRequestValidator>();
 
         var options = new JsonSerializerOptions
         {

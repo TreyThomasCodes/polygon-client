@@ -47,20 +47,34 @@ The client uses a layered architecture:
    - `IPolygonReferenceApi` - Ticker reference data and market status
    - `IPolygonOptionsApi` - Options contract data (infrastructure ready for endpoint implementation)
 
-2. **Service Layer** (`/Services/`) - Business logic and orchestration
+2. **Request Layer** (`/Requests/`) - Strongly-typed request objects for API calls
+   - `/Stocks/` - Request objects for stock market data (e.g., `GetBarsRequest`, `GetTradesRequest`, `GetQuotesRequest`)
+   - `/Options/` - Request objects for options data (e.g., `GetContractDetailsRequest`, `GetBarsRequest`, `GetSnapshotRequest`)
+   - `/Reference/` - Request objects for reference data (e.g., `GetTickersRequest`, `GetMarketStatusRequest`)
+   - Each request object encapsulates all parameters for a specific API call
+
+3. **Validation Layer** (`/Validators/`) - FluentValidation validators for request objects
+   - `/Stocks/` - Validators for stock requests (e.g., `GetBarsRequestValidator`, `GetTradesRequestValidator`)
+   - `/Options/` - Validators for options requests (e.g., `GetContractDetailsRequestValidator`, `GetBarsRequestValidator`)
+   - `/Reference/` - Validators for reference data requests (e.g., `GetTickersRequestValidator`, `GetMarketStatusRequestValidator`)
+   - Validators enforce parameter requirements, formats, and constraints before API calls
+   - Automatically integrated into service methods via dependency injection
+
+4. **Service Layer** (`/Services/`) - Business logic and orchestration
    - `IPolygonClient` - Main facade providing access to all services
    - `IStocksService`, `IReferenceDataService`, `IOptionsService` - Domain-specific services
+   - All service methods accept request objects and automatically validate them using FluentValidation
 
-3. **Extensions Layer** (`/Extensions/`) - Extension methods for enhanced usability
+5. **Extensions Layer** (`/Extensions/`) - Extension methods for enhanced usability
    - `OptionsServiceExtensions` - Extension methods for `IOptionsService` providing:
      - Component-based methods (e.g., `GetContractByComponentsAsync`, `GetSnapshotByComponentsAsync`, `GetLastTradeByComponentsAsync`, `GetBarsByComponentsAsync`)
      - OptionsTicker-based overloads for all major Options API calls
      - Discovery helpers (`GetAvailableStrikesAsync`, `GetExpirationDatesAsync`)
 
-4. **Configuration** (`/Configuration/`) - Options pattern for settings
+6. **Configuration** (`/Configuration/`) - Options pattern for settings
    - `PolygonOptions` - API key, base URL, timeout, retry settings
 
-5. **Authentication** (`/Authentication/`) - HTTP message handlers
+7. **Authentication** (`/Authentication/`) - HTTP message handlers
    - `PolygonAuthenticationHandler` - Adds API key to requests
 
 ### Dependency Injection Setup
@@ -71,6 +85,7 @@ Registration is handled through `ServiceCollectionExtensions.AddPolygonClient()`
 
 ### Key Dependencies
 - **Refit** - HTTP client generation from interfaces
+- **FluentValidation** - Request object validation with automatic error handling
 - **Microsoft.Extensions.*** - Configuration, DI, HTTP client factory, logging
 - **NodaTime** - Date/time handling (Models project)
 - **XUnit** - Testing framework with Moq for mocking
@@ -82,6 +97,38 @@ Registration is handled through `ServiceCollectionExtensions.AddPolygonClient()`
 - Projects reference packages without version numbers
 
 ## Development Patterns
+
+### Request Objects and Validation
+The library uses a request object pattern with FluentValidation for all API calls:
+
+**Request Objects** (`/Requests/`) - Strongly-typed classes encapsulating API parameters:
+- Organized by service area: `/Stocks/`, `/Options/`, `/Reference/`
+- Each request class contains all parameters for a specific API endpoint
+- Example: `GetBarsRequest` contains `Ticker`, `Multiplier`, `Timespan`, `From`, `To`, `Adjusted`, `Sort`, `Limit`
+
+**Validators** (`/Validators/`) - FluentValidation validators for each request type:
+- Organized by service area matching request structure
+- Enforce parameter requirements, formats, and constraints
+- Example: `GetBarsRequestValidator` validates date formats, ticker length, multiplier range, etc.
+- Validators are automatically registered via dependency injection
+- Service methods call `ValidateAndThrowAsync` before making API requests
+
+**Usage Pattern**:
+```csharp
+// Create a request object
+var request = new GetBarsRequest
+{
+    Ticker = "AAPL",
+    Multiplier = 1,
+    Timespan = AggregateInterval.Day,
+    From = "2025-09-01",
+    To = "2025-09-30",
+    Adjusted = true
+};
+
+// Pass to service method (validation happens automatically)
+var bars = await _client.Stocks.GetBarsAsync(request);
+```
 
 ### Models Project
 - Contains strongly-typed models for all API responses

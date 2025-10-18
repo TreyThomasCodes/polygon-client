@@ -1,8 +1,12 @@
 // Copyright 2025 Trey Thomas
 // SPDX-License-Identifier: MPL-2.0
 
+using FluentValidation;
+using FluentValidation.Results;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using TreyThomasCodes.Polygon.RestClient.Api;
+using TreyThomasCodes.Polygon.RestClient.Requests.Reference;
 using TreyThomasCodes.Polygon.RestClient.Services;
 using TreyThomasCodes.Polygon.Models.Reference;
 using TreyThomasCodes.Polygon.Models.Common;
@@ -16,16 +20,104 @@ namespace TreyThomasCodes.Polygon.RestClient.Tests.Services;
 public class ReferenceDataService_GetExchangesTests
 {
     private readonly Mock<IPolygonReferenceApi> _mockApi;
+    private readonly Mock<IServiceProvider> _mockServiceProvider;
+    private readonly Mock<IValidator<GetExchangesRequest>> _mockValidator;
     private readonly ReferenceDataService _service;
 
     /// <summary>
     /// Initializes a new instance of the ReferenceDataService_GetExchangesTests class.
-    /// Sets up the mock API and service instance for testing.
+    /// Sets up the mock API, service provider, validator, and service instance for testing.
     /// </summary>
     public ReferenceDataService_GetExchangesTests()
     {
         _mockApi = new Mock<IPolygonReferenceApi>();
-        _service = new ReferenceDataService(_mockApi.Object);
+        _mockServiceProvider = new Mock<IServiceProvider>();
+        _mockValidator = new Mock<IValidator<GetExchangesRequest>>();
+
+        // Setup service provider to return the validator
+        _mockServiceProvider
+            .Setup(x => x.GetService(typeof(IValidator<GetExchangesRequest>)))
+            .Returns(_mockValidator.Object);
+
+        // Setup validator to return success by default
+        _mockValidator
+            .Setup(x => x.ValidateAsync(It.IsAny<ValidationContext<GetExchangesRequest>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ValidationResult());
+
+        _service = new ReferenceDataService(_mockApi.Object, _mockServiceProvider.Object);
+    }
+
+    /// <summary>
+    /// Tests that the constructor throws ArgumentNullException when api parameter is null.
+    /// </summary>
+    [Fact]
+    public void Constructor_WhenApiIsNull_ThrowsArgumentNullException()
+    {
+        // Act & Assert
+        Assert.Throws<ArgumentNullException>(() => new ReferenceDataService(null!, _mockServiceProvider.Object));
+    }
+
+    /// <summary>
+    /// Tests that the constructor throws ArgumentNullException when serviceProvider parameter is null.
+    /// </summary>
+    [Fact]
+    public void Constructor_WhenServiceProviderIsNull_ThrowsArgumentNullException()
+    {
+        // Act & Assert
+        Assert.Throws<ArgumentNullException>(() => new ReferenceDataService(_mockApi.Object, null!));
+    }
+
+    /// <summary>
+    /// Tests that GetExchangesAsync validates the request and calls the API.
+    /// </summary>
+    [Fact]
+    public async Task GetExchangesAsync_ValidatesRequest_AndCallsApi()
+    {
+        // Arrange
+        var request = new GetExchangesRequest
+        {
+            AssetClass = AssetClass.Stocks,
+            Locale = Locale.UnitedStates
+        };
+        var expectedResponse = new PolygonResponse<List<Exchange>>
+        {
+            Results = new List<Exchange>
+            {
+                new Exchange
+                {
+                    Id = 1,
+                    Type = "exchange",
+                    AssetClass = "stocks",
+                    Locale = "us",
+                    Name = "NYSE American, LLC",
+                    Acronym = "AMEX",
+                    Mic = "XASE",
+                    OperatingMic = "XNYS",
+                    ParticipantId = "A",
+                    Url = "https://www.nyse.com/markets/nyse-american"
+                }
+            },
+            Status = "OK",
+            RequestId = "test-request-id",
+            Count = 1
+        };
+
+        _mockApi.Setup(x => x.GetExchangesAsync(
+                It.IsAny<AssetClass?>(),
+                It.IsAny<Locale?>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(expectedResponse);
+
+        // Act
+        var result = await _service.GetExchangesAsync(request, TestContext.Current.CancellationToken);
+
+        // Assert
+        _mockValidator.Verify(x => x.ValidateAsync(It.IsAny<ValidationContext<GetExchangesRequest>>(), It.IsAny<CancellationToken>()), Times.Once);
+        _mockApi.Verify(x => x.GetExchangesAsync(
+            request.AssetClass,
+            request.Locale,
+            It.IsAny<CancellationToken>()), Times.Once);
+        Assert.NotNull(result);
     }
 
     /// <summary>
@@ -35,6 +127,11 @@ public class ReferenceDataService_GetExchangesTests
     public async Task GetExchangesAsync_CallsApi_ReturnsExchanges()
     {
         // Arrange
+        var request = new GetExchangesRequest
+        {
+            AssetClass = AssetClass.Stocks,
+            Locale = Locale.UnitedStates
+        };
         var expectedResponse = new PolygonResponse<List<Exchange>>
         {
             Results = new List<Exchange>
@@ -77,10 +174,7 @@ public class ReferenceDataService_GetExchangesTests
             .ReturnsAsync(expectedResponse);
 
         // Act
-        var result = await _service.GetExchangesAsync(
-            assetClass: AssetClass.Stocks,
-            locale: Locale.UnitedStates,
-            cancellationToken: TestContext.Current.CancellationToken);
+        var result = await _service.GetExchangesAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.NotNull(result);
@@ -121,6 +215,11 @@ public class ReferenceDataService_GetExchangesTests
     public async Task GetExchangesAsync_WithAllParameters_PassesParametersToApi()
     {
         // Arrange
+        var request = new GetExchangesRequest
+        {
+            AssetClass = AssetClass.Options,
+            Locale = Locale.Global
+        };
         var expectedResponse = new PolygonResponse<List<Exchange>>
         {
             Results = new List<Exchange>(),
@@ -136,10 +235,7 @@ public class ReferenceDataService_GetExchangesTests
             .ReturnsAsync(expectedResponse);
 
         // Act
-        await _service.GetExchangesAsync(
-            assetClass: AssetClass.Options,
-            locale: Locale.Global,
-            cancellationToken: TestContext.Current.CancellationToken);
+        await _service.GetExchangesAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
         _mockApi.Verify(x => x.GetExchangesAsync(
@@ -155,6 +251,7 @@ public class ReferenceDataService_GetExchangesTests
     public async Task GetExchangesAsync_PassesCancellationToken()
     {
         // Arrange
+        var request = new GetExchangesRequest();
         var cancellationToken = new CancellationToken();
         var expectedResponse = new PolygonResponse<List<Exchange>>
         {
@@ -171,9 +268,10 @@ public class ReferenceDataService_GetExchangesTests
             .ReturnsAsync(expectedResponse);
 
         // Act
-        await _service.GetExchangesAsync(cancellationToken: cancellationToken);
+        await _service.GetExchangesAsync(request, cancellationToken);
 
         // Assert
+        _mockValidator.Verify(x => x.ValidateAsync(It.IsAny<ValidationContext<GetExchangesRequest>>(), cancellationToken), Times.Once);
         _mockApi.Verify(x => x.GetExchangesAsync(
             null,
             null,
@@ -187,6 +285,7 @@ public class ReferenceDataService_GetExchangesTests
     public async Task GetExchangesAsync_WhenApiReturnsNull_ReturnsNull()
     {
         // Arrange
+        var request = new GetExchangesRequest();
         _mockApi.Setup(x => x.GetExchangesAsync(
                 It.IsAny<AssetClass?>(),
                 It.IsAny<Locale?>(),
@@ -194,7 +293,7 @@ public class ReferenceDataService_GetExchangesTests
             .ReturnsAsync((PolygonResponse<List<Exchange>>)null!);
 
         // Act
-        var result = await _service.GetExchangesAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var result = await _service.GetExchangesAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Null(result);
@@ -211,6 +310,7 @@ public class ReferenceDataService_GetExchangesTests
     public async Task GetExchangesAsync_WhenApiThrowsException_PropagatesException()
     {
         // Arrange
+        var request = new GetExchangesRequest();
         var expectedException = new HttpRequestException("Network error");
         _mockApi.Setup(x => x.GetExchangesAsync(
                 It.IsAny<AssetClass?>(),
@@ -220,7 +320,7 @@ public class ReferenceDataService_GetExchangesTests
 
         // Act & Assert
         var actualException = await Assert.ThrowsAsync<HttpRequestException>(
-            () => _service.GetExchangesAsync(cancellationToken: TestContext.Current.CancellationToken));
+            () => _service.GetExchangesAsync(request, TestContext.Current.CancellationToken));
         Assert.Equal(expectedException.Message, actualException.Message);
     }
 
@@ -235,6 +335,10 @@ public class ReferenceDataService_GetExchangesTests
     public async Task GetExchangesAsync_WithDifferentAssetClasses_ReturnsCorrectData(AssetClass assetClass)
     {
         // Arrange
+        var request = new GetExchangesRequest
+        {
+            AssetClass = assetClass
+        };
         var expectedResponse = new PolygonResponse<List<Exchange>>
         {
             Results = new List<Exchange>
@@ -261,9 +365,7 @@ public class ReferenceDataService_GetExchangesTests
             .ReturnsAsync(expectedResponse);
 
         // Act
-        var result = await _service.GetExchangesAsync(
-            assetClass: assetClass,
-            cancellationToken: TestContext.Current.CancellationToken);
+        var result = await _service.GetExchangesAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.NotNull(result);
@@ -287,6 +389,7 @@ public class ReferenceDataService_GetExchangesTests
     public async Task GetExchangesAsync_WithDifferentExchangeTypes_ReturnsCorrectData(string exchangeType)
     {
         // Arrange
+        var request = new GetExchangesRequest();
         var expectedResponse = new PolygonResponse<List<Exchange>>
         {
             Results = new List<Exchange>
@@ -313,7 +416,7 @@ public class ReferenceDataService_GetExchangesTests
             .ReturnsAsync(expectedResponse);
 
         // Act
-        var result = await _service.GetExchangesAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var result = await _service.GetExchangesAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.NotNull(result);
@@ -328,6 +431,7 @@ public class ReferenceDataService_GetExchangesTests
     public async Task GetExchangesAsync_WithMissingOptionalFields_ReturnsCorrectData()
     {
         // Arrange
+        var request = new GetExchangesRequest();
         var expectedResponse = new PolygonResponse<List<Exchange>>
         {
             Results = new List<Exchange>
@@ -357,7 +461,7 @@ public class ReferenceDataService_GetExchangesTests
             .ReturnsAsync(expectedResponse);
 
         // Act
-        var result = await _service.GetExchangesAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var result = await _service.GetExchangesAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.NotNull(result);

@@ -1,6 +1,8 @@
 // Copyright 2025 Trey Thomas
 // SPDX-License-Identifier: MPL-2.0
 
+using TreyThomasCodes.Polygon.RestClient.Requests.Options;
+
 namespace TreyThomasCodes.Polygon.IntegrationTests.Options;
 
 /// <summary>
@@ -17,11 +19,14 @@ public class GetLastTradeIntegrationTests : IntegrationTestBase
     public async Task GetLastTradeAsync_ForTSLACallOption_ShouldReturnValidResponse()
     {
         // Arrange
-        var optionsTicker = "O:TSLA260320C00700000";
+        var request = new GetLastTradeRequest
+        {
+            OptionsTicker = "O:TSLA260320C00700000"
+        };
         var optionsService = PolygonClient.Options;
 
         // Act
-        var response = await optionsService.GetLastTradeAsync(optionsTicker, TestContext.Current.CancellationToken);
+        var response = await optionsService.GetLastTradeAsync(request, TestContext.Current.CancellationToken);
 
         // Assert - Verify client successfully made the call and deserialized the response
         Assert.NotNull(response);
@@ -39,11 +44,14 @@ public class GetLastTradeIntegrationTests : IntegrationTestBase
     public async Task GetLastTradeAsync_ShouldHaveCorrectDataTypes()
     {
         // Arrange
-        var optionsTicker = "O:TSLA260320C00700000";
+        var request = new GetLastTradeRequest
+        {
+            OptionsTicker = "O:TSLA260320C00700000"
+        };
         var optionsService = PolygonClient.Options;
 
         // Act
-        var response = await optionsService.GetLastTradeAsync(optionsTicker, TestContext.Current.CancellationToken);
+        var response = await optionsService.GetLastTradeAsync(request, TestContext.Current.CancellationToken);
 
         // Assert - Verify client deserialized the response correctly
         Assert.NotNull(response);
@@ -79,21 +87,23 @@ public class GetLastTradeIntegrationTests : IntegrationTestBase
     }
 
     /// <summary>
-    /// Tests that the client correctly handles errors for invalid options tickers.
+    /// Tests that the client correctly validates options ticker format.
     /// </summary>
     [Fact]
-    public async Task GetLastTradeAsync_ForInvalidTicker_ShouldThrowApiException()
+    public async Task GetLastTradeAsync_ForInvalidTicker_ShouldThrowValidationException()
     {
         // Arrange
-        var invalidTicker = "O:INVALID000000C00000000";
+        var request = new GetLastTradeRequest
+        {
+            OptionsTicker = "O:INVALID000000C00000000"
+        };
         var optionsService = PolygonClient.Options;
 
-        // Act & Assert - Verify client properly handles API errors
-        var exception = await Assert.ThrowsAsync<Refit.ApiException>(
-            () => optionsService.GetLastTradeAsync(invalidTicker, TestContext.Current.CancellationToken));
+        // Act & Assert - Verify validation catches invalid OCC ticker format
+        var exception = await Assert.ThrowsAsync<FluentValidation.ValidationException>(
+            () => optionsService.GetLastTradeAsync(request, TestContext.Current.CancellationToken));
 
-        Assert.Equal(System.Net.HttpStatusCode.NotFound, exception.StatusCode);
-        Assert.Contains("404", exception.Message);
+        Assert.Contains("OptionsTicker", exception.Message);
     }
 
     /// <summary>
@@ -103,17 +113,20 @@ public class GetLastTradeIntegrationTests : IntegrationTestBase
     public async Task GetLastTradeAsync_ShouldDeserializeTickerProperty()
     {
         // Arrange
-        var optionsTicker = "O:TSLA260320C00700000";
+        var request = new GetLastTradeRequest
+        {
+            OptionsTicker = "O:TSLA260320C00700000"
+        };
         var optionsService = PolygonClient.Options;
 
         // Act
-        var response = await optionsService.GetLastTradeAsync(optionsTicker, TestContext.Current.CancellationToken);
+        var response = await optionsService.GetLastTradeAsync(request, TestContext.Current.CancellationToken);
 
         // Assert - Verify ticker is properly deserialized
         Assert.NotNull(response);
         Assert.NotNull(response.Results);
         Assert.NotNull(response.Results.Ticker);
-        Assert.Equal(optionsTicker, response.Results.Ticker);
+        Assert.Equal(request.OptionsTicker, response.Results.Ticker);
     }
 
     /// <summary>
@@ -123,11 +136,14 @@ public class GetLastTradeIntegrationTests : IntegrationTestBase
     public async Task GetLastTradeAsync_MarketTimestamp_ShouldConvertToEasternTime()
     {
         // Arrange
-        var optionsTicker = "O:TSLA260320C00700000";
+        var request = new GetLastTradeRequest
+        {
+            OptionsTicker = "O:TSLA260320C00700000"
+        };
         var optionsService = PolygonClient.Options;
 
         // Act
-        var response = await optionsService.GetLastTradeAsync(optionsTicker, TestContext.Current.CancellationToken);
+        var response = await optionsService.GetLastTradeAsync(request, TestContext.Current.CancellationToken);
 
         // Assert - Verify MarketTimestamp conversion works
         Assert.NotNull(response);

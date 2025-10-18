@@ -1,10 +1,14 @@
 // Copyright 2025 Trey Thomas
 // SPDX-License-Identifier: MPL-2.0
 
+using FluentValidation;
+using FluentValidation.Results;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using TreyThomasCodes.Polygon.Models.Common;
 using TreyThomasCodes.Polygon.Models.Options;
 using TreyThomasCodes.Polygon.RestClient.Api;
+using TreyThomasCodes.Polygon.RestClient.Requests.Options;
 using TreyThomasCodes.Polygon.RestClient.Services;
 
 namespace TreyThomasCodes.Polygon.RestClient.Tests.Services.Options;
@@ -16,16 +20,67 @@ namespace TreyThomasCodes.Polygon.RestClient.Tests.Services.Options;
 public class OptionsService_GetSnapshotTests
 {
     private readonly Mock<IPolygonOptionsApi> _mockApi;
+    private readonly Mock<IServiceProvider> _mockServiceProvider;
+    private readonly Mock<IValidator<GetSnapshotRequest>> _mockValidator;
     private readonly OptionsService _service;
 
     /// <summary>
     /// Initializes a new instance of the OptionsService_GetSnapshotTests class.
-    /// Sets up the mock API and service instance for testing.
+    /// Sets up the mock API, service provider, validator, and service instance for testing.
     /// </summary>
     public OptionsService_GetSnapshotTests()
     {
         _mockApi = new Mock<IPolygonOptionsApi>();
-        _service = new OptionsService(_mockApi.Object);
+        _mockServiceProvider = new Mock<IServiceProvider>();
+        _mockValidator = new Mock<IValidator<GetSnapshotRequest>>();
+
+        // Setup service provider to return the validator
+        _mockServiceProvider
+            .Setup(x => x.GetService(typeof(IValidator<GetSnapshotRequest>)))
+            .Returns(_mockValidator.Object);
+
+        // Setup validator to return success by default
+        _mockValidator
+            .Setup(x => x.ValidateAsync(It.IsAny<ValidationContext<GetSnapshotRequest>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ValidationResult());
+
+        _service = new OptionsService(_mockApi.Object, _mockServiceProvider.Object);
+    }
+
+    /// <summary>
+    /// Tests that GetSnapshotAsync validates the request and calls the API.
+    /// </summary>
+    [Fact]
+    public async Task GetSnapshotAsync_ValidatesRequest_AndCallsApi()
+    {
+        // Arrange
+        var request = new GetSnapshotRequest
+        {
+            UnderlyingAsset = "SPY",
+            OptionContract = "SPY251219C00650000"
+        };
+        var expectedResponse = new PolygonResponse<OptionSnapshot>
+        {
+            Results = new OptionSnapshot
+            {
+                Details = new OptionContractDetails
+                {
+                    Ticker = "O:SPY251219C00650000"
+                }
+            },
+            Status = "OK"
+        };
+
+        _mockApi.Setup(x => x.GetSnapshotAsync(request.UnderlyingAsset, request.OptionContract, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(expectedResponse);
+
+        // Act
+        var result = await _service.GetSnapshotAsync(request, TestContext.Current.CancellationToken);
+
+        // Assert
+        _mockValidator.Verify(x => x.ValidateAsync(It.Is<ValidationContext<GetSnapshotRequest>>(ctx => ctx.InstanceToValidate == request), It.IsAny<CancellationToken>()), Times.Once);
+        _mockApi.Verify(x => x.GetSnapshotAsync(request.UnderlyingAsset, request.OptionContract, It.IsAny<CancellationToken>()), Times.Once);
+        Assert.NotNull(result);
     }
 
     /// <summary>
@@ -35,8 +90,11 @@ public class OptionsService_GetSnapshotTests
     public async Task GetSnapshotAsync_CallsApi_ReturnsSnapshotResponse()
     {
         // Arrange
-        var underlyingAsset = "SPY";
-        var optionContract = "SPY251219C00650000";
+        var request = new GetSnapshotRequest
+        {
+            UnderlyingAsset = "SPY",
+            OptionContract = "SPY251219C00650000"
+        };
         var expectedResponse = new PolygonResponse<OptionSnapshot>
         {
             Results = new OptionSnapshot
@@ -107,11 +165,11 @@ public class OptionsService_GetSnapshotTests
             RequestId = "b6f7a44e2c7e897e87a39a18396e3549"
         };
 
-        _mockApi.Setup(x => x.GetSnapshotAsync(underlyingAsset, optionContract, It.IsAny<CancellationToken>()))
+        _mockApi.Setup(x => x.GetSnapshotAsync(request.UnderlyingAsset, request.OptionContract, It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedResponse);
 
         // Act
-        var result = await _service.GetSnapshotAsync(underlyingAsset, optionContract, TestContext.Current.CancellationToken);
+        var result = await _service.GetSnapshotAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.NotNull(result);
@@ -134,7 +192,7 @@ public class OptionsService_GetSnapshotTests
         Assert.NotNull(result.Results.UnderlyingAsset);
         Assert.Equal(expectedResponse.Results.UnderlyingAsset.Price, result.Results.UnderlyingAsset.Price);
 
-        _mockApi.Verify(x => x.GetSnapshotAsync(underlyingAsset, optionContract, It.IsAny<CancellationToken>()), Times.Once);
+        _mockApi.Verify(x => x.GetSnapshotAsync(request.UnderlyingAsset, request.OptionContract, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     /// <summary>
@@ -144,19 +202,23 @@ public class OptionsService_GetSnapshotTests
     public async Task GetSnapshotAsync_PassesCancellationToken()
     {
         // Arrange
-        var underlyingAsset = "SPY";
-        var optionContract = "SPY251219C00650000";
+        var request = new GetSnapshotRequest
+        {
+            UnderlyingAsset = "SPY",
+            OptionContract = "SPY251219C00650000"
+        };
         var cancellationToken = new CancellationToken();
         var expectedResponse = new PolygonResponse<OptionSnapshot> { Status = "OK" };
 
-        _mockApi.Setup(x => x.GetSnapshotAsync(underlyingAsset, optionContract, cancellationToken))
+        _mockApi.Setup(x => x.GetSnapshotAsync(request.UnderlyingAsset, request.OptionContract, cancellationToken))
             .ReturnsAsync(expectedResponse);
 
         // Act
-        await _service.GetSnapshotAsync(underlyingAsset, optionContract, cancellationToken);
+        await _service.GetSnapshotAsync(request, cancellationToken);
 
         // Assert
-        _mockApi.Verify(x => x.GetSnapshotAsync(underlyingAsset, optionContract, cancellationToken), Times.Once);
+        _mockValidator.Verify(x => x.ValidateAsync(It.Is<ValidationContext<GetSnapshotRequest>>(ctx => ctx.InstanceToValidate == request), cancellationToken), Times.Once);
+        _mockApi.Verify(x => x.GetSnapshotAsync(request.UnderlyingAsset, request.OptionContract, cancellationToken), Times.Once);
     }
 
     /// <summary>
@@ -171,6 +233,11 @@ public class OptionsService_GetSnapshotTests
         string underlyingAsset, string optionContract)
     {
         // Arrange
+        var request = new GetSnapshotRequest
+        {
+            UnderlyingAsset = underlyingAsset,
+            OptionContract = optionContract
+        };
         var expectedResponse = new PolygonResponse<OptionSnapshot>
         {
             Results = new OptionSnapshot
@@ -191,7 +258,7 @@ public class OptionsService_GetSnapshotTests
             .ReturnsAsync(expectedResponse);
 
         // Act
-        var result = await _service.GetSnapshotAsync(underlyingAsset, optionContract, TestContext.Current.CancellationToken);
+        var result = await _service.GetSnapshotAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.NotNull(result);
@@ -206,17 +273,20 @@ public class OptionsService_GetSnapshotTests
     public async Task GetSnapshotAsync_WhenApiReturnsNull_ReturnsNull()
     {
         // Arrange
-        var underlyingAsset = "INVALID";
-        var optionContract = "INVALID000000C00000000";
-        _mockApi.Setup(x => x.GetSnapshotAsync(underlyingAsset, optionContract, It.IsAny<CancellationToken>()))
+        var request = new GetSnapshotRequest
+        {
+            UnderlyingAsset = "INVALID",
+            OptionContract = "INVALID000000C00000000"
+        };
+        _mockApi.Setup(x => x.GetSnapshotAsync(request.UnderlyingAsset, request.OptionContract, It.IsAny<CancellationToken>()))
             .ReturnsAsync((PolygonResponse<OptionSnapshot>)null!);
 
         // Act
-        var result = await _service.GetSnapshotAsync(underlyingAsset, optionContract, TestContext.Current.CancellationToken);
+        var result = await _service.GetSnapshotAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Null(result);
-        _mockApi.Verify(x => x.GetSnapshotAsync(underlyingAsset, optionContract, It.IsAny<CancellationToken>()), Times.Once);
+        _mockApi.Verify(x => x.GetSnapshotAsync(request.UnderlyingAsset, request.OptionContract, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     /// <summary>
@@ -226,16 +296,52 @@ public class OptionsService_GetSnapshotTests
     public async Task GetSnapshotAsync_WhenApiThrowsException_PropagatesException()
     {
         // Arrange
-        var underlyingAsset = "SPY";
-        var optionContract = "SPY251219C00650000";
+        var request = new GetSnapshotRequest
+        {
+            UnderlyingAsset = "SPY",
+            OptionContract = "SPY251219C00650000"
+        };
         var expectedException = new HttpRequestException("Network error");
-        _mockApi.Setup(x => x.GetSnapshotAsync(underlyingAsset, optionContract, It.IsAny<CancellationToken>()))
+        _mockApi.Setup(x => x.GetSnapshotAsync(request.UnderlyingAsset, request.OptionContract, It.IsAny<CancellationToken>()))
             .ThrowsAsync(expectedException);
 
         // Act & Assert
         var actualException = await Assert.ThrowsAsync<HttpRequestException>(
-            () => _service.GetSnapshotAsync(underlyingAsset, optionContract, TestContext.Current.CancellationToken));
+            () => _service.GetSnapshotAsync(request, TestContext.Current.CancellationToken));
         Assert.Equal(expectedException.Message, actualException.Message);
+    }
+
+    /// <summary>
+    /// Tests that GetSnapshotAsync throws ValidationException when request is invalid.
+    /// </summary>
+    [Fact]
+    public async Task GetSnapshotAsync_WithInvalidRequest_ThrowsValidationException()
+    {
+        // Arrange
+        var request = new GetSnapshotRequest
+        {
+            UnderlyingAsset = "",
+            OptionContract = ""
+        };
+        var validationFailures = new List<ValidationFailure>
+        {
+            new ValidationFailure("UnderlyingAsset", "Underlying asset must not be empty."),
+            new ValidationFailure("OptionContract", "Option contract must not be empty.")
+        };
+        var validationResult = new ValidationResult(validationFailures);
+
+        // Reset and setup the validator to throw ValidationException directly
+        _mockValidator.Reset();
+        _mockValidator
+            .Setup(x => x.ValidateAsync(It.IsAny<ValidationContext<GetSnapshotRequest>>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new ValidationException(validationFailures));
+
+        // Act & Assert
+        await Assert.ThrowsAsync<ValidationException>(
+            () => _service.GetSnapshotAsync(request, TestContext.Current.CancellationToken));
+
+        _mockValidator.Verify(x => x.ValidateAsync(It.Is<ValidationContext<GetSnapshotRequest>>(ctx => ctx.InstanceToValidate == request), It.IsAny<CancellationToken>()), Times.Once);
+        _mockApi.Verify(x => x.GetSnapshotAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     /// <summary>
@@ -245,8 +351,11 @@ public class OptionsService_GetSnapshotTests
     public async Task GetSnapshotAsync_WithNullResults_ReturnsResponseWithNullResults()
     {
         // Arrange
-        var underlyingAsset = "SPY";
-        var optionContract = "SPY251219C00650000";
+        var request = new GetSnapshotRequest
+        {
+            UnderlyingAsset = "SPY",
+            OptionContract = "SPY251219C00650000"
+        };
         var expectedResponse = new PolygonResponse<OptionSnapshot>
         {
             Results = null,
@@ -254,11 +363,11 @@ public class OptionsService_GetSnapshotTests
             RequestId = "test-request-id"
         };
 
-        _mockApi.Setup(x => x.GetSnapshotAsync(underlyingAsset, optionContract, It.IsAny<CancellationToken>()))
+        _mockApi.Setup(x => x.GetSnapshotAsync(request.UnderlyingAsset, request.OptionContract, It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedResponse);
 
         // Act
-        var result = await _service.GetSnapshotAsync(underlyingAsset, optionContract, TestContext.Current.CancellationToken);
+        var result = await _service.GetSnapshotAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.NotNull(result);
@@ -274,8 +383,11 @@ public class OptionsService_GetSnapshotTests
     public async Task GetSnapshotAsync_WithPutOption_ReturnsCorrectSnapshot()
     {
         // Arrange
-        var underlyingAsset = "SPY";
-        var optionContract = "SPY251219P00650000";
+        var request = new GetSnapshotRequest
+        {
+            UnderlyingAsset = "SPY",
+            OptionContract = "SPY251219P00650000"
+        };
         var expectedResponse = new PolygonResponse<OptionSnapshot>
         {
             Results = new OptionSnapshot
@@ -296,11 +408,11 @@ public class OptionsService_GetSnapshotTests
             Status = "OK"
         };
 
-        _mockApi.Setup(x => x.GetSnapshotAsync(underlyingAsset, optionContract, It.IsAny<CancellationToken>()))
+        _mockApi.Setup(x => x.GetSnapshotAsync(request.UnderlyingAsset, request.OptionContract, It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedResponse);
 
         // Act
-        var result = await _service.GetSnapshotAsync(underlyingAsset, optionContract, TestContext.Current.CancellationToken);
+        var result = await _service.GetSnapshotAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.NotNull(result);
@@ -316,8 +428,11 @@ public class OptionsService_GetSnapshotTests
     public async Task GetSnapshotAsync_WithMinimalData_ReturnsPartialSnapshot()
     {
         // Arrange
-        var underlyingAsset = "SPY";
-        var optionContract = "SPY251219C00650000";
+        var request = new GetSnapshotRequest
+        {
+            UnderlyingAsset = "SPY",
+            OptionContract = "SPY251219C00650000"
+        };
         var expectedResponse = new PolygonResponse<OptionSnapshot>
         {
             Results = new OptionSnapshot
@@ -332,11 +447,11 @@ public class OptionsService_GetSnapshotTests
             RequestId = "minimal-data-request"
         };
 
-        _mockApi.Setup(x => x.GetSnapshotAsync(underlyingAsset, optionContract, It.IsAny<CancellationToken>()))
+        _mockApi.Setup(x => x.GetSnapshotAsync(request.UnderlyingAsset, request.OptionContract, It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedResponse);
 
         // Act
-        var result = await _service.GetSnapshotAsync(underlyingAsset, optionContract, TestContext.Current.CancellationToken);
+        var result = await _service.GetSnapshotAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.NotNull(result);

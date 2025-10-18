@@ -1,10 +1,14 @@
 // Copyright 2025 Trey Thomas
 // SPDX-License-Identifier: MPL-2.0
 
+using FluentValidation;
+using FluentValidation.Results;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using TreyThomasCodes.Polygon.Models.Common;
 using TreyThomasCodes.Polygon.Models.Options;
 using TreyThomasCodes.Polygon.RestClient.Api;
+using TreyThomasCodes.Polygon.RestClient.Requests.Options;
 using TreyThomasCodes.Polygon.RestClient.Services;
 
 namespace TreyThomasCodes.Polygon.RestClient.Tests.Services.Options;
@@ -16,16 +20,31 @@ namespace TreyThomasCodes.Polygon.RestClient.Tests.Services.Options;
 public class OptionsService_GetContractDetailsTests
 {
     private readonly Mock<IPolygonOptionsApi> _mockApi;
+    private readonly Mock<IServiceProvider> _mockServiceProvider;
+    private readonly Mock<IValidator<GetContractDetailsRequest>> _mockValidator;
     private readonly OptionsService _service;
 
     /// <summary>
     /// Initializes a new instance of the OptionsService_GetContractDetailsTests class.
-    /// Sets up the mock API and service instance for testing.
+    /// Sets up the mock API, service provider, validator, and service instance for testing.
     /// </summary>
     public OptionsService_GetContractDetailsTests()
     {
         _mockApi = new Mock<IPolygonOptionsApi>();
-        _service = new OptionsService(_mockApi.Object);
+        _mockServiceProvider = new Mock<IServiceProvider>();
+        _mockValidator = new Mock<IValidator<GetContractDetailsRequest>>();
+
+        // Setup service provider to return the validator
+        _mockServiceProvider
+            .Setup(x => x.GetService(typeof(IValidator<GetContractDetailsRequest>)))
+            .Returns(_mockValidator.Object);
+
+        // Setup validator to return success by default
+        _mockValidator
+            .Setup(x => x.ValidateAsync(It.IsAny<ValidationContext<GetContractDetailsRequest>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ValidationResult());
+
+        _service = new OptionsService(_mockApi.Object, _mockServiceProvider.Object);
     }
 
     /// <summary>
@@ -35,17 +54,27 @@ public class OptionsService_GetContractDetailsTests
     public void Constructor_WhenApiIsNull_ThrowsArgumentNullException()
     {
         // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => new OptionsService(null!));
+        Assert.Throws<ArgumentNullException>(() => new OptionsService(null!, _mockServiceProvider.Object));
     }
 
     /// <summary>
-    /// Tests that GetContractDetailsAsync calls the API and returns the contract details response.
+    /// Tests that the constructor throws ArgumentNullException when serviceProvider parameter is null.
     /// </summary>
     [Fact]
-    public async Task GetContractDetailsAsync_CallsApi_ReturnsContractDetailsResponse()
+    public void Constructor_WhenServiceProviderIsNull_ThrowsArgumentNullException()
+    {
+        // Act & Assert
+        Assert.Throws<ArgumentNullException>(() => new OptionsService(_mockApi.Object, null!));
+    }
+
+    /// <summary>
+    /// Tests that GetContractDetailsAsync validates the request and calls the API.
+    /// </summary>
+    [Fact]
+    public async Task GetContractDetailsAsync_ValidatesRequest_AndCallsApi()
     {
         // Arrange
-        var optionsTicker = "O:SPY251219C00650000";
+        var request = new GetContractDetailsRequest { OptionsTicker = "O:SPY251219C00650000" };
         var expectedResponse = new PolygonResponse<OptionsContract>
         {
             Results = new OptionsContract
@@ -64,11 +93,50 @@ public class OptionsService_GetContractDetailsTests
             RequestId = "d0d9e7c5e58988747dabf332bdb629f7"
         };
 
-        _mockApi.Setup(x => x.GetContractDetailsAsync(optionsTicker, It.IsAny<CancellationToken>()))
+        _mockApi.Setup(x => x.GetContractDetailsAsync(request.OptionsTicker, It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedResponse);
 
         // Act
-        var result = await _service.GetContractDetailsAsync(optionsTicker, TestContext.Current.CancellationToken);
+        var result = await _service.GetContractDetailsAsync(request, TestContext.Current.CancellationToken);
+
+        // Assert
+        _mockValidator.Verify(x => x.ValidateAsync(It.Is<ValidationContext<GetContractDetailsRequest>>(ctx => ctx.InstanceToValidate == request), It.IsAny<CancellationToken>()), Times.Once);
+        _mockApi.Verify(x => x.GetContractDetailsAsync(request.OptionsTicker, It.IsAny<CancellationToken>()), Times.Once);
+        Assert.NotNull(result);
+        Assert.Equal(expectedResponse.Status, result.Status);
+    }
+
+    /// <summary>
+    /// Tests that GetContractDetailsAsync calls the API and returns the contract details response.
+    /// </summary>
+    [Fact]
+    public async Task GetContractDetailsAsync_CallsApi_ReturnsContractDetailsResponse()
+    {
+        // Arrange
+        var request = new GetContractDetailsRequest { OptionsTicker = "O:SPY251219C00650000" };
+        var expectedResponse = new PolygonResponse<OptionsContract>
+        {
+            Results = new OptionsContract
+            {
+                Cfi = "OCASPS",
+                ContractType = "call",
+                ExerciseStyle = "american",
+                ExpirationDate = "2025-12-19",
+                PrimaryExchange = "BATO",
+                SharesPerContract = 100,
+                StrikePrice = 650,
+                Ticker = "O:SPY251219C00650000",
+                UnderlyingTicker = "SPY"
+            },
+            Status = "OK",
+            RequestId = "d0d9e7c5e58988747dabf332bdb629f7"
+        };
+
+        _mockApi.Setup(x => x.GetContractDetailsAsync(request.OptionsTicker, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(expectedResponse);
+
+        // Act
+        var result = await _service.GetContractDetailsAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.NotNull(result);
@@ -85,7 +153,7 @@ public class OptionsService_GetContractDetailsTests
         Assert.Equal(expectedResponse.Results.Ticker, result.Results.Ticker);
         Assert.Equal(expectedResponse.Results.UnderlyingTicker, result.Results.UnderlyingTicker);
 
-        _mockApi.Verify(x => x.GetContractDetailsAsync(optionsTicker, It.IsAny<CancellationToken>()), Times.Once);
+        _mockApi.Verify(x => x.GetContractDetailsAsync(request.OptionsTicker, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     /// <summary>
@@ -95,18 +163,19 @@ public class OptionsService_GetContractDetailsTests
     public async Task GetContractDetailsAsync_PassesCancellationToken()
     {
         // Arrange
-        var optionsTicker = "O:SPY251219C00650000";
+        var request = new GetContractDetailsRequest { OptionsTicker = "O:SPY251219C00650000" };
         var cancellationToken = new CancellationToken();
         var expectedResponse = new PolygonResponse<OptionsContract> { Status = "OK" };
 
-        _mockApi.Setup(x => x.GetContractDetailsAsync(optionsTicker, cancellationToken))
+        _mockApi.Setup(x => x.GetContractDetailsAsync(request.OptionsTicker, cancellationToken))
             .ReturnsAsync(expectedResponse);
 
         // Act
-        await _service.GetContractDetailsAsync(optionsTicker, cancellationToken);
+        await _service.GetContractDetailsAsync(request, cancellationToken);
 
         // Assert
-        _mockApi.Verify(x => x.GetContractDetailsAsync(optionsTicker, cancellationToken), Times.Once);
+        _mockValidator.Verify(x => x.ValidateAsync(It.Is<ValidationContext<GetContractDetailsRequest>>(ctx => ctx.InstanceToValidate == request), cancellationToken), Times.Once);
+        _mockApi.Verify(x => x.GetContractDetailsAsync(request.OptionsTicker, cancellationToken), Times.Once);
     }
 
     /// <summary>
@@ -120,6 +189,7 @@ public class OptionsService_GetContractDetailsTests
     public async Task GetContractDetailsAsync_WithDifferentTickers_CallsApiWithCorrectTicker(string optionsTicker)
     {
         // Arrange
+        var request = new GetContractDetailsRequest { OptionsTicker = optionsTicker };
         var expectedResponse = new PolygonResponse<OptionsContract>
         {
             Results = new OptionsContract
@@ -134,7 +204,7 @@ public class OptionsService_GetContractDetailsTests
             .ReturnsAsync(expectedResponse);
 
         // Act
-        var result = await _service.GetContractDetailsAsync(optionsTicker, TestContext.Current.CancellationToken);
+        var result = await _service.GetContractDetailsAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.NotNull(result);
@@ -149,16 +219,16 @@ public class OptionsService_GetContractDetailsTests
     public async Task GetContractDetailsAsync_WhenApiReturnsNull_ReturnsNull()
     {
         // Arrange
-        var optionsTicker = "O:INVALID000000C00000000";
-        _mockApi.Setup(x => x.GetContractDetailsAsync(optionsTicker, It.IsAny<CancellationToken>()))
+        var request = new GetContractDetailsRequest { OptionsTicker = "O:INVALID000000C00000000" };
+        _mockApi.Setup(x => x.GetContractDetailsAsync(request.OptionsTicker, It.IsAny<CancellationToken>()))
             .ReturnsAsync((PolygonResponse<OptionsContract>)null!);
 
         // Act
-        var result = await _service.GetContractDetailsAsync(optionsTicker, TestContext.Current.CancellationToken);
+        var result = await _service.GetContractDetailsAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Null(result);
-        _mockApi.Verify(x => x.GetContractDetailsAsync(optionsTicker, It.IsAny<CancellationToken>()), Times.Once);
+        _mockApi.Verify(x => x.GetContractDetailsAsync(request.OptionsTicker, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     /// <summary>
@@ -168,15 +238,43 @@ public class OptionsService_GetContractDetailsTests
     public async Task GetContractDetailsAsync_WhenApiThrowsException_PropagatesException()
     {
         // Arrange
-        var optionsTicker = "O:SPY251219C00650000";
+        var request = new GetContractDetailsRequest { OptionsTicker = "O:SPY251219C00650000" };
         var expectedException = new HttpRequestException("Network error");
-        _mockApi.Setup(x => x.GetContractDetailsAsync(optionsTicker, It.IsAny<CancellationToken>()))
+        _mockApi.Setup(x => x.GetContractDetailsAsync(request.OptionsTicker, It.IsAny<CancellationToken>()))
             .ThrowsAsync(expectedException);
 
         // Act & Assert
         var actualException = await Assert.ThrowsAsync<HttpRequestException>(
-            () => _service.GetContractDetailsAsync(optionsTicker, TestContext.Current.CancellationToken));
+            () => _service.GetContractDetailsAsync(request, TestContext.Current.CancellationToken));
         Assert.Equal(expectedException.Message, actualException.Message);
+    }
+
+    /// <summary>
+    /// Tests that GetContractDetailsAsync throws ValidationException when request is invalid.
+    /// </summary>
+    [Fact]
+    public async Task GetContractDetailsAsync_WithInvalidRequest_ThrowsValidationException()
+    {
+        // Arrange
+        var request = new GetContractDetailsRequest { OptionsTicker = "" };
+        var validationFailures = new List<ValidationFailure>
+        {
+            new ValidationFailure("OptionsTicker", "Options ticker must not be empty.")
+        };
+        var validationResult = new ValidationResult(validationFailures);
+
+        // Reset and setup the validator to throw ValidationException directly
+        _mockValidator.Reset();
+        _mockValidator
+            .Setup(x => x.ValidateAsync(It.IsAny<ValidationContext<GetContractDetailsRequest>>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new ValidationException(validationFailures));
+
+        // Act & Assert
+        await Assert.ThrowsAsync<ValidationException>(
+            () => _service.GetContractDetailsAsync(request, TestContext.Current.CancellationToken));
+
+        _mockValidator.Verify(x => x.ValidateAsync(It.Is<ValidationContext<GetContractDetailsRequest>>(ctx => ctx.InstanceToValidate == request), It.IsAny<CancellationToken>()), Times.Once);
+        _mockApi.Verify(x => x.GetContractDetailsAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     /// <summary>
@@ -186,7 +284,7 @@ public class OptionsService_GetContractDetailsTests
     public async Task GetContractDetailsAsync_WithNullResults_ReturnsResponseWithNullResults()
     {
         // Arrange
-        var optionsTicker = "O:SPY251219C00650000";
+        var request = new GetContractDetailsRequest { OptionsTicker = "O:SPY251219C00650000" };
         var expectedResponse = new PolygonResponse<OptionsContract>
         {
             Results = null,
@@ -194,11 +292,11 @@ public class OptionsService_GetContractDetailsTests
             RequestId = "test-request-id"
         };
 
-        _mockApi.Setup(x => x.GetContractDetailsAsync(optionsTicker, It.IsAny<CancellationToken>()))
+        _mockApi.Setup(x => x.GetContractDetailsAsync(request.OptionsTicker, It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedResponse);
 
         // Act
-        var result = await _service.GetContractDetailsAsync(optionsTicker, TestContext.Current.CancellationToken);
+        var result = await _service.GetContractDetailsAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.NotNull(result);
@@ -214,7 +312,7 @@ public class OptionsService_GetContractDetailsTests
     public async Task GetContractDetailsAsync_WithCompleteContractData_ReturnsCompleteData()
     {
         // Arrange
-        var optionsTicker = "O:SPY251219C00650000";
+        var request = new GetContractDetailsRequest { OptionsTicker = "O:SPY251219C00650000" };
         var expectedResponse = new PolygonResponse<OptionsContract>
         {
             Results = new OptionsContract
@@ -233,11 +331,11 @@ public class OptionsService_GetContractDetailsTests
             RequestId = "d0d9e7c5e58988747dabf332bdb629f7"
         };
 
-        _mockApi.Setup(x => x.GetContractDetailsAsync(optionsTicker, It.IsAny<CancellationToken>()))
+        _mockApi.Setup(x => x.GetContractDetailsAsync(request.OptionsTicker, It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedResponse);
 
         // Act
-        var result = await _service.GetContractDetailsAsync(optionsTicker, TestContext.Current.CancellationToken);
+        var result = await _service.GetContractDetailsAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.NotNull(result);
@@ -263,7 +361,7 @@ public class OptionsService_GetContractDetailsTests
     public async Task GetContractDetailsAsync_WithPutOption_ReturnsCorrectContractType()
     {
         // Arrange
-        var optionsTicker = "O:SPY251219P00650000";
+        var request = new GetContractDetailsRequest { OptionsTicker = "O:SPY251219P00650000" };
         var expectedResponse = new PolygonResponse<OptionsContract>
         {
             Results = new OptionsContract
@@ -282,17 +380,17 @@ public class OptionsService_GetContractDetailsTests
             RequestId = "test-put-request-id"
         };
 
-        _mockApi.Setup(x => x.GetContractDetailsAsync(optionsTicker, It.IsAny<CancellationToken>()))
+        _mockApi.Setup(x => x.GetContractDetailsAsync(request.OptionsTicker, It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedResponse);
 
         // Act
-        var result = await _service.GetContractDetailsAsync(optionsTicker, TestContext.Current.CancellationToken);
+        var result = await _service.GetContractDetailsAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.NotNull(result);
         Assert.NotNull(result.Results);
         Assert.Equal("put", result.Results.ContractType);
-        Assert.Equal(optionsTicker, result.Results.Ticker);
+        Assert.Equal(request.OptionsTicker, result.Results.Ticker);
     }
 
     /// <summary>
@@ -302,7 +400,7 @@ public class OptionsService_GetContractDetailsTests
     public async Task GetContractDetailsAsync_WithEuropeanStyle_ReturnsCorrectExerciseStyle()
     {
         // Arrange
-        var optionsTicker = "O:SPX251219C04650000";
+        var request = new GetContractDetailsRequest { OptionsTicker = "O:SPX251219C04650000" };
         var expectedResponse = new PolygonResponse<OptionsContract>
         {
             Results = new OptionsContract
@@ -321,17 +419,17 @@ public class OptionsService_GetContractDetailsTests
             RequestId = "test-european-request-id"
         };
 
-        _mockApi.Setup(x => x.GetContractDetailsAsync(optionsTicker, It.IsAny<CancellationToken>()))
+        _mockApi.Setup(x => x.GetContractDetailsAsync(request.OptionsTicker, It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedResponse);
 
         // Act
-        var result = await _service.GetContractDetailsAsync(optionsTicker, TestContext.Current.CancellationToken);
+        var result = await _service.GetContractDetailsAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.NotNull(result);
         Assert.NotNull(result.Results);
         Assert.Equal("european", result.Results.ExerciseStyle);
-        Assert.Equal(optionsTicker, result.Results.Ticker);
+        Assert.Equal(request.OptionsTicker, result.Results.Ticker);
     }
 
     /// <summary>
@@ -341,7 +439,7 @@ public class OptionsService_GetContractDetailsTests
     public async Task GetContractDetailsAsync_WithMinimalData_ReturnsPartialContract()
     {
         // Arrange
-        var optionsTicker = "O:SPY251219C00650000";
+        var request = new GetContractDetailsRequest { OptionsTicker = "O:SPY251219C00650000" };
         var expectedResponse = new PolygonResponse<OptionsContract>
         {
             Results = new OptionsContract
@@ -354,11 +452,11 @@ public class OptionsService_GetContractDetailsTests
             RequestId = "minimal-data-request"
         };
 
-        _mockApi.Setup(x => x.GetContractDetailsAsync(optionsTicker, It.IsAny<CancellationToken>()))
+        _mockApi.Setup(x => x.GetContractDetailsAsync(request.OptionsTicker, It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedResponse);
 
         // Act
-        var result = await _service.GetContractDetailsAsync(optionsTicker, TestContext.Current.CancellationToken);
+        var result = await _service.GetContractDetailsAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.NotNull(result);

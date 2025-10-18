@@ -69,18 +69,21 @@ Retrieve aggregate bars for a ticker over a date range with configurable interva
 
 ```csharp
 using TreyThomasCodes.Polygon.Models.Common;
+using TreyThomasCodes.Polygon.RestClient.Requests.Stocks;
 
 // Get daily bars for the last month
-var dailyBars = await _client.Stocks.GetBarsAsync(
-    ticker: "AAPL",
-    multiplier: 1,
-    timespan: AggregateInterval.Day,
-    from: "2025-09-01",
-    to: "2025-09-30",
-    adjusted: true,
-    sort: SortOrder.Ascending,
-    limit: 5000
-);
+var dailyBarsRequest = new GetBarsRequest
+{
+    Ticker = "AAPL",
+    Multiplier = 1,
+    Timespan = AggregateInterval.Day,
+    From = "2025-09-01",
+    To = "2025-09-30",
+    Adjusted = true,
+    Sort = SortOrder.Ascending,
+    Limit = 5000
+};
+var dailyBars = await _client.Stocks.GetBarsAsync(dailyBarsRequest);
 
 foreach (var bar in dailyBars.Results)
 {
@@ -88,41 +91,49 @@ foreach (var bar in dailyBars.Results)
 }
 
 // Get 5-minute bars for intraday analysis
-var intradayBars = await _client.Stocks.GetBarsAsync(
-    ticker: "TSLA",
-    multiplier: 5,
-    timespan: AggregateInterval.Minute,
-    from: "2025-09-15",
-    to: "2025-09-15",
-    adjusted: true
-);
+var intradayBarsRequest = new GetBarsRequest
+{
+    Ticker = "TSLA",
+    Multiplier = 5,
+    Timespan = AggregateInterval.Minute,
+    From = "2025-09-15",
+    To = "2025-09-15",
+    Adjusted = true
+};
+var intradayBars = await _client.Stocks.GetBarsAsync(intradayBarsRequest);
 
 // Get hourly bars
-var hourlyBars = await _client.Stocks.GetBarsAsync(
-    ticker: "MSFT",
-    multiplier: 1,
-    timespan: AggregateInterval.Hour,
-    from: "2025-09-01",
-    to: "2025-09-30"
-);
+var hourlyBarsRequest = new GetBarsRequest
+{
+    Ticker = "MSFT",
+    Multiplier = 1,
+    Timespan = AggregateInterval.Hour,
+    From = "2025-09-01",
+    To = "2025-09-30"
+};
+var hourlyBars = await _client.Stocks.GetBarsAsync(hourlyBarsRequest);
 
 // Get weekly bars
-var weeklyBars = await _client.Stocks.GetBarsAsync(
-    ticker: "GOOGL",
-    multiplier: 1,
-    timespan: AggregateInterval.Week,
-    from: "2025-01-01",
-    to: "2025-09-30"
-);
+var weeklyBarsRequest = new GetBarsRequest
+{
+    Ticker = "GOOGL",
+    Multiplier = 1,
+    Timespan = AggregateInterval.Week,
+    From = "2025-01-01",
+    To = "2025-09-30"
+};
+var weeklyBars = await _client.Stocks.GetBarsAsync(weeklyBarsRequest);
 
 // Get monthly bars for long-term analysis
-var monthlyBars = await _client.Stocks.GetBarsAsync(
-    ticker: "SPY",
-    multiplier: 1,
-    timespan: AggregateInterval.Month,
-    from: "2020-01-01",
-    to: "2025-09-30"
-);
+var monthlyBarsRequest = new GetBarsRequest
+{
+    Ticker = "SPY",
+    Multiplier = 1,
+    Timespan = AggregateInterval.Month,
+    From = "2020-01-01",
+    To = "2025-09-30"
+};
+var monthlyBars = await _client.Stocks.GetBarsAsync(monthlyBarsRequest);
 ```
 
 #### GetPreviousCloseAsync - Get Previous Day's Close
@@ -130,10 +141,14 @@ var monthlyBars = await _client.Stocks.GetBarsAsync(
 Get the OHLC data for the previous trading day.
 
 ```csharp
-var previousClose = await _client.Stocks.GetPreviousCloseAsync(
-    ticker: "AAPL",
-    adjusted: true
-);
+using TreyThomasCodes.Polygon.RestClient.Requests.Stocks;
+
+var request = new GetPreviousCloseRequest
+{
+    Ticker = "AAPL",
+    Adjusted = true
+};
+var previousClose = await _client.Stocks.GetPreviousCloseAsync(request);
 
 if (previousClose.Results?.Count > 0)
 {
@@ -149,12 +164,16 @@ if (previousClose.Results?.Count > 0)
 Get daily OHLC data for all available tickers on a specific date.
 
 ```csharp
+using TreyThomasCodes.Polygon.RestClient.Requests.Stocks;
+
 // Get all tickers for a specific date
-var groupedDaily = await _client.Stocks.GetGroupedDailyAsync(
-    date: "2025-09-15",
-    adjusted: true,
-    includeOtc: false
-);
+var request = new GetGroupedDailyRequest
+{
+    Date = "2025-09-15",
+    Adjusted = true,
+    IncludeOtc = false
+};
+var groupedDaily = await _client.Stocks.GetGroupedDailyAsync(request);
 
 Console.WriteLine($"Found {groupedDaily.Results?.Count ?? 0} tickers");
 
@@ -164,11 +183,13 @@ foreach (var bar in groupedDaily.Results?.Take(10) ?? Enumerable.Empty<StockBar>
 }
 
 // Include OTC securities
-var groupedDailyWithOtc = await _client.Stocks.GetGroupedDailyAsync(
-    date: "2025-09-15",
-    adjusted: true,
-    includeOtc: true
-);
+var requestWithOtc = new GetGroupedDailyRequest
+{
+    Date = "2025-09-15",
+    Adjusted = true,
+    IncludeOtc = true
+};
+var groupedDailyWithOtc = await _client.Stocks.GetGroupedDailyAsync(requestWithOtc);
 ```
 
 #### GetDailyOpenCloseAsync - Get Daily Open/Close Prices
@@ -176,11 +197,15 @@ var groupedDailyWithOtc = await _client.Stocks.GetGroupedDailyAsync(
 Get detailed open and close prices for a specific day, including pre-market and after-hours activity.
 
 ```csharp
-var dailyOpenClose = await _client.Stocks.GetDailyOpenCloseAsync(
-    ticker: "AAPL",
-    date: "2025-09-15",
-    adjusted: true
-);
+using TreyThomasCodes.Polygon.RestClient.Requests.Stocks;
+
+var request = new GetDailyOpenCloseRequest
+{
+    Ticker = "AAPL",
+    Date = "2025-09-15",
+    Adjusted = true
+};
+var dailyOpenClose = await _client.Stocks.GetDailyOpenCloseAsync(request);
 
 if (dailyOpenClose.Results?.Count > 0)
 {
@@ -202,14 +227,18 @@ if (dailyOpenClose.Results?.Count > 0)
 Retrieve detailed trade-by-trade data for a ticker.
 
 ```csharp
+using TreyThomasCodes.Polygon.RestClient.Requests.Stocks;
+
 // Get trades for a specific time range
-var trades = await _client.Stocks.GetTradesAsync(
-    ticker: "AAPL",
-    timestampGte: "2025-09-15T09:30:00.000000000Z",
-    timestampLte: "2025-09-15T16:00:00.000000000Z",
-    limit: 1000,
-    sort: "timestamp"
-);
+var tradesRequest = new GetTradesRequest
+{
+    Ticker = "AAPL",
+    TimestampGte = "2025-09-15T09:30:00.000000000Z",
+    TimestampLte = "2025-09-15T16:00:00.000000000Z",
+    Limit = 1000,
+    Sort = "timestamp"
+};
+var trades = await _client.Stocks.GetTradesAsync(tradesRequest);
 
 foreach (var trade in trades.Results ?? Enumerable.Empty<StockTrade>())
 {
@@ -218,25 +247,31 @@ foreach (var trade in trades.Results ?? Enumerable.Empty<StockTrade>())
 }
 
 // Get the most recent trades (descending order)
-var recentTrades = await _client.Stocks.GetTradesAsync(
-    ticker: "TSLA",
-    limit: 100,
-    sort: "timestamp.desc"
-);
+var recentTradesRequest = new GetTradesRequest
+{
+    Ticker = "TSLA",
+    Limit = 100,
+    Sort = "timestamp.desc"
+};
+var recentTrades = await _client.Stocks.GetTradesAsync(recentTradesRequest);
 
 // Get trades for a specific timestamp
-var specificTrades = await _client.Stocks.GetTradesAsync(
-    ticker: "MSFT",
-    timestamp: "1694782800000000000",
-    limit: 10
-);
+var specificTradesRequest = new GetTradesRequest
+{
+    Ticker = "MSFT",
+    Timestamp = "1694782800000000000",
+    Limit = 10
+};
+var specificTrades = await _client.Stocks.GetTradesAsync(specificTradesRequest);
 
 // Get trades with greater than filter
-var tradesAfter = await _client.Stocks.GetTradesAsync(
-    ticker: "GOOGL",
-    timestampGt: "2025-09-15T10:00:00.000000000Z",
-    limit: 500
-);
+var tradesAfterRequest = new GetTradesRequest
+{
+    Ticker = "GOOGL",
+    TimestampGt = "2025-09-15T10:00:00.000000000Z",
+    Limit = 500
+};
+var tradesAfter = await _client.Stocks.GetTradesAsync(tradesAfterRequest);
 ```
 
 #### GetLastTradeAsync - Get Most Recent Trade
@@ -244,7 +279,10 @@ var tradesAfter = await _client.Stocks.GetTradesAsync(
 Get the most recent trade for a ticker.
 
 ```csharp
-var lastTrade = await _client.Stocks.GetLastTradeAsync("AAPL");
+using TreyThomasCodes.Polygon.RestClient.Requests.Stocks;
+
+var request = new GetLastTradeRequest { Ticker = "AAPL" };
+var lastTrade = await _client.Stocks.GetLastTradeAsync(request);
 
 if (lastTrade.Results != null)
 {
@@ -262,14 +300,18 @@ if (lastTrade.Results != null)
 Retrieve detailed bid/ask quote data for a ticker.
 
 ```csharp
+using TreyThomasCodes.Polygon.RestClient.Requests.Stocks;
+
 // Get quotes for a specific time range
-var quotes = await _client.Stocks.GetQuotesAsync(
-    ticker: "AAPL",
-    timestampGte: "2025-09-15T09:30:00.000000000Z",
-    timestampLte: "2025-09-15T16:00:00.000000000Z",
-    limit: 1000,
-    sort: "timestamp"
-);
+var quotesRequest = new GetQuotesRequest
+{
+    Ticker = "AAPL",
+    TimestampGte = "2025-09-15T09:30:00.000000000Z",
+    TimestampLte = "2025-09-15T16:00:00.000000000Z",
+    Limit = 1000,
+    Sort = "timestamp"
+};
+var quotes = await _client.Stocks.GetQuotesAsync(quotesRequest);
 
 foreach (var quote in quotes.Results ?? Enumerable.Empty<StockQuote>())
 {
@@ -279,17 +321,21 @@ foreach (var quote in quotes.Results ?? Enumerable.Empty<StockQuote>())
 }
 
 // Get recent quotes in descending order
-var recentQuotes = await _client.Stocks.GetQuotesAsync(
-    ticker: "TSLA",
-    limit: 100,
-    sort: "timestamp.desc"
-);
+var recentQuotesRequest = new GetQuotesRequest
+{
+    Ticker = "TSLA",
+    Limit = 100,
+    Sort = "timestamp.desc"
+};
+var recentQuotes = await _client.Stocks.GetQuotesAsync(recentQuotesRequest);
 
 // Get quotes for a specific timestamp
-var specificQuotes = await _client.Stocks.GetQuotesAsync(
-    ticker: "MSFT",
-    timestamp: "1694782800000000000"
-);
+var specificQuotesRequest = new GetQuotesRequest
+{
+    Ticker = "MSFT",
+    Timestamp = "1694782800000000000"
+};
+var specificQuotes = await _client.Stocks.GetQuotesAsync(specificQuotesRequest);
 ```
 
 #### GetLastQuoteAsync - Get Most Recent NBBO Quote
@@ -297,7 +343,10 @@ var specificQuotes = await _client.Stocks.GetQuotesAsync(
 Get the most recent National Best Bid and Offer (NBBO) quote.
 
 ```csharp
-var lastQuote = await _client.Stocks.GetLastQuoteAsync("AAPL");
+using TreyThomasCodes.Polygon.RestClient.Requests.Stocks;
+
+var request = new GetLastQuoteRequest { Ticker = "AAPL" };
+var lastQuote = await _client.Stocks.GetLastQuoteAsync(request);
 
 if (lastQuote.Results != null)
 {
@@ -315,10 +364,14 @@ if (lastQuote.Results != null)
 Get current market data for all available tickers.
 
 ```csharp
+using TreyThomasCodes.Polygon.RestClient.Requests.Stocks;
+
 // Get snapshot for all tickers
-var marketSnapshot = await _client.Stocks.GetMarketSnapshotAsync(
-    includeOtc: false
-);
+var request = new GetMarketSnapshotRequest
+{
+    IncludeOtc = false
+};
+var marketSnapshot = await _client.Stocks.GetMarketSnapshotAsync(request);
 
 Console.WriteLine($"Total tickers: {marketSnapshot.Results?.Count ?? 0}");
 
@@ -349,9 +402,11 @@ foreach (var snapshot in losers ?? Enumerable.Empty<StockSnapshot>())
 }
 
 // Include OTC securities
-var marketSnapshotWithOtc = await _client.Stocks.GetMarketSnapshotAsync(
-    includeOtc: true
-);
+var requestWithOtc = new GetMarketSnapshotRequest
+{
+    IncludeOtc = true
+};
+var marketSnapshotWithOtc = await _client.Stocks.GetMarketSnapshotAsync(requestWithOtc);
 ```
 
 #### GetSnapshotAsync - Get Snapshot for a Single Ticker
@@ -359,7 +414,10 @@ var marketSnapshotWithOtc = await _client.Stocks.GetMarketSnapshotAsync(
 Get current market data for a specific ticker.
 
 ```csharp
-var snapshot = await _client.Stocks.GetSnapshotAsync("AAPL");
+using TreyThomasCodes.Polygon.RestClient.Requests.Stocks;
+
+var request = new GetSnapshotRequest { Ticker = "AAPL" };
+var snapshot = await _client.Stocks.GetSnapshotAsync(request);
 
 if (snapshot.Ticker != null)
 {
@@ -406,13 +464,16 @@ Search for tickers with various filter options.
 ```csharp
 using TreyThomasCodes.Polygon.Models.Common;
 using TreyThomasCodes.Polygon.Models.Reference;
+using TreyThomasCodes.Polygon.RestClient.Requests.Reference;
 
 // Search by name
-var appleTickersearch = await _client.ReferenceData.GetTickersAsync(
-    search: "Apple",
-    active: true,
-    limit: 10
-);
+var appleTickersRequest = new GetTickersRequest
+{
+    Search = "Apple",
+    Active = true,
+    Limit = 10
+};
+var appleTickers = await _client.ReferenceData.GetTickersAsync(appleTickersRequest);
 
 foreach (var ticker in appleTickers.Results ?? Enumerable.Empty<StockTicker>())
 {
@@ -420,73 +481,93 @@ foreach (var ticker in appleTickers.Results ?? Enumerable.Empty<StockTicker>())
 }
 
 // Filter by ticker type (common stock)
-var commonStocks = await _client.ReferenceData.GetTickersAsync(
-    type: "CS",
-    active: true,
-    market: Market.Stocks,
-    limit: 100
-);
+var commonStocksRequest = new GetTickersRequest
+{
+    Type = "CS",
+    Active = true,
+    Market = Market.Stocks,
+    Limit = 100
+};
+var commonStocks = await _client.ReferenceData.GetTickersAsync(commonStocksRequest);
 
 // Filter by exchange
-var nasdaqStocks = await _client.ReferenceData.GetTickersAsync(
-    exchange: "XNAS",
-    active: true,
-    limit: 100,
-    sort: TickerSortFields.Ticker,
-    order: SortOrder.Ascending
-);
+var nasdaqStocksRequest = new GetTickersRequest
+{
+    Exchange = "XNAS",
+    Active = true,
+    Limit = 100,
+    Sort = TickerSortFields.Ticker,
+    Order = SortOrder.Ascending
+};
+var nasdaqStocks = await _client.ReferenceData.GetTickersAsync(nasdaqStocksRequest);
 
 // Get tickers alphabetically in a range
-var tickersAtoC = await _client.ReferenceData.GetTickersAsync(
-    tickerGte: "A",
-    tickerLt: "D",
-    active: true,
-    limit: 1000
-);
+var tickersAtoCRequest = new GetTickersRequest
+{
+    TickerGte = "A",
+    TickerLt = "D",
+    Active = true,
+    Limit = 1000
+};
+var tickersAtoC = await _client.ReferenceData.GetTickersAsync(tickersAtoCRequest);
 
 // Filter by specific ticker
-var exactTicker = await _client.ReferenceData.GetTickersAsync(
-    ticker: "AAPL"
-);
+var exactTickerRequest = new GetTickersRequest
+{
+    Ticker = "AAPL"
+};
+var exactTicker = await _client.ReferenceData.GetTickersAsync(exactTickerRequest);
 
 // Filter by CUSIP
-var tickerByCusip = await _client.ReferenceData.GetTickersAsync(
-    cusip: "037833100"
-);
+var tickerByCusipRequest = new GetTickersRequest
+{
+    Cusip = "037833100"
+};
+var tickerByCusip = await _client.ReferenceData.GetTickersAsync(tickerByCusipRequest);
 
 // Filter by CIK
-var tickerByCik = await _client.ReferenceData.GetTickersAsync(
-    cik: "0000320193"
-);
+var tickerByCikRequest = new GetTickersRequest
+{
+    Cik = "0000320193"
+};
+var tickerByCik = await _client.ReferenceData.GetTickersAsync(tickerByCikRequest);
 
 // Get historical ticker info for a specific date
-var historicalTicker = await _client.ReferenceData.GetTickersAsync(
-    ticker: "AAPL",
-    date: "2020-01-01"
-);
+var historicalTickerRequest = new GetTickersRequest
+{
+    Ticker = "AAPL",
+    Date = "2020-01-01"
+};
+var historicalTicker = await _client.ReferenceData.GetTickersAsync(historicalTickerRequest);
 
 // Search ETFs
-var etfs = await _client.ReferenceData.GetTickersAsync(
-    type: "ETF",
-    active: true,
-    search: "S&P 500",
-    limit: 20
-);
+var etfsRequest = new GetTickersRequest
+{
+    Type = "ETF",
+    Active = true,
+    Search = "S&P 500",
+    Limit = 20
+};
+var etfs = await _client.ReferenceData.GetTickersAsync(etfsRequest);
 
 // Sort by various fields
-var tickersByName = await _client.ReferenceData.GetTickersAsync(
-    active: true,
-    sort: TickerSortFields.Name,
-    order: SortOrder.Ascending,
-    limit: 100
-);
+var tickersByNameRequest = new GetTickersRequest
+{
+    Active = true,
+    Sort = TickerSortFields.Name,
+    Order = SortOrder.Ascending,
+    Limit = 100
+};
+var tickersByName = await _client.ReferenceData.GetTickersAsync(tickersByNameRequest);
 
-var tickersByVolume = await _client.ReferenceData.GetTickersAsync(
-    active: true,
-    sort: TickerSortFields.LastUpdatedUtc,
-    order: SortOrder.Descending,
-    limit: 100
-);
+var tickersByVolumeRequest = new GetTickersRequest
+{
+    Active = true,
+    Sort = TickerSortFields.LastUpdatedUtc,
+    Order = SortOrder.Descending,
+    Limit = 100
+};
+var tickersByVolume = await _client.ReferenceData.GetTickersAsync(tickersByVolumeRequest);
 ```
 
 #### GetTickerDetailsAsync - Get Detailed Ticker Information
@@ -494,8 +575,11 @@ var tickersByVolume = await _client.ReferenceData.GetTickersAsync(
 Get comprehensive information about a specific ticker.
 
 ```csharp
+using TreyThomasCodes.Polygon.RestClient.Requests.Reference;
+
 // Get current ticker details
-var tickerDetails = await _client.ReferenceData.GetTickerDetailsAsync("AAPL");
+var request = new GetTickerDetailsRequest { Ticker = "AAPL" };
+var tickerDetails = await _client.ReferenceData.GetTickerDetailsAsync(request);
 
 if (tickerDetails.Results != null)
 {
@@ -523,10 +607,12 @@ if (tickerDetails.Results != null)
 }
 
 // Get historical ticker details for a specific date
-var historicalDetails = await _client.ReferenceData.GetTickerDetailsAsync(
-    ticker: "AAPL",
-    date: "2020-01-01"
-);
+var historicalRequest = new GetTickerDetailsRequest
+{
+    Ticker = "AAPL",
+    Date = "2020-01-01"
+};
+var historicalDetails = await _client.ReferenceData.GetTickerDetailsAsync(historicalRequest);
 ```
 
 #### GetTickerTypesAsync - Get All Ticker Types
@@ -534,7 +620,10 @@ var historicalDetails = await _client.ReferenceData.GetTickerDetailsAsync(
 Get a list of all supported ticker types.
 
 ```csharp
-var tickerTypes = await _client.ReferenceData.GetTickerTypesAsync();
+using TreyThomasCodes.Polygon.RestClient.Requests.Reference;
+
+var request = new GetTickerTypesRequest();
+var tickerTypes = await _client.ReferenceData.GetTickerTypesAsync(request);
 
 Console.WriteLine("Available Ticker Types:");
 foreach (var type in tickerTypes.Results ?? Enumerable.Empty<TickerType>())
@@ -563,7 +652,10 @@ foreach (var type in tickerTypes.Results ?? Enumerable.Empty<TickerType>())
 Get the current trading status of exchanges and markets.
 
 ```csharp
-var marketStatus = await _client.ReferenceData.GetMarketStatusAsync();
+using TreyThomasCodes.Polygon.RestClient.Requests.Reference;
+
+var request = new GetMarketStatusRequest();
+var marketStatus = await _client.ReferenceData.GetMarketStatusAsync(request);
 
 Console.WriteLine($"Market: {marketStatus.Market}");
 Console.WriteLine($"Server Time: {marketStatus.ServerTime}");
@@ -599,9 +691,11 @@ Get a comprehensive list of exchanges and market centers.
 
 ```csharp
 using TreyThomasCodes.Polygon.Models.Common;
+using TreyThomasCodes.Polygon.RestClient.Requests.Reference;
 
 // Get all exchanges
-var allExchanges = await _client.ReferenceData.GetExchangesAsync();
+var allExchangesRequest = new GetExchangesRequest();
+var allExchanges = await _client.ReferenceData.GetExchangesAsync(allExchangesRequest);
 
 Console.WriteLine("All Exchanges:");
 foreach (var exchange in allExchanges.Results ?? Enumerable.Empty<Exchange>())
@@ -616,32 +710,44 @@ foreach (var exchange in allExchanges.Results ?? Enumerable.Empty<Exchange>())
 }
 
 // Filter by asset class
-var stockExchanges = await _client.ReferenceData.GetExchangesAsync(
-    assetClass: AssetClass.Stocks
-);
+var stockExchangesRequest = new GetExchangesRequest
+{
+    AssetClass = AssetClass.Stocks
+};
+var stockExchanges = await _client.ReferenceData.GetExchangesAsync(stockExchangesRequest);
 
-var cryptoExchanges = await _client.ReferenceData.GetExchangesAsync(
-    assetClass: AssetClass.Crypto
-);
+var cryptoExchangesRequest = new GetExchangesRequest
+{
+    AssetClass = AssetClass.Crypto
+};
+var cryptoExchanges = await _client.ReferenceData.GetExchangesAsync(cryptoExchangesRequest);
 
-var forexExchanges = await _client.ReferenceData.GetExchangesAsync(
-    assetClass: AssetClass.Fx
-);
+var forexExchangesRequest = new GetExchangesRequest
+{
+    AssetClass = AssetClass.Fx
+};
+var forexExchanges = await _client.ReferenceData.GetExchangesAsync(forexExchangesRequest);
 
 // Filter by locale
-var usExchanges = await _client.ReferenceData.GetExchangesAsync(
-    locale: Locale.Us
-);
+var usExchangesRequest = new GetExchangesRequest
+{
+    Locale = Locale.Us
+};
+var usExchanges = await _client.ReferenceData.GetExchangesAsync(usExchangesRequest);
 
-var globalExchanges = await _client.ReferenceData.GetExchangesAsync(
-    locale: Locale.Global
-);
+var globalExchangesRequest = new GetExchangesRequest
+{
+    Locale = Locale.Global
+};
+var globalExchanges = await _client.ReferenceData.GetExchangesAsync(globalExchangesRequest);
 
 // Combine filters
-var usStockExchanges = await _client.ReferenceData.GetExchangesAsync(
-    assetClass: AssetClass.Stocks,
-    locale: Locale.Us
-);
+var usStockExchangesRequest = new GetExchangesRequest
+{
+    AssetClass = AssetClass.Stocks,
+    Locale = Locale.Us
+};
+var usStockExchanges = await _client.ReferenceData.GetExchangesAsync(usStockExchangesRequest);
 ```
 
 #### GetConditionCodesAsync - Get Trade and Quote Condition Codes
@@ -651,11 +757,14 @@ Get condition codes that provide context for market data events.
 ```csharp
 using TreyThomasCodes.Polygon.Models.Common;
 using TreyThomasCodes.Polygon.Models.Reference;
+using TreyThomasCodes.Polygon.RestClient.Requests.Reference;
 
 // Get all condition codes
-var allConditions = await _client.ReferenceData.GetConditionCodesAsync(
-    limit: 1000
-);
+var allConditionsRequest = new GetConditionCodesRequest
+{
+    Limit = 1000
+};
+var allConditions = await _client.ReferenceData.GetConditionCodesAsync(allConditionsRequest);
 
 foreach (var condition in allConditions.Results ?? Enumerable.Empty<ConditionCode>())
 {
@@ -668,60 +777,78 @@ foreach (var condition in allConditions.Results ?? Enumerable.Empty<ConditionCod
 }
 
 // Filter by asset class
-var stockConditions = await _client.ReferenceData.GetConditionCodesAsync(
-    assetClass: AssetClass.Stocks,
-    limit: 100
-);
+var stockConditionsRequest = new GetConditionCodesRequest
+{
+    AssetClass = AssetClass.Stocks,
+    Limit = 100
+};
+var stockConditions = await _client.ReferenceData.GetConditionCodesAsync(stockConditionsRequest);
 
 // Filter by data type
-var tradeConditions = await _client.ReferenceData.GetConditionCodesAsync(
-    dataType: DataType.Trade,
-    limit: 100
-);
+var tradeConditionsRequest = new GetConditionCodesRequest
+{
+    DataType = DataType.Trade,
+    Limit = 100
+};
+var tradeConditions = await _client.ReferenceData.GetConditionCodesAsync(tradeConditionsRequest);
 
-var quoteConditions = await _client.ReferenceData.GetConditionCodesAsync(
-    dataType: DataType.Quote,
-    limit: 100
-);
+var quoteConditionsRequest = new GetConditionCodesRequest
+{
+    DataType = DataType.Quote,
+    Limit = 100
+};
+var quoteConditions = await _client.ReferenceData.GetConditionCodesAsync(quoteConditionsRequest);
 
 // Get specific condition code
-var specificCondition = await _client.ReferenceData.GetConditionCodesAsync(
-    id: "1"
-);
+var specificConditionRequest = new GetConditionCodesRequest
+{
+    Id = "1"
+};
+var specificCondition = await _client.ReferenceData.GetConditionCodesAsync(specificConditionRequest);
 
 // Get multiple condition codes
-var multipleConditions = await _client.ReferenceData.GetConditionCodesAsync(
-    id: "1,2,3,4,5"
-);
+var multipleConditionsRequest = new GetConditionCodesRequest
+{
+    Id = "1,2,3,4,5"
+};
+var multipleConditions = await _client.ReferenceData.GetConditionCodesAsync(multipleConditionsRequest);
 
 // Filter by SIP mapping
-var consolidatedConditions = await _client.ReferenceData.GetConditionCodesAsync(
-    sipMapping: SipMappingType.Consolidated,
-    limit: 100
-);
+var consolidatedConditionsRequest = new GetConditionCodesRequest
+{
+    SipMapping = SipMappingType.Consolidated,
+    Limit = 100
+};
+var consolidatedConditions = await _client.ReferenceData.GetConditionCodesAsync(consolidatedConditionsRequest);
 
-var participant1Conditions = await _client.ReferenceData.GetConditionCodesAsync(
-    sipMapping: SipMappingType.Participant1,
-    limit: 100
-);
+var participant1ConditionsRequest = new GetConditionCodesRequest
+{
+    SipMapping = SipMappingType.Participant1,
+    Limit = 100
+};
+var participant1Conditions = await _client.ReferenceData.GetConditionCodesAsync(participant1ConditionsRequest);
 
 // Sort results
-var sortedConditions = await _client.ReferenceData.GetConditionCodesAsync(
-    assetClass: AssetClass.Stocks,
-    sort: ConditionCodeSortFields.Name,
-    order: SortOrder.Ascending,
-    limit: 100
-);
+var sortedConditionsRequest = new GetConditionCodesRequest
+{
+    AssetClass = AssetClass.Stocks,
+    Sort = ConditionCodeSortFields.Name,
+    Order = SortOrder.Ascending,
+    Limit = 100
+};
+var sortedConditions = await _client.ReferenceData.GetConditionCodesAsync(sortedConditionsRequest);
 
 // Combine multiple filters
-var stockTradeConditions = await _client.ReferenceData.GetConditionCodesAsync(
-    assetClass: AssetClass.Stocks,
-    dataType: DataType.Trade,
-    sipMapping: SipMappingType.Consolidated,
-    sort: ConditionCodeSortFields.Id,
-    order: SortOrder.Ascending,
-    limit: 100
-);
+var stockTradeConditionsRequest = new GetConditionCodesRequest
+{
+    AssetClass = AssetClass.Stocks,
+    DataType = DataType.Trade,
+    SipMapping = SipMappingType.Consolidated,
+    Sort = ConditionCodeSortFields.Id,
+    Order = SortOrder.Ascending,
+    Limit = 100
+};
+var stockTradeConditions = await _client.ReferenceData.GetConditionCodesAsync(stockTradeConditionsRequest);
 ```
 
 ## Options Service
@@ -735,8 +862,15 @@ Access the options service via `IPolygonClient.Options`.
 Retrieve detailed information about a specific options contract by its ticker symbol.
 
 ```csharp
+using TreyThomasCodes.Polygon.RestClient.Requests.Options;
+using TreyThomasCodes.Polygon.RestClient.Requests.Stocks;
+
 // Get contract details for a call option on SPY
-var contract = await _client.Options.GetContractDetailsAsync("O:SPY251219C00650000");
+var contractRequest = new GetContractDetailsRequest
+{
+    OptionsTicker = "O:SPY251219C00650000"
+};
+var contract = await _client.Options.GetContractDetailsAsync(contractRequest);
 
 if (contract.Results != null)
 {
@@ -753,7 +887,11 @@ if (contract.Results != null)
 }
 
 // Get contract details for a put option on AAPL
-var putContract = await _client.Options.GetContractDetailsAsync("O:AAPL251219P00200000");
+var putContractRequest = new GetContractDetailsRequest
+{
+    OptionsTicker = "O:AAPL251219P00200000"
+};
+var putContract = await _client.Options.GetContractDetailsAsync(putContractRequest);
 
 if (putContract.Results != null)
 {
@@ -765,8 +903,14 @@ if (putContract.Results != null)
 }
 
 // Example: Calculate intrinsic value (requires current stock price)
-var optionContract = await _client.Options.GetContractDetailsAsync("O:TSLA251219C00250000");
-var stockSnapshot = await _client.Stocks.GetSnapshotAsync("TSLA");
+var optionContractRequest = new GetContractDetailsRequest
+{
+    OptionsTicker = "O:TSLA251219C00250000"
+};
+var optionContract = await _client.Options.GetContractDetailsAsync(optionContractRequest);
+
+var stockSnapshotRequest = new GetSnapshotRequest { Ticker = "TSLA" };
+var stockSnapshot = await _client.Stocks.GetSnapshotAsync(stockSnapshotRequest);
 
 if (optionContract.Results != null && stockSnapshot.Ticker?.LastTrade?.Price != null)
 {
@@ -1003,8 +1147,15 @@ var expirationsForStrike = await _client.Options.GetExpirationDatesAsync(
 Retrieve a comprehensive snapshot of current market data for an options contract, including Greeks, implied volatility, last trade, last quote, and underlying asset information.
 
 ```csharp
+using TreyThomasCodes.Polygon.RestClient.Requests.Options;
+
 // Get snapshot for a call option on SPY
-var snapshot = await _client.Options.GetSnapshotAsync("SPY", "SPY251219C00650000");
+var snapshotRequest = new GetSnapshotRequest
+{
+    UnderlyingAsset = "SPY",
+    OptionContract = "SPY251219C00650000"
+};
+var snapshot = await _client.Options.GetSnapshotAsync(snapshotRequest);
 
 if (snapshot.Results != null)
 {
@@ -1080,7 +1231,12 @@ if (snapshot.Results != null)
 }
 
 // Get snapshot for a put option on AAPL
-var putSnapshot = await _client.Options.GetSnapshotAsync("AAPL", "AAPL250117P00150000");
+var putSnapshotRequest = new GetSnapshotRequest
+{
+    UnderlyingAsset = "AAPL",
+    OptionContract = "AAPL250117P00150000"
+};
+var putSnapshot = await _client.Options.GetSnapshotAsync(putSnapshotRequest);
 
 if (putSnapshot.Results != null)
 {
@@ -1102,7 +1258,12 @@ var strikes = new[] { "SPY251219C00600000", "SPY251219C00650000", "SPY251219C007
 Console.WriteLine("\nComparing Strike Prices:");
 foreach (var strike in strikes)
 {
-    var optSnapshot = await _client.Options.GetSnapshotAsync("SPY", strike);
+    var strikeSnapshotRequest = new GetSnapshotRequest
+    {
+        UnderlyingAsset = "SPY",
+        OptionContract = strike
+    };
+    var optSnapshot = await _client.Options.GetSnapshotAsync(strikeSnapshotRequest);
 
     if (optSnapshot.Results != null)
     {
@@ -1118,7 +1279,12 @@ foreach (var strike in strikes)
 }
 
 // Example: Calculate probability of profit using delta
-var callSnapshot = await _client.Options.GetSnapshotAsync("SPY", "SPY251219C00650000");
+var callSnapshotRequest = new GetSnapshotRequest
+{
+    UnderlyingAsset = "SPY",
+    OptionContract = "SPY251219C00650000"
+};
+var callSnapshot = await _client.Options.GetSnapshotAsync(callSnapshotRequest);
 
 if (callSnapshot.Results?.Greeks?.Delta.HasValue == true)
 {
@@ -1141,11 +1307,15 @@ if (callSnapshot.Results?.Greeks?.Delta.HasValue == true)
 Retrieve snapshots for all options contracts for a given underlying asset. Returns comprehensive market data for each contract including Greeks, implied volatility, last trade, last quote, and underlying asset information. Supports filtering and pagination.
 
 ```csharp
+using TreyThomasCodes.Polygon.RestClient.Requests.Options;
+
 // Get all options contracts for MSTR with a limit
-var chainSnapshot = await _client.Options.GetChainSnapshotAsync(
-    underlyingAsset: "MSTR",
-    limit: 10
-);
+var chainSnapshotRequest = new GetChainSnapshotRequest
+{
+    UnderlyingAsset = "MSTR",
+    Limit = 10
+};
+var chainSnapshot = await _client.Options.GetChainSnapshotAsync(chainSnapshotRequest);
 
 if (chainSnapshot.Results != null)
 {
@@ -1179,11 +1349,13 @@ if (chainSnapshot.Results != null)
 }
 
 // Filter by contract type (calls only)
-var callsOnly = await _client.Options.GetChainSnapshotAsync(
-    underlyingAsset: "SPY",
-    contractType: "call",
-    limit: 20
-);
+var callsOnlyRequest = new GetChainSnapshotRequest
+{
+    UnderlyingAsset = "SPY",
+    ContractType = "call",
+    Limit = 20
+};
+var callsOnly = await _client.Options.GetChainSnapshotAsync(callsOnlyRequest);
 
 Console.WriteLine($"\nCall Options for SPY:");
 foreach (var call in callsOnly.Results ?? Enumerable.Empty<OptionSnapshot>())
@@ -1192,11 +1364,13 @@ foreach (var call in callsOnly.Results ?? Enumerable.Empty<OptionSnapshot>())
 }
 
 // Filter by contract type (puts only)
-var putsOnly = await _client.Options.GetChainSnapshotAsync(
-    underlyingAsset: "SPY",
-    contractType: "put",
-    limit: 20
-);
+var putsOnlyRequest = new GetChainSnapshotRequest
+{
+    UnderlyingAsset = "SPY",
+    ContractType = "put",
+    Limit = 20
+};
+var putsOnly = await _client.Options.GetChainSnapshotAsync(putsOnlyRequest);
 
 Console.WriteLine($"\nPut Options for SPY:");
 foreach (var put in putsOnly.Results ?? Enumerable.Empty<OptionSnapshot>())
@@ -1205,11 +1379,13 @@ foreach (var put in putsOnly.Results ?? Enumerable.Empty<OptionSnapshot>())
 }
 
 // Filter by specific strike price
-var strikeSnapshot = await _client.Options.GetChainSnapshotAsync(
-    underlyingAsset: "SPY",
-    strikePrice: 650m,
-    limit: 10
-);
+var strikeSnapshotRequest = new GetChainSnapshotRequest
+{
+    UnderlyingAsset = "SPY",
+    StrikePrice = 650m,
+    Limit = 10
+};
+var strikeSnapshot = await _client.Options.GetChainSnapshotAsync(strikeSnapshotRequest);
 
 Console.WriteLine($"\nAll contracts at $650 strike:");
 foreach (var contract in strikeSnapshot.Results ?? Enumerable.Empty<OptionSnapshot>())
@@ -1221,12 +1397,14 @@ foreach (var contract in strikeSnapshot.Results ?? Enumerable.Empty<OptionSnapsh
 }
 
 // Filter by expiration date range
-var expirationRange = await _client.Options.GetChainSnapshotAsync(
-    underlyingAsset: "AAPL",
-    expirationDateGte: "2025-10-01",
-    expirationDateLte: "2025-12-31",
-    limit: 50
-);
+var expirationRangeRequest = new GetChainSnapshotRequest
+{
+    UnderlyingAsset = "AAPL",
+    ExpirationDateGte = "2025-10-01",
+    ExpirationDateLte = "2025-12-31",
+    Limit = 50
+};
+var expirationRange = await _client.Options.GetChainSnapshotAsync(expirationRangeRequest);
 
 Console.WriteLine($"\nAAPL options expiring between Oct-Dec 2025:");
 foreach (var contract in expirationRange.Results ?? Enumerable.Empty<OptionSnapshot>())
@@ -1235,13 +1413,15 @@ foreach (var contract in expirationRange.Results ?? Enumerable.Empty<OptionSnaps
 }
 
 // Sort by strike price in ascending order
-var sortedByStrike = await _client.Options.GetChainSnapshotAsync(
-    underlyingAsset: "TSLA",
-    contractType: "call",
-    order: "asc",
-    sort: "strike_price",
-    limit: 20
-);
+var sortedByStrikeRequest = new GetChainSnapshotRequest
+{
+    UnderlyingAsset = "TSLA",
+    ContractType = "call",
+    Order = "asc",
+    Sort = "strike_price",
+    Limit = 20
+};
+var sortedByStrike = await _client.Options.GetChainSnapshotAsync(sortedByStrikeRequest);
 
 Console.WriteLine($"\nTSLA calls sorted by strike price:");
 foreach (var contract in sortedByStrike.Results ?? Enumerable.Empty<OptionSnapshot>())
@@ -1250,15 +1430,17 @@ foreach (var contract in sortedByStrike.Results ?? Enumerable.Empty<OptionSnapsh
 }
 
 // Combine multiple filters for specific analysis
-var nearMoneyPuts = await _client.Options.GetChainSnapshotAsync(
-    underlyingAsset: "SPY",
-    contractType: "put",
-    expirationDateGte: "2025-11-01",
-    expirationDateLte: "2025-11-30",
-    order: "asc",
-    sort: "strike_price",
-    limit: 50
-);
+var nearMoneyPutsRequest = new GetChainSnapshotRequest
+{
+    UnderlyingAsset = "SPY",
+    ContractType = "put",
+    ExpirationDateGte = "2025-11-01",
+    ExpirationDateLte = "2025-11-30",
+    Order = "asc",
+    Sort = "strike_price",
+    Limit = 50
+};
+var nearMoneyPuts = await _client.Options.GetChainSnapshotAsync(nearMoneyPutsRequest);
 
 Console.WriteLine($"\nSPY November 2025 puts:");
 foreach (var put in nearMoneyPuts.Results ?? Enumerable.Empty<OptionSnapshot>())
@@ -1277,10 +1459,12 @@ foreach (var put in nearMoneyPuts.Results ?? Enumerable.Empty<OptionSnapshot>())
 }
 
 // Example: Find options with high volume
-var highVolume = await _client.Options.GetChainSnapshotAsync(
-    underlyingAsset: "NVDA",
-    limit: 100
-);
+var highVolumeRequest = new GetChainSnapshotRequest
+{
+    UnderlyingAsset = "NVDA",
+    Limit = 100
+};
+var highVolume = await _client.Options.GetChainSnapshotAsync(highVolumeRequest);
 
 var highVolumeContracts = highVolume.Results?
     .Where(c => c.Day?.Volume.HasValue == true && c.Day.Volume > 1000)
@@ -1299,14 +1483,16 @@ foreach (var contract in highVolumeContracts ?? Enumerable.Empty<OptionSnapshot>
 }
 
 // Example: Build an options chain display
-var optionsChain = await _client.Options.GetChainSnapshotAsync(
-    underlyingAsset: "SPY",
-    expirationDateGte: "2025-12-15",
-    expirationDateLte: "2025-12-20",
-    order: "asc",
-    sort: "strike_price",
-    limit: 100
-);
+var optionsChainRequest = new GetChainSnapshotRequest
+{
+    UnderlyingAsset = "SPY",
+    ExpirationDateGte = "2025-12-15",
+    ExpirationDateLte = "2025-12-20",
+    Order = "asc",
+    Sort = "strike_price",
+    Limit = 100
+};
+var optionsChain = await _client.Options.GetChainSnapshotAsync(optionsChainRequest);
 
 // Group by strike price
 var chainByStrike = optionsChain.Results?
@@ -1331,15 +1517,17 @@ foreach (var strikeGroup in chainByStrike ?? Enumerable.Empty<IGrouping<decimal?
 }
 
 // Example: Calculate implied volatility smile
-var ivSmile = await _client.Options.GetChainSnapshotAsync(
-    underlyingAsset: "AAPL",
-    contractType: "call",
-    expirationDateGte: "2025-11-15",
-    expirationDateLte: "2025-11-20",
-    order: "asc",
-    sort: "strike_price",
-    limit: 50
-);
+var ivSmileRequest = new GetChainSnapshotRequest
+{
+    UnderlyingAsset = "AAPL",
+    ContractType = "call",
+    ExpirationDateGte = "2025-11-15",
+    ExpirationDateLte = "2025-11-20",
+    Order = "asc",
+    Sort = "strike_price",
+    Limit = 50
+};
+var ivSmile = await _client.Options.GetChainSnapshotAsync(ivSmileRequest);
 
 Console.WriteLine($"\nImplied Volatility Smile:");
 Console.WriteLine($"{"Strike",-10} {"IV",-10} {"Delta",-10}");
@@ -1355,10 +1543,12 @@ foreach (var contract in ivSmile.Results ?? Enumerable.Empty<OptionSnapshot>())
 
 // Example: Pagination through large result sets
 var allContracts = new List<OptionSnapshot>();
-var response = await _client.Options.GetChainSnapshotAsync(
-    underlyingAsset: "SPY",
-    limit: 100
-);
+var paginationRequest = new GetChainSnapshotRequest
+{
+    UnderlyingAsset = "SPY",
+    Limit = 100
+};
+var response = await _client.Options.GetChainSnapshotAsync(paginationRequest);
 
 if (response.Results != null)
 {
@@ -1406,8 +1596,14 @@ Console.WriteLine($"\nRetrieved {allContracts.Count} option contracts");
 Retrieve the most recent trade for a specific options contract.
 
 ```csharp
+using TreyThomasCodes.Polygon.RestClient.Requests.Options;
+
 // Get last trade for a call option on TSLA
-var lastTrade = await _client.Options.GetLastTradeAsync("O:TSLA260320C00700000");
+var lastTradeRequest = new GetLastTradeRequest
+{
+    OptionsTicker = "O:TSLA260320C00700000"
+};
+var lastTrade = await _client.Options.GetLastTradeAsync(lastTradeRequest);
 
 if (lastTrade.Results != null)
 {
@@ -1428,7 +1624,11 @@ if (lastTrade.Results != null)
 }
 
 // Get last trade for a put option on SPY
-var putTrade = await _client.Options.GetLastTradeAsync("O:SPY251219P00650000");
+var putTradeRequest = new GetLastTradeRequest
+{
+    OptionsTicker = "O:SPY251219P00650000"
+};
+var putTrade = await _client.Options.GetLastTradeAsync(putTradeRequest);
 
 if (putTrade.Results != null)
 {
@@ -1448,7 +1648,8 @@ var strikes = new[]
 Console.WriteLine("\nLast Trade Prices by Strike:");
 foreach (var strike in strikes)
 {
-    var trade = await _client.Options.GetLastTradeAsync(strike);
+    var strikeTradeRequest = new GetLastTradeRequest { OptionsTicker = strike };
+    var trade = await _client.Options.GetLastTradeAsync(strikeTradeRequest);
 
     if (trade.Results != null)
     {
@@ -1457,8 +1658,18 @@ foreach (var strike in strikes)
 }
 
 // Example: Calculate bid-ask spread using snapshot and last trade
-var snapshot = await _client.Options.GetSnapshotAsync("AAPL", "AAPL250117C00150000");
-var trade = await _client.Options.GetLastTradeAsync("O:AAPL250117C00150000");
+var tradeSnapshotRequest = new GetSnapshotRequest
+{
+    UnderlyingAsset = "AAPL",
+    OptionContract = "AAPL250117C00150000"
+};
+var snapshot = await _client.Options.GetSnapshotAsync(tradeSnapshotRequest);
+
+var tradeRequest = new GetLastTradeRequest
+{
+    OptionsTicker = "O:AAPL250117C00150000"
+};
+var trade = await _client.Options.GetLastTradeAsync(tradeRequest);
 
 if (snapshot.Results?.LastQuote != null && trade.Results != null)
 {
@@ -1505,11 +1716,15 @@ if (snapshot.Results?.LastQuote != null && trade.Results != null)
 Retrieve historical bid/ask quote data for a specific options contract. Returns tick-level quote data including bid and ask prices, sizes, exchange information, and timestamps. Supports time-based filtering and pagination.
 
 ```csharp
+using TreyThomasCodes.Polygon.RestClient.Requests.Options;
+
 // Get recent quotes for an option with a limit
-var quotes = await _client.Options.GetQuotesAsync(
-    optionsTicker: "O:SPY241220P00720000",
-    limit: 10
-);
+var quotesRequest = new GetQuotesRequest
+{
+    OptionsTicker = "O:SPY241220P00720000",
+    Limit = 10
+};
+var quotes = await _client.Options.GetQuotesAsync(quotesRequest);
 
 if (quotes.Results != null)
 {
@@ -1537,12 +1752,14 @@ if (quotes.Results != null)
 }
 
 // Get quotes for a specific time range
-var timeRangeQuotes = await _client.Options.GetQuotesAsync(
-    optionsTicker: "O:TSLA260320C00700000",
-    timestamp: "2022-03-07T14:30:00",
-    timestampLte: "2022-03-07T16:00:00",
-    limit: 100
-);
+var timeRangeQuotesRequest = new GetQuotesRequest
+{
+    OptionsTicker = "O:TSLA260320C00700000",
+    Timestamp = "2022-03-07T14:30:00",
+    TimestampLte = "2022-03-07T16:00:00",
+    Limit = 100
+};
+var timeRangeQuotes = await _client.Options.GetQuotesAsync(timeRangeQuotesRequest);
 
 Console.WriteLine($"\nQuotes between 2:30 PM and 4:00 PM:");
 foreach (var quote in timeRangeQuotes.Results ?? Enumerable.Empty<OptionQuote>())
@@ -1552,30 +1769,36 @@ foreach (var quote in timeRangeQuotes.Results ?? Enumerable.Empty<OptionQuote>()
 }
 
 // Get quotes after a specific timestamp
-var quotesAfter = await _client.Options.GetQuotesAsync(
-    optionsTicker: "O:AAPL250117C00150000",
-    timestampGt: "2022-03-07",
-    order: "asc",
-    limit: 50
-);
+var quotesAfterRequest = new GetQuotesRequest
+{
+    OptionsTicker = "O:AAPL250117C00150000",
+    TimestampGt = "2022-03-07",
+    Order = "asc",
+    Limit = 50
+};
+var quotesAfter = await _client.Options.GetQuotesAsync(quotesAfterRequest);
 
 // Get quotes before a specific timestamp
-var quotesBefore = await _client.Options.GetQuotesAsync(
-    optionsTicker: "O:MSFT250321P00400000",
-    timestampLt: "2022-03-08",
-    order: "desc",
-    limit: 50
-);
+var quotesBeforeRequest = new GetQuotesRequest
+{
+    OptionsTicker = "O:MSFT250321P00400000",
+    TimestampLt = "2022-03-08",
+    Order = "desc",
+    Limit = 50
+};
+var quotesBefore = await _client.Options.GetQuotesAsync(quotesBeforeRequest);
 
 // Get quotes in a specific range with sorting
-var sortedQuotes = await _client.Options.GetQuotesAsync(
-    optionsTicker: "O:SPY241220P00720000",
-    timestampGte: "2022-03-07T09:30:00",
-    timestampLte: "2022-03-07T16:00:00",
-    order: "asc",
-    sort: "timestamp",
-    limit: 1000
-);
+var sortedQuotesRequest = new GetQuotesRequest
+{
+    OptionsTicker = "O:SPY241220P00720000",
+    TimestampGte = "2022-03-07T09:30:00",
+    TimestampLte = "2022-03-07T16:00:00",
+    Order = "asc",
+    Sort = "timestamp",
+    Limit = 1000
+};
+var sortedQuotes = await _client.Options.GetQuotesAsync(sortedQuotesRequest);
 
 Console.WriteLine($"\nQuotes sorted by timestamp:");
 foreach (var quote in sortedQuotes.Results ?? Enumerable.Empty<OptionQuote>())
@@ -1601,13 +1824,15 @@ if (quotes.Results?.Count > 0)
 }
 
 // Example: Track quote updates over time
-var quoteHistory = await _client.Options.GetQuotesAsync(
-    optionsTicker: "O:SPY241220P00720000",
-    timestampGte: "2022-03-07T14:00:00",
-    timestampLte: "2022-03-07T14:05:00",
-    order: "asc",
-    limit: 100
-);
+var quoteHistoryRequest = new GetQuotesRequest
+{
+    OptionsTicker = "O:SPY241220P00720000",
+    TimestampGte = "2022-03-07T14:00:00",
+    TimestampLte = "2022-03-07T14:05:00",
+    Order = "asc",
+    Limit = 100
+};
+var quoteHistory = await _client.Options.GetQuotesAsync(quoteHistoryRequest);
 
 Console.WriteLine($"\nQuote changes over 5 minutes:");
 OptionQuote? previousQuote = null;
@@ -1629,11 +1854,13 @@ foreach (var quote in quoteHistory.Results ?? Enumerable.Empty<OptionQuote>())
 }
 
 // Example: Find best bid and ask across time
-var allQuotes = await _client.Options.GetQuotesAsync(
-    optionsTicker: "O:AAPL250117C00150000",
-    timestampGte: "2022-03-07",
-    limit: 1000
-);
+var allQuotesRequest = new GetQuotesRequest
+{
+    OptionsTicker = "O:AAPL250117C00150000",
+    TimestampGte = "2022-03-07",
+    Limit = 1000
+};
+var allQuotes = await _client.Options.GetQuotesAsync(allQuotesRequest);
 
 if (allQuotes.Results?.Count > 0)
 {
@@ -1652,11 +1879,13 @@ if (allQuotes.Results?.Count > 0)
 
 // Example: Pagination through large result sets
 var allOptionQuotes = new List<OptionQuote>();
-var response = await _client.Options.GetQuotesAsync(
-    optionsTicker: "O:SPY241220P00720000",
-    timestampGte: "2022-03-07",
-    limit: 100
-);
+var quotesPaginationRequest = new GetQuotesRequest
+{
+    OptionsTicker = "O:SPY241220P00720000",
+    TimestampGte = "2022-03-07",
+    Limit = 100
+};
+var response = await _client.Options.GetQuotesAsync(quotesPaginationRequest);
 
 if (response.Results != null)
 {
@@ -1715,11 +1944,15 @@ Console.WriteLine($"\nRetrieved {allOptionQuotes.Count} option quotes");
 Retrieve historical trade data for a specific options contract. Returns tick-level trade data including price, size, exchange, conditions, and timestamps. Supports time-based filtering and pagination.
 
 ```csharp
+using TreyThomasCodes.Polygon.RestClient.Requests.Options;
+
 // Get recent trades for an option with a limit
-var trades = await _client.Options.GetTradesAsync(
-    optionsTicker: "O:TSLA210903C00700000",
-    limit: 10
-);
+var tradesRequest = new GetTradesRequest
+{
+    OptionsTicker = "O:TSLA210903C00700000",
+    Limit = 10
+};
+var trades = await _client.Options.GetTradesAsync(tradesRequest);
 
 if (trades.Results != null)
 {
@@ -1761,12 +1994,14 @@ if (trades.Results != null)
 }
 
 // Get trades for a specific time range
-var timeRangeTrades = await _client.Options.GetTradesAsync(
-    optionsTicker: "O:TSLA210903C00700000",
-    timestamp: "2021-07-23T15:42:22",
-    timestampLte: "2021-07-23T16:00:00",
-    limit: 100
-);
+var timeRangeTradesRequest = new GetTradesRequest
+{
+    OptionsTicker = "O:TSLA210903C00700000",
+    Timestamp = "2021-07-23T15:42:22",
+    TimestampLte = "2021-07-23T16:00:00",
+    Limit = 100
+};
+var timeRangeTrades = await _client.Options.GetTradesAsync(timeRangeTradesRequest);
 
 Console.WriteLine($"\nTrades between 3:42 PM and 4:00 PM:");
 foreach (var trade in timeRangeTrades.Results ?? Enumerable.Empty<OptionTradeV3>())
@@ -1775,30 +2010,36 @@ foreach (var trade in timeRangeTrades.Results ?? Enumerable.Empty<OptionTradeV3>
 }
 
 // Get trades after a specific timestamp
-var tradesAfter = await _client.Options.GetTradesAsync(
-    optionsTicker: "O:SPY241220P00720000",
-    timestampGt: "2021-07-23",
-    order: "asc",
-    limit: 50
-);
+var tradesAfterRequest = new GetTradesRequest
+{
+    OptionsTicker = "O:SPY241220P00720000",
+    TimestampGt = "2021-07-23",
+    Order = "asc",
+    Limit = 50
+};
+var tradesAfter = await _client.Options.GetTradesAsync(tradesAfterRequest);
 
 // Get trades before a specific timestamp
-var tradesBefore = await _client.Options.GetTradesAsync(
-    optionsTicker: "O:AAPL250117C00150000",
-    timestampLt: "2021-07-24",
-    order: "desc",
-    limit: 50
-);
+var tradesBeforeRequest = new GetTradesRequest
+{
+    OptionsTicker = "O:AAPL250117C00150000",
+    TimestampLt = "2021-07-24",
+    Order = "desc",
+    Limit = 50
+};
+var tradesBefore = await _client.Options.GetTradesAsync(tradesBeforeRequest);
 
 // Get trades in a specific range with sorting
-var sortedTrades = await _client.Options.GetTradesAsync(
-    optionsTicker: "O:TSLA210903C00700000",
-    timestampGte: "2021-07-23T09:30:00",
-    timestampLte: "2021-07-23T16:00:00",
-    order: "asc",
-    sort: "timestamp",
-    limit: 1000
-);
+var sortedTradesRequest = new GetTradesRequest
+{
+    OptionsTicker = "O:TSLA210903C00700000",
+    TimestampGte = "2021-07-23T09:30:00",
+    TimestampLte = "2021-07-23T16:00:00",
+    Order = "asc",
+    Sort = "timestamp",
+    Limit = 1000
+};
+var sortedTrades = await _client.Options.GetTradesAsync(sortedTradesRequest);
 
 Console.WriteLine($"\nTrades sorted by timestamp:");
 foreach (var trade in sortedTrades.Results ?? Enumerable.Empty<OptionTradeV3>())
@@ -1840,13 +2081,15 @@ if (trades.Results?.Count > 0)
 }
 
 // Example: Track price movement over time
-var priceHistory = await _client.Options.GetTradesAsync(
-    optionsTicker: "O:TSLA210903C00700000",
-    timestampGte: "2021-07-23T14:00:00",
-    timestampLte: "2021-07-23T14:05:00",
-    order: "asc",
-    limit: 100
-);
+var priceHistoryRequest = new GetTradesRequest
+{
+    OptionsTicker = "O:TSLA210903C00700000",
+    TimestampGte = "2021-07-23T14:00:00",
+    TimestampLte = "2021-07-23T14:05:00",
+    Order = "asc",
+    Limit = 100
+};
+var priceHistory = await _client.Options.GetTradesAsync(priceHistoryRequest);
 
 Console.WriteLine($"\nPrice movement over 5 minutes:");
 OptionTradeV3? previousTrade = null;
@@ -1867,11 +2110,13 @@ foreach (var trade in priceHistory.Results ?? Enumerable.Empty<OptionTradeV3>())
 }
 
 // Example: Find largest trade
-var allTrades = await _client.Options.GetTradesAsync(
-    optionsTicker: "O:TSLA210903C00700000",
-    timestampGte: "2021-07-23",
-    limit: 1000
-);
+var allTradesRequest = new GetTradesRequest
+{
+    OptionsTicker = "O:TSLA210903C00700000",
+    TimestampGte = "2021-07-23",
+    Limit = 1000
+};
+var allTrades = await _client.Options.GetTradesAsync(allTradesRequest);
 
 if (allTrades.Results?.Count > 0)
 {
@@ -1887,11 +2132,13 @@ if (allTrades.Results?.Count > 0)
 
 // Example: Pagination through large result sets
 var allOptionTrades = new List<OptionTradeV3>();
-var response = await _client.Options.GetTradesAsync(
-    optionsTicker: "O:TSLA210903C00700000",
-    timestampGte: "2021-07-23",
-    limit: 100
-);
+var tradesPaginationRequest = new GetTradesRequest
+{
+    OptionsTicker = "O:TSLA210903C00700000",
+    TimestampGte = "2021-07-23",
+    Limit = 100
+};
+var response = await _client.Options.GetTradesAsync(tradesPaginationRequest);
 
 if (response.Results != null)
 {
@@ -1952,15 +2199,18 @@ Retrieve aggregate OHLC (bar/candle) data for an options contract over a specifi
 
 ```csharp
 using TreyThomasCodes.Polygon.Models.Common;
+using TreyThomasCodes.Polygon.RestClient.Requests.Options;
 
 // Get daily bars for an SPY call option
-var dailyBars = await _client.Options.GetBarsAsync(
-    optionsTicker: "O:SPY251219C00650000",
-    multiplier: 1,
-    timespan: AggregateInterval.Day,
-    from: "2023-01-09",
-    to: "2023-02-10"
-);
+var dailyBarsRequest = new GetBarsRequest
+{
+    OptionsTicker = "O:SPY251219C00650000",
+    Multiplier = 1,
+    Timespan = AggregateInterval.Day,
+    From = "2023-01-09",
+    To = "2023-02-10"
+};
+var dailyBars = await _client.Options.GetBarsAsync(dailyBarsRequest);
 
 if (dailyBars.Results != null)
 {
@@ -1988,14 +2238,16 @@ if (dailyBars.Results != null)
 }
 
 // Get 5-minute intraday bars
-var intradayBars = await _client.Options.GetBarsAsync(
-    optionsTicker: "O:TSLA260320C00700000",
-    multiplier: 5,
-    timespan: AggregateInterval.Minute,
-    from: "2023-01-09",
-    to: "2023-01-10",
-    limit: 100
-);
+var intradayBarsRequest = new GetBarsRequest
+{
+    OptionsTicker = "O:TSLA260320C00700000",
+    Multiplier = 5,
+    Timespan = AggregateInterval.Minute,
+    From = "2023-01-09",
+    To = "2023-01-10",
+    Limit = 100
+};
+var intradayBars = await _client.Options.GetBarsAsync(intradayBarsRequest);
 
 Console.WriteLine($"\n5-minute intraday bars:");
 foreach (var bar in intradayBars.Results ?? Enumerable.Empty<OptionBar>())
@@ -2004,34 +2256,40 @@ foreach (var bar in intradayBars.Results ?? Enumerable.Empty<OptionBar>())
 }
 
 // Get hourly bars
-var hourlyBars = await _client.Options.GetBarsAsync(
-    optionsTicker: "O:AAPL250117C00150000",
-    multiplier: 1,
-    timespan: AggregateInterval.Hour,
-    from: "2023-01-09",
-    to: "2023-01-13"
-);
+var hourlyBarsRequest = new GetBarsRequest
+{
+    OptionsTicker = "O:AAPL250117C00150000",
+    Multiplier = 1,
+    Timespan = AggregateInterval.Hour,
+    From = "2023-01-09",
+    To = "2023-01-13"
+};
+var hourlyBars = await _client.Options.GetBarsAsync(hourlyBarsRequest);
 
 // Get weekly bars for long-term analysis
-var weeklyBars = await _client.Options.GetBarsAsync(
-    optionsTicker: "O:SPY251219C00650000",
-    multiplier: 1,
-    timespan: AggregateInterval.Week,
-    from: "2023-01-01",
-    to: "2023-03-31"
-);
+var weeklyBarsRequest = new GetBarsRequest
+{
+    OptionsTicker = "O:SPY251219C00650000",
+    Multiplier = 1,
+    Timespan = AggregateInterval.Week,
+    From = "2023-01-01",
+    To = "2023-03-31"
+};
+var weeklyBars = await _client.Options.GetBarsAsync(weeklyBarsRequest);
 
 // With optional parameters
-var customBars = await _client.Options.GetBarsAsync(
-    optionsTicker: "O:SPY251219C00650000",
-    multiplier: 1,
-    timespan: AggregateInterval.Day,
-    from: "2023-01-09",
-    to: "2023-02-10",
-    adjusted: true,
-    sort: SortOrder.Ascending,
-    limit: 50
-);
+var customBarsRequest = new GetBarsRequest
+{
+    OptionsTicker = "O:SPY251219C00650000",
+    Multiplier = 1,
+    Timespan = AggregateInterval.Day,
+    From = "2023-01-09",
+    To = "2023-02-10",
+    Adjusted = true,
+    Sort = SortOrder.Ascending,
+    Limit = 50
+};
+var customBars = await _client.Options.GetBarsAsync(customBarsRequest);
 
 Console.WriteLine($"\nCustom bars with sorting and limit:");
 foreach (var bar in customBars.Results ?? Enumerable.Empty<OptionBar>())
@@ -2128,13 +2386,15 @@ var strikes = new[] { "O:SPY251219C00600000", "O:SPY251219C00650000", "O:SPY2512
 Console.WriteLine($"\nComparing Multiple Strikes:");
 foreach (var strike in strikes)
 {
-    var bars = await _client.Options.GetBarsAsync(
-        optionsTicker: strike,
-        multiplier: 1,
-        timespan: AggregateInterval.Day,
-        from: "2023-01-09",
-        to: "2023-02-10"
-    );
+    var barsRequest = new GetBarsRequest
+    {
+        OptionsTicker = strike,
+        Multiplier = 1,
+        Timespan = AggregateInterval.Day,
+        From = "2023-01-09",
+        To = "2023-02-10"
+    };
+    var bars = await _client.Options.GetBarsAsync(barsRequest);
 
     if (bars.Results?.Count > 0)
     {
@@ -2199,10 +2459,14 @@ foreach (var strike in strikes)
 Retrieve the previous trading day's OHLC bar data for a specific options contract. Returns the most recent completed trading session's open, high, low, close, volume, and volume-weighted average price data. This is useful for calculating daily price changes and percentage movements.
 
 ```csharp
+using TreyThomasCodes.Polygon.RestClient.Requests.Options;
+
 // Get previous day bar data for an SPY call option
-var previousDayBar = await _client.Options.GetPreviousDayBarAsync(
-    optionsTicker: "O:SPY251219C00650000"
-);
+var previousDayBarRequest = new GetPreviousDayBarRequest
+{
+    OptionsTicker = "O:SPY251219C00650000"
+};
+var previousDayBar = await _client.Options.GetPreviousDayBarAsync(previousDayBarRequest);
 
 if (previousDayBar?.Results != null && previousDayBar.Results.Count > 0)
 {
@@ -2234,10 +2498,12 @@ if (previousDayBar?.Results != null && previousDayBar.Results.Count > 0)
 }
 
 // Get previous day bar data with adjusted parameter
-var adjustedBar = await _client.Options.GetPreviousDayBarAsync(
-    optionsTicker: "O:AAPL250117P00150000",
-    adjusted: true
-);
+var adjustedBarRequest = new GetPreviousDayBarRequest
+{
+    OptionsTicker = "O:AAPL250117P00150000",
+    Adjusted = true
+};
+var adjustedBar = await _client.Options.GetPreviousDayBarAsync(adjustedBarRequest);
 
 if (adjustedBar?.Results != null && adjustedBar.Results.Count > 0)
 {
@@ -2259,7 +2525,8 @@ foreach (var ticker in optionTickers)
 {
     try
     {
-        var previousDay = await _client.Options.GetPreviousDayBarAsync(ticker);
+        var previousDayRequest = new GetPreviousDayBarRequest { OptionsTicker = ticker };
+        var previousDay = await _client.Options.GetPreviousDayBarAsync(previousDayRequest);
 
         if (previousDay?.Results != null && previousDay.Results.Count > 0)
         {
@@ -2292,11 +2559,15 @@ foreach (var ticker in optionTickers)
 Retrieve the daily open, high, low, close (OHLC) summary for a specific options contract on a given date. Returns comprehensive daily trading data including pre-market and after-hours prices.
 
 ```csharp
+using TreyThomasCodes.Polygon.RestClient.Requests.Options;
+
 // Get daily open/close data for an SPY call option
-var dailyData = await _client.Options.GetDailyOpenCloseAsync(
-    optionsTicker: "O:SPY251219C00650000",
-    date: "2023-01-09"
-);
+var dailyDataRequest = new GetDailyOpenCloseRequest
+{
+    OptionsTicker = "O:SPY251219C00650000",
+    Date = "2023-01-09"
+};
+var dailyData = await _client.Options.GetDailyOpenCloseAsync(dailyDataRequest);
 
 if (dailyData != null)
 {
@@ -2336,10 +2607,12 @@ if (dailyData != null)
 }
 
 // Get daily data for a put option
-var putDailyData = await _client.Options.GetDailyOpenCloseAsync(
-    optionsTicker: "O:AAPL250117P00150000",
-    date: "2023-01-15"
-);
+var putDailyDataRequest = new GetDailyOpenCloseRequest
+{
+    OptionsTicker = "O:AAPL250117P00150000",
+    Date = "2023-01-15"
+};
+var putDailyData = await _client.Options.GetDailyOpenCloseAsync(putDailyDataRequest);
 
 if (putDailyData != null)
 {
@@ -2358,7 +2631,12 @@ foreach (var date in dates)
 {
     try
     {
-        var daily = await _client.Options.GetDailyOpenCloseAsync(optionTicker, date);
+        var dailyRequest = new GetDailyOpenCloseRequest
+        {
+            OptionsTicker = optionTicker,
+            Date = date
+        };
+        var daily = await _client.Options.GetDailyOpenCloseAsync(dailyRequest);
 
         if (daily != null)
         {
@@ -2373,10 +2651,12 @@ foreach (var date in dates)
 }
 
 // Example: Compare pre-market, regular hours, and after-hours trading
-var compareData = await _client.Options.GetDailyOpenCloseAsync(
-    optionsTicker: "O:SPY251219C00650000",
-    date: "2023-01-09"
-);
+var compareDataRequest = new GetDailyOpenCloseRequest
+{
+    OptionsTicker = "O:SPY251219C00650000",
+    Date = "2023-01-09"
+};
+var compareData = await _client.Options.GetDailyOpenCloseAsync(compareDataRequest);
 
 if (compareData != null)
 {

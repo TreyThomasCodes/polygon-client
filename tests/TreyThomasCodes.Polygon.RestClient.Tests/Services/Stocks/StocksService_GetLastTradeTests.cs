@@ -1,8 +1,12 @@
 // Copyright 2025 Trey Thomas
 // SPDX-License-Identifier: MPL-2.0
 
+using FluentValidation;
+using FluentValidation.Results;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using TreyThomasCodes.Polygon.RestClient.Api;
+using TreyThomasCodes.Polygon.RestClient.Requests.Stocks;
 using TreyThomasCodes.Polygon.RestClient.Services;
 using TreyThomasCodes.Polygon.Models.Stocks;
 
@@ -15,16 +19,85 @@ namespace TreyThomasCodes.Polygon.RestClient.Tests.Services;
 public class StocksService_GetLastTradeTests
 {
     private readonly Mock<IPolygonStocksApi> _mockApi;
+    private readonly Mock<IServiceProvider> _mockServiceProvider;
+    private readonly Mock<IValidator<GetLastTradeRequest>> _mockValidator;
     private readonly StocksService _service;
 
     /// <summary>
     /// Initializes a new instance of the StocksService_GetLastTradeTests class.
-    /// Sets up the mock API and service instance for testing.
+    /// Sets up the mock API, service provider, validator, and service instance for testing.
     /// </summary>
     public StocksService_GetLastTradeTests()
     {
         _mockApi = new Mock<IPolygonStocksApi>();
-        _service = new StocksService(_mockApi.Object);
+        _mockServiceProvider = new Mock<IServiceProvider>();
+        _mockValidator = new Mock<IValidator<GetLastTradeRequest>>();
+
+        // Setup service provider to return the validator
+        _mockServiceProvider
+            .Setup(x => x.GetService(typeof(IValidator<GetLastTradeRequest>)))
+            .Returns(_mockValidator.Object);
+
+        // Setup validator to return success by default
+        _mockValidator
+            .Setup(x => x.ValidateAsync(It.IsAny<ValidationContext<GetLastTradeRequest>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ValidationResult());
+
+        _service = new StocksService(_mockApi.Object, _mockServiceProvider.Object);
+    }
+
+    /// <summary>
+    /// Tests that the constructor throws ArgumentNullException when api parameter is null.
+    /// </summary>
+    [Fact]
+    public void Constructor_WhenApiIsNull_ThrowsArgumentNullException()
+    {
+        // Act & Assert
+        Assert.Throws<ArgumentNullException>(() => new StocksService(null!, _mockServiceProvider.Object));
+    }
+
+    /// <summary>
+    /// Tests that the constructor throws ArgumentNullException when serviceProvider parameter is null.
+    /// </summary>
+    [Fact]
+    public void Constructor_WhenServiceProviderIsNull_ThrowsArgumentNullException()
+    {
+        // Act & Assert
+        Assert.Throws<ArgumentNullException>(() => new StocksService(_mockApi.Object, null!));
+    }
+
+    /// <summary>
+    /// Tests that GetLastTradeAsync validates the request and calls the API.
+    /// </summary>
+    [Fact]
+    public async Task GetLastTradeAsync_ValidatesRequest_AndCallsApi()
+    {
+        // Arrange
+        var request = new GetLastTradeRequest
+        {
+            Ticker = "AAPL"
+        };
+        var expectedResponse = new Models.Common.PolygonResponse<StockTrade>
+        {
+            Results = new StockTrade
+            {
+                Ticker = "AAPL",
+                Price = 254.11m,
+                Size = 5
+            },
+            Status = "OK"
+        };
+
+        _mockApi.Setup(x => x.GetLastTradeAsync(request.Ticker, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(expectedResponse);
+
+        // Act
+        var result = await _service.GetLastTradeAsync(request, TestContext.Current.CancellationToken);
+
+        // Assert
+        _mockValidator.Verify(x => x.ValidateAsync(It.Is<ValidationContext<GetLastTradeRequest>>(ctx => ctx.InstanceToValidate == request), It.IsAny<CancellationToken>()), Times.Once);
+        _mockApi.Verify(x => x.GetLastTradeAsync(request.Ticker, It.IsAny<CancellationToken>()), Times.Once);
+        Assert.NotNull(result);
     }
 
     /// <summary>
@@ -34,7 +107,10 @@ public class StocksService_GetLastTradeTests
     public async Task GetLastTradeAsync_CallsApi_ReturnsLastTradeResponse()
     {
         // Arrange
-        var ticker = "AAPL";
+        var request = new GetLastTradeRequest
+        {
+            Ticker = "AAPL"
+        };
         var expectedResponse = new Models.Common.PolygonResponse<StockTrade>
         {
             Results = new StockTrade
@@ -55,11 +131,11 @@ public class StocksService_GetLastTradeTests
             RequestId = "7453d68e76e95db17f29fbde6e5cce4d"
         };
 
-        _mockApi.Setup(x => x.GetLastTradeAsync(ticker, It.IsAny<CancellationToken>()))
+        _mockApi.Setup(x => x.GetLastTradeAsync(request.Ticker, It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedResponse);
 
         // Act
-        var result = await _service.GetLastTradeAsync(ticker, TestContext.Current.CancellationToken);
+        var result = await _service.GetLastTradeAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.NotNull(result);
@@ -74,7 +150,7 @@ public class StocksService_GetLastTradeTests
         Assert.Equal(expectedResponse.Results.Id, result.Results.Id);
         Assert.Equal(expectedResponse.Results.Conditions, result.Results.Conditions);
 
-        _mockApi.Verify(x => x.GetLastTradeAsync(ticker, It.IsAny<CancellationToken>()), Times.Once);
+        _mockApi.Verify(x => x.GetLastTradeAsync(request.Ticker, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     /// <summary>
@@ -84,22 +160,26 @@ public class StocksService_GetLastTradeTests
     public async Task GetLastTradeAsync_PassesCancellationToken()
     {
         // Arrange
-        var ticker = "MSFT";
+        var request = new GetLastTradeRequest
+        {
+            Ticker = "MSFT"
+        };
         var cancellationToken = new CancellationToken();
         var expectedResponse = new Models.Common.PolygonResponse<StockTrade>
         {
             Status = "OK",
-            Results = new StockTrade { Ticker = ticker }
+            Results = new StockTrade { Ticker = request.Ticker }
         };
 
-        _mockApi.Setup(x => x.GetLastTradeAsync(ticker, cancellationToken))
+        _mockApi.Setup(x => x.GetLastTradeAsync(request.Ticker, cancellationToken))
             .ReturnsAsync(expectedResponse);
 
         // Act
-        await _service.GetLastTradeAsync(ticker, cancellationToken);
+        await _service.GetLastTradeAsync(request, cancellationToken);
 
         // Assert
-        _mockApi.Verify(x => x.GetLastTradeAsync(ticker, cancellationToken), Times.Once);
+        _mockValidator.Verify(x => x.ValidateAsync(It.Is<ValidationContext<GetLastTradeRequest>>(ctx => ctx.InstanceToValidate == request), cancellationToken), Times.Once);
+        _mockApi.Verify(x => x.GetLastTradeAsync(request.Ticker, cancellationToken), Times.Once);
     }
 
     /// <summary>
@@ -113,6 +193,10 @@ public class StocksService_GetLastTradeTests
     public async Task GetLastTradeAsync_WithDifferentTickers_CallsApiWithCorrectTicker(string ticker)
     {
         // Arrange
+        var request = new GetLastTradeRequest
+        {
+            Ticker = ticker
+        };
         var expectedResponse = new Models.Common.PolygonResponse<StockTrade>
         {
             Results = new StockTrade
@@ -128,7 +212,7 @@ public class StocksService_GetLastTradeTests
             .ReturnsAsync(expectedResponse);
 
         // Act
-        var result = await _service.GetLastTradeAsync(ticker, TestContext.Current.CancellationToken);
+        var result = await _service.GetLastTradeAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.NotNull(result);
@@ -143,16 +227,19 @@ public class StocksService_GetLastTradeTests
     public async Task GetLastTradeAsync_WhenApiReturnsNull_ReturnsNull()
     {
         // Arrange
-        var ticker = "INVALID";
-        _mockApi.Setup(x => x.GetLastTradeAsync(ticker, It.IsAny<CancellationToken>()))
+        var request = new GetLastTradeRequest
+        {
+            Ticker = "INVALID"
+        };
+        _mockApi.Setup(x => x.GetLastTradeAsync(request.Ticker, It.IsAny<CancellationToken>()))
             .ReturnsAsync((Models.Common.PolygonResponse<StockTrade>)null!);
 
         // Act
-        var result = await _service.GetLastTradeAsync(ticker, TestContext.Current.CancellationToken);
+        var result = await _service.GetLastTradeAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Null(result);
-        _mockApi.Verify(x => x.GetLastTradeAsync(ticker, It.IsAny<CancellationToken>()), Times.Once);
+        _mockApi.Verify(x => x.GetLastTradeAsync(request.Ticker, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     /// <summary>
@@ -162,15 +249,47 @@ public class StocksService_GetLastTradeTests
     public async Task GetLastTradeAsync_WhenApiThrowsException_PropagatesException()
     {
         // Arrange
-        var ticker = "AAPL";
+        var request = new GetLastTradeRequest
+        {
+            Ticker = "AAPL"
+        };
         var expectedException = new HttpRequestException("Network error");
-        _mockApi.Setup(x => x.GetLastTradeAsync(ticker, It.IsAny<CancellationToken>()))
+        _mockApi.Setup(x => x.GetLastTradeAsync(request.Ticker, It.IsAny<CancellationToken>()))
             .ThrowsAsync(expectedException);
 
         // Act & Assert
         var actualException = await Assert.ThrowsAsync<HttpRequestException>(
-            () => _service.GetLastTradeAsync(ticker, TestContext.Current.CancellationToken));
+            () => _service.GetLastTradeAsync(request, TestContext.Current.CancellationToken));
         Assert.Equal(expectedException.Message, actualException.Message);
+    }
+
+    /// <summary>
+    /// Tests that GetLastTradeAsync throws ValidationException when request is invalid.
+    /// </summary>
+    [Fact]
+    public async Task GetLastTradeAsync_WithInvalidRequest_ThrowsValidationException()
+    {
+        // Arrange
+        var request = new GetLastTradeRequest
+        {
+            Ticker = ""
+        };
+        var validationFailures = new List<ValidationFailure>
+        {
+            new ValidationFailure("Ticker", "Ticker must not be empty.")
+        };
+
+        _mockValidator.Reset();
+        _mockValidator
+            .Setup(x => x.ValidateAsync(It.IsAny<ValidationContext<GetLastTradeRequest>>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new ValidationException(validationFailures));
+
+        // Act & Assert
+        await Assert.ThrowsAsync<ValidationException>(
+            () => _service.GetLastTradeAsync(request, TestContext.Current.CancellationToken));
+
+        _mockValidator.Verify(x => x.ValidateAsync(It.Is<ValidationContext<GetLastTradeRequest>>(ctx => ctx.InstanceToValidate == request), It.IsAny<CancellationToken>()), Times.Once);
+        _mockApi.Verify(x => x.GetLastTradeAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     /// <summary>
@@ -180,7 +299,10 @@ public class StocksService_GetLastTradeTests
     public async Task GetLastTradeAsync_WithNullResults_ReturnsResponseWithNullResults()
     {
         // Arrange
-        var ticker = "AAPL";
+        var request = new GetLastTradeRequest
+        {
+            Ticker = "AAPL"
+        };
         var expectedResponse = new Models.Common.PolygonResponse<StockTrade>
         {
             Results = null,
@@ -188,11 +310,11 @@ public class StocksService_GetLastTradeTests
             RequestId = "test-request-id"
         };
 
-        _mockApi.Setup(x => x.GetLastTradeAsync(ticker, It.IsAny<CancellationToken>()))
+        _mockApi.Setup(x => x.GetLastTradeAsync(request.Ticker, It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedResponse);
 
         // Act
-        var result = await _service.GetLastTradeAsync(ticker, TestContext.Current.CancellationToken);
+        var result = await _service.GetLastTradeAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.NotNull(result);
@@ -208,7 +330,10 @@ public class StocksService_GetLastTradeTests
     public async Task GetLastTradeAsync_WithCompleteTradeData_ReturnsCompleteData()
     {
         // Arrange
-        var ticker = "AAPL";
+        var request = new GetLastTradeRequest
+        {
+            Ticker = "AAPL"
+        };
         var expectedResponse = new Models.Common.PolygonResponse<StockTrade>
         {
             Results = new StockTrade
@@ -229,11 +354,11 @@ public class StocksService_GetLastTradeTests
             RequestId = "7453d68e76e95db17f29fbde6e5cce4d"
         };
 
-        _mockApi.Setup(x => x.GetLastTradeAsync(ticker, It.IsAny<CancellationToken>()))
+        _mockApi.Setup(x => x.GetLastTradeAsync(request.Ticker, It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedResponse);
 
         // Act
-        var result = await _service.GetLastTradeAsync(ticker, TestContext.Current.CancellationToken);
+        var result = await _service.GetLastTradeAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.NotNull(result);

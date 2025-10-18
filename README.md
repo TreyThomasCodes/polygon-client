@@ -86,19 +86,22 @@ public class StockDataService
 
     public async Task<decimal?> GetLastTradePrice(string ticker)
     {
-        var response = await _polygonClient.Stocks.GetLastTradeAsync(ticker);
+        var request = new GetLastTradeRequest { Ticker = ticker };
+        var response = await _polygonClient.Stocks.GetLastTradeAsync(request);
         return response?.Results?.Price;
     }
 
     public async Task<decimal?> GetLastQuoteBidPrice(string ticker)
     {
-        var response = await _polygonClient.Stocks.GetLastQuoteAsync(ticker);
+        var request = new GetLastQuoteRequest { Ticker = ticker };
+        var response = await _polygonClient.Stocks.GetLastQuoteAsync(request);
         return response?.Results?.Bid?.Price;
     }
 
     public async Task<bool> IsMarketOpen()
     {
-        var response = await _polygonClient.ReferenceData.GetMarketStatusAsync();
+        var request = new GetMarketStatusRequest();
+        var response = await _polygonClient.ReferenceData.GetMarketStatusAsync(request);
         return response?.Market == "open";
     }
 }
@@ -284,44 +287,59 @@ For comprehensive examples and detailed usage instructions for every API call, s
 
 ```csharp
 using TreyThomasCodes.Polygon.Models.Common;
+using TreyThomasCodes.Polygon.RestClient.Requests.Stocks;
+using TreyThomasCodes.Polygon.RestClient.Requests.Options;
+using TreyThomasCodes.Polygon.RestClient.Requests.Reference;
 
 // Get historical price data
-var bars = await _polygonClient.Stocks.GetBarsAsync(
-    ticker: "AAPL",
-    multiplier: 1,
-    timespan: AggregateInterval.Day,
-    from: "2025-09-01",
-    to: "2025-09-30",
-    adjusted: true
-);
+var barsRequest = new GetBarsRequest
+{
+    Ticker = "AAPL",
+    Multiplier = 1,
+    Timespan = AggregateInterval.Day,
+    From = "2025-09-01",
+    To = "2025-09-30",
+    Adjusted = true
+};
+var bars = await _polygonClient.Stocks.GetBarsAsync(barsRequest);
 
 // Get the latest trade
-var lastTrade = await _polygonClient.Stocks.GetLastTradeAsync("AAPL");
+var lastTradeRequest = new GetLastTradeRequest { Ticker = "AAPL" };
+var lastTrade = await _polygonClient.Stocks.GetLastTradeAsync(lastTradeRequest);
 Console.WriteLine($"Last trade price: ${lastTrade.Results.Price}");
 
 // Search for tickers
-var tickers = await _polygonClient.ReferenceData.GetTickersAsync(
-    search: "Apple",
-    active: true,
-    limit: 10
-);
+var tickersRequest = new GetTickersRequest
+{
+    Search = "Apple",
+    Active = true,
+    Limit = 10
+};
+var tickers = await _polygonClient.ReferenceData.GetTickersAsync(tickersRequest);
 
 // Check market status
-var status = await _polygonClient.ReferenceData.GetMarketStatusAsync();
+var statusRequest = new GetMarketStatusRequest();
+var status = await _polygonClient.ReferenceData.GetMarketStatusAsync(statusRequest);
 Console.WriteLine($"Market is {status.Market}");
 
 // Get option contract details
-var optionContract = await _polygonClient.Options.GetContractDetailsAsync("O:SPY251219C00650000");
+var contractRequest = new GetContractDetailsRequest
+{
+    OptionsTicker = "O:SPY251219C00650000"
+};
+var optionContract = await _polygonClient.Options.GetContractDetailsAsync(contractRequest);
 Console.WriteLine($"Strike: ${optionContract.Results.StrikePrice}, Expiration: {optionContract.Results.ExpirationDate}");
 
 // Get option bars (historical OHLC data)
-var optionBars = await _polygonClient.Options.GetBarsAsync(
-    optionsTicker: "O:SPY251219C00650000",
-    multiplier: 1,
-    timespan: AggregateInterval.Day,
-    from: "2023-01-09",
-    to: "2023-02-10"
-);
+var optionBarsRequest = new Options.GetBarsRequest
+{
+    OptionsTicker = "O:SPY251219C00650000",
+    Multiplier = 1,
+    Timespan = AggregateInterval.Day,
+    From = "2023-01-09",
+    To = "2023-02-10"
+};
+var optionBars = await _polygonClient.Options.GetBarsAsync(optionBarsRequest);
 Console.WriteLine($"Found {optionBars.Results?.Count} option bars");
 ```
 

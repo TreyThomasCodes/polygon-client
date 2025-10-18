@@ -1,8 +1,12 @@
 // Copyright 2025 Trey Thomas
 // SPDX-License-Identifier: MPL-2.0
 
+using FluentValidation;
+using FluentValidation.Results;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using TreyThomasCodes.Polygon.RestClient.Api;
+using TreyThomasCodes.Polygon.RestClient.Requests.Stocks;
 using TreyThomasCodes.Polygon.RestClient.Services;
 using TreyThomasCodes.Polygon.Models.Stocks;
 
@@ -15,16 +19,31 @@ namespace TreyThomasCodes.Polygon.RestClient.Tests.Services;
 public class StocksService_GetSnapshotTests
 {
     private readonly Mock<IPolygonStocksApi> _mockApi;
+    private readonly Mock<IServiceProvider> _mockServiceProvider;
+    private readonly Mock<IValidator<GetSnapshotRequest>> _mockValidator;
     private readonly StocksService _service;
 
     /// <summary>
     /// Initializes a new instance of the StocksService_GetSnapshotTests class.
-    /// Sets up the mock API and service instance for testing.
+    /// Sets up the mock API, service provider, validator, and service instance for testing.
     /// </summary>
     public StocksService_GetSnapshotTests()
     {
         _mockApi = new Mock<IPolygonStocksApi>();
-        _service = new StocksService(_mockApi.Object);
+        _mockServiceProvider = new Mock<IServiceProvider>();
+        _mockValidator = new Mock<IValidator<GetSnapshotRequest>>();
+
+        // Setup service provider to return the validator
+        _mockServiceProvider
+            .Setup(x => x.GetService(typeof(IValidator<GetSnapshotRequest>)))
+            .Returns(_mockValidator.Object);
+
+        // Setup validator to return success by default
+        _mockValidator
+            .Setup(x => x.ValidateAsync(It.IsAny<ValidationContext<GetSnapshotRequest>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ValidationResult());
+
+        _service = new StocksService(_mockApi.Object, _mockServiceProvider.Object);
     }
 
     /// <summary>
@@ -34,7 +53,50 @@ public class StocksService_GetSnapshotTests
     public void Constructor_WhenApiIsNull_ThrowsArgumentNullException()
     {
         // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => new StocksService(null!));
+        Assert.Throws<ArgumentNullException>(() => new StocksService(null!, _mockServiceProvider.Object));
+    }
+
+    /// <summary>
+    /// Tests that the constructor throws ArgumentNullException when serviceProvider parameter is null.
+    /// </summary>
+    [Fact]
+    public void Constructor_WhenServiceProviderIsNull_ThrowsArgumentNullException()
+    {
+        // Act & Assert
+        Assert.Throws<ArgumentNullException>(() => new StocksService(_mockApi.Object, null!));
+    }
+
+    /// <summary>
+    /// Tests that GetSnapshotAsync validates the request and calls the API.
+    /// </summary>
+    [Fact]
+    public async Task GetSnapshotAsync_ValidatesRequest_AndCallsApi()
+    {
+        // Arrange
+        var request = new GetSnapshotRequest
+        {
+            Ticker = "AAPL"
+        };
+        var expectedResponse = new StockSnapshotResponse
+        {
+            Ticker = new StockSnapshot
+            {
+                Ticker = "AAPL",
+                TodaysChangePerc = -0.537236734534977m
+            },
+            Status = "OK"
+        };
+
+        _mockApi.Setup(x => x.GetSnapshotAsync(request.Ticker, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(expectedResponse);
+
+        // Act
+        var result = await _service.GetSnapshotAsync(request, TestContext.Current.CancellationToken);
+
+        // Assert
+        _mockValidator.Verify(x => x.ValidateAsync(It.Is<ValidationContext<GetSnapshotRequest>>(ctx => ctx.InstanceToValidate == request), It.IsAny<CancellationToken>()), Times.Once);
+        _mockApi.Verify(x => x.GetSnapshotAsync(request.Ticker, It.IsAny<CancellationToken>()), Times.Once);
+        Assert.NotNull(result);
     }
 
     /// <summary>
@@ -44,7 +106,10 @@ public class StocksService_GetSnapshotTests
     public async Task GetSnapshotAsync_CallsApi_ReturnsSnapshotResponse()
     {
         // Arrange
-        var ticker = "AAPL";
+        var request = new GetSnapshotRequest
+        {
+            Ticker = "AAPL"
+        };
         var expectedResponse = new StockSnapshotResponse
         {
             Ticker = new StockSnapshot
@@ -105,11 +170,11 @@ public class StocksService_GetSnapshotTests
             RequestId = "5b2eb71330ca4cd2921f544fc3d4793d"
         };
 
-        _mockApi.Setup(x => x.GetSnapshotAsync(ticker, It.IsAny<CancellationToken>()))
+        _mockApi.Setup(x => x.GetSnapshotAsync(request.Ticker, It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedResponse);
 
         // Act
-        var result = await _service.GetSnapshotAsync(ticker, TestContext.Current.CancellationToken);
+        var result = await _service.GetSnapshotAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.NotNull(result);
@@ -121,7 +186,7 @@ public class StocksService_GetSnapshotTests
         Assert.Equal(expectedResponse.Ticker.TodaysChange, result.Ticker.TodaysChange);
         Assert.Equal(expectedResponse.Ticker.Updated, result.Ticker.Updated);
 
-        _mockApi.Verify(x => x.GetSnapshotAsync(ticker, It.IsAny<CancellationToken>()), Times.Once);
+        _mockApi.Verify(x => x.GetSnapshotAsync(request.Ticker, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     /// <summary>
@@ -131,18 +196,22 @@ public class StocksService_GetSnapshotTests
     public async Task GetSnapshotAsync_PassesCancellationToken()
     {
         // Arrange
-        var ticker = "MSFT";
+        var request = new GetSnapshotRequest
+        {
+            Ticker = "MSFT"
+        };
         var cancellationToken = new CancellationToken();
         var expectedResponse = new StockSnapshotResponse { Status = "OK" };
 
-        _mockApi.Setup(x => x.GetSnapshotAsync(ticker, cancellationToken))
+        _mockApi.Setup(x => x.GetSnapshotAsync(request.Ticker, cancellationToken))
             .ReturnsAsync(expectedResponse);
 
         // Act
-        await _service.GetSnapshotAsync(ticker, cancellationToken);
+        await _service.GetSnapshotAsync(request, cancellationToken);
 
         // Assert
-        _mockApi.Verify(x => x.GetSnapshotAsync(ticker, cancellationToken), Times.Once);
+        _mockValidator.Verify(x => x.ValidateAsync(It.Is<ValidationContext<GetSnapshotRequest>>(ctx => ctx.InstanceToValidate == request), cancellationToken), Times.Once);
+        _mockApi.Verify(x => x.GetSnapshotAsync(request.Ticker, cancellationToken), Times.Once);
     }
 
     /// <summary>
@@ -156,6 +225,10 @@ public class StocksService_GetSnapshotTests
     public async Task GetSnapshotAsync_WithDifferentTickers_CallsApiWithCorrectTicker(string ticker)
     {
         // Arrange
+        var request = new GetSnapshotRequest
+        {
+            Ticker = ticker
+        };
         var expectedResponse = new StockSnapshotResponse
         {
             Ticker = new StockSnapshot { Ticker = ticker },
@@ -166,7 +239,7 @@ public class StocksService_GetSnapshotTests
             .ReturnsAsync(expectedResponse);
 
         // Act
-        var result = await _service.GetSnapshotAsync(ticker, TestContext.Current.CancellationToken);
+        var result = await _service.GetSnapshotAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.NotNull(result);
@@ -181,16 +254,19 @@ public class StocksService_GetSnapshotTests
     public async Task GetSnapshotAsync_WhenApiReturnsNull_ReturnsNull()
     {
         // Arrange
-        var ticker = "INVALID";
-        _mockApi.Setup(x => x.GetSnapshotAsync(ticker, It.IsAny<CancellationToken>()))
+        var request = new GetSnapshotRequest
+        {
+            Ticker = "INVALID"
+        };
+        _mockApi.Setup(x => x.GetSnapshotAsync(request.Ticker, It.IsAny<CancellationToken>()))
             .ReturnsAsync((StockSnapshotResponse)null!);
 
         // Act
-        var result = await _service.GetSnapshotAsync(ticker, TestContext.Current.CancellationToken);
+        var result = await _service.GetSnapshotAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Null(result);
-        _mockApi.Verify(x => x.GetSnapshotAsync(ticker, It.IsAny<CancellationToken>()), Times.Once);
+        _mockApi.Verify(x => x.GetSnapshotAsync(request.Ticker, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     /// <summary>
@@ -200,15 +276,47 @@ public class StocksService_GetSnapshotTests
     public async Task GetSnapshotAsync_WhenApiThrowsException_PropagatesException()
     {
         // Arrange
-        var ticker = "AAPL";
+        var request = new GetSnapshotRequest
+        {
+            Ticker = "AAPL"
+        };
         var expectedException = new HttpRequestException("Network error");
-        _mockApi.Setup(x => x.GetSnapshotAsync(ticker, It.IsAny<CancellationToken>()))
+        _mockApi.Setup(x => x.GetSnapshotAsync(request.Ticker, It.IsAny<CancellationToken>()))
             .ThrowsAsync(expectedException);
 
         // Act & Assert
         var actualException = await Assert.ThrowsAsync<HttpRequestException>(
-            () => _service.GetSnapshotAsync(ticker, TestContext.Current.CancellationToken));
+            () => _service.GetSnapshotAsync(request, TestContext.Current.CancellationToken));
         Assert.Equal(expectedException.Message, actualException.Message);
+    }
+
+    /// <summary>
+    /// Tests that GetSnapshotAsync throws ValidationException when request is invalid.
+    /// </summary>
+    [Fact]
+    public async Task GetSnapshotAsync_WithInvalidRequest_ThrowsValidationException()
+    {
+        // Arrange
+        var request = new GetSnapshotRequest
+        {
+            Ticker = ""
+        };
+        var validationFailures = new List<ValidationFailure>
+        {
+            new ValidationFailure("Ticker", "Ticker must not be empty.")
+        };
+
+        _mockValidator.Reset();
+        _mockValidator
+            .Setup(x => x.ValidateAsync(It.IsAny<ValidationContext<GetSnapshotRequest>>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new ValidationException(validationFailures));
+
+        // Act & Assert
+        await Assert.ThrowsAsync<ValidationException>(
+            () => _service.GetSnapshotAsync(request, TestContext.Current.CancellationToken));
+
+        _mockValidator.Verify(x => x.ValidateAsync(It.Is<ValidationContext<GetSnapshotRequest>>(ctx => ctx.InstanceToValidate == request), It.IsAny<CancellationToken>()), Times.Once);
+        _mockApi.Verify(x => x.GetSnapshotAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     /// <summary>
@@ -218,7 +326,10 @@ public class StocksService_GetSnapshotTests
     public async Task GetSnapshotAsync_WithNullTickerData_ReturnsResponseWithNullTicker()
     {
         // Arrange
-        var ticker = "AAPL";
+        var request = new GetSnapshotRequest
+        {
+            Ticker = "AAPL"
+        };
         var expectedResponse = new StockSnapshotResponse
         {
             Ticker = null,
@@ -226,11 +337,11 @@ public class StocksService_GetSnapshotTests
             RequestId = "test-request-id"
         };
 
-        _mockApi.Setup(x => x.GetSnapshotAsync(ticker, It.IsAny<CancellationToken>()))
+        _mockApi.Setup(x => x.GetSnapshotAsync(request.Ticker, It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedResponse);
 
         // Act
-        var result = await _service.GetSnapshotAsync(ticker, TestContext.Current.CancellationToken);
+        var result = await _service.GetSnapshotAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.NotNull(result);
@@ -246,7 +357,10 @@ public class StocksService_GetSnapshotTests
     public async Task GetSnapshotAsync_WithComplexSnapshotData_ReturnsCompleteData()
     {
         // Arrange
-        var ticker = "AAPL";
+        var request = new GetSnapshotRequest
+        {
+            Ticker = "AAPL"
+        };
         var expectedResponse = new StockSnapshotResponse
         {
             Ticker = new StockSnapshot
@@ -308,11 +422,11 @@ public class StocksService_GetSnapshotTests
             RequestId = "5b2eb71330ca4cd2921f544fc3d4793d"
         };
 
-        _mockApi.Setup(x => x.GetSnapshotAsync(ticker, It.IsAny<CancellationToken>()))
+        _mockApi.Setup(x => x.GetSnapshotAsync(request.Ticker, It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedResponse);
 
         // Act
-        var result = await _service.GetSnapshotAsync(ticker, TestContext.Current.CancellationToken);
+        var result = await _service.GetSnapshotAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.NotNull(result);
@@ -381,7 +495,10 @@ public class StocksService_GetSnapshotTests
     public async Task GetSnapshotAsync_WithMinimalData_ReturnsPartialSnapshot()
     {
         // Arrange
-        var ticker = "AAPL";
+        var request = new GetSnapshotRequest
+        {
+            Ticker = "AAPL"
+        };
         var expectedResponse = new StockSnapshotResponse
         {
             Ticker = new StockSnapshot
@@ -394,11 +511,11 @@ public class StocksService_GetSnapshotTests
             RequestId = "minimal-data-request"
         };
 
-        _mockApi.Setup(x => x.GetSnapshotAsync(ticker, It.IsAny<CancellationToken>()))
+        _mockApi.Setup(x => x.GetSnapshotAsync(request.Ticker, It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedResponse);
 
         // Act
-        var result = await _service.GetSnapshotAsync(ticker, TestContext.Current.CancellationToken);
+        var result = await _service.GetSnapshotAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.NotNull(result);

@@ -1,6 +1,8 @@
 // Copyright 2025 Trey Thomas
 // SPDX-License-Identifier: MPL-2.0
 
+using TreyThomasCodes.Polygon.RestClient.Requests.Options;
+
 namespace TreyThomasCodes.Polygon.IntegrationTests.Options;
 
 /// <summary>
@@ -17,11 +19,15 @@ public class GetTradesIntegrationTests : IntegrationTestBase
     public async Task GetTradesAsync_ForTSLACallOption_ShouldReturnValidResponse()
     {
         // Arrange
-        var optionsTicker = "O:TSLA210903C00700000";
+        var request = new GetTradesRequest
+        {
+            OptionsTicker = "O:TSLA210903C00700000",
+            Limit = 10
+        };
         var optionsService = PolygonClient.Options;
 
         // Act
-        var response = await optionsService.GetTradesAsync(optionsTicker, limit: 10, cancellationToken: TestContext.Current.CancellationToken);
+        var response = await optionsService.GetTradesAsync(request, TestContext.Current.CancellationToken);
 
         // Assert - Verify client successfully made the call and deserialized the response
         Assert.NotNull(response);
@@ -39,11 +45,15 @@ public class GetTradesIntegrationTests : IntegrationTestBase
     public async Task GetTradesAsync_ShouldHaveCorrectDataTypes()
     {
         // Arrange
-        var optionsTicker = "O:TSLA210903C00700000";
+        var request = new GetTradesRequest
+        {
+            OptionsTicker = "O:TSLA210903C00700000",
+            Limit = 5
+        };
         var optionsService = PolygonClient.Options;
 
         // Act
-        var response = await optionsService.GetTradesAsync(optionsTicker, limit: 5, cancellationToken: TestContext.Current.CancellationToken);
+        var response = await optionsService.GetTradesAsync(request, TestContext.Current.CancellationToken);
 
         // Assert - Verify client deserialized the response correctly
         Assert.NotNull(response);
@@ -88,29 +98,23 @@ public class GetTradesIntegrationTests : IntegrationTestBase
     }
 
     /// <summary>
-    /// Tests that the client correctly handles invalid options tickers.
-    /// Note: The trades endpoint may return an OK response with empty results instead of throwing for invalid tickers.
+    /// Tests that the client correctly validates options ticker format.
     /// </summary>
     [Fact]
-    public async Task GetTradesAsync_ForInvalidTicker_ShouldHandleGracefully()
+    public async Task GetTradesAsync_ForInvalidTicker_ShouldThrowValidationException()
     {
         // Arrange
-        var invalidTicker = "O:INVALID000000C00000000";
+        var request = new GetTradesRequest
+        {
+            OptionsTicker = "O:INVALID000000C00000000"
+        };
         var optionsService = PolygonClient.Options;
 
-        // Act
-        var response = await optionsService.GetTradesAsync(invalidTicker, cancellationToken: TestContext.Current.CancellationToken);
+        // Act & Assert - Verify validation catches invalid OCC ticker format
+        var exception = await Assert.ThrowsAsync<FluentValidation.ValidationException>(
+            () => optionsService.GetTradesAsync(request, TestContext.Current.CancellationToken));
 
-        // Assert - Verify client can handle the response
-        // The API may return OK with empty results or throw an exception depending on the ticker format
-        Assert.NotNull(response);
-
-        // If the response is OK, results should be either null or empty
-        if (response.Status == "OK")
-        {
-            Assert.True(response.Results == null || response.Results.Count == 0,
-                "Invalid ticker should return empty results if response is OK");
-        }
+        Assert.Contains("OptionsTicker", exception.Message);
     }
 
     /// <summary>
@@ -120,11 +124,15 @@ public class GetTradesIntegrationTests : IntegrationTestBase
     public async Task GetTradesAsync_MarketTimestamp_ShouldConvertToEasternTime()
     {
         // Arrange
-        var optionsTicker = "O:TSLA210903C00700000";
+        var request = new GetTradesRequest
+        {
+            OptionsTicker = "O:TSLA210903C00700000",
+            Limit = 5
+        };
         var optionsService = PolygonClient.Options;
 
         // Act
-        var response = await optionsService.GetTradesAsync(optionsTicker, limit: 5, cancellationToken: TestContext.Current.CancellationToken);
+        var response = await optionsService.GetTradesAsync(request, TestContext.Current.CancellationToken);
 
         // Assert - Verify MarketTimestamp conversion works
         Assert.NotNull(response);
@@ -144,11 +152,15 @@ public class GetTradesIntegrationTests : IntegrationTestBase
     public async Task GetTradesAsync_MarketParticipantTimestamp_ShouldConvertToEasternTime()
     {
         // Arrange
-        var optionsTicker = "O:TSLA210903C00700000";
+        var request = new GetTradesRequest
+        {
+            OptionsTicker = "O:TSLA210903C00700000",
+            Limit = 5
+        };
         var optionsService = PolygonClient.Options;
 
         // Act
-        var response = await optionsService.GetTradesAsync(optionsTicker, limit: 5, cancellationToken: TestContext.Current.CancellationToken);
+        var response = await optionsService.GetTradesAsync(request, TestContext.Current.CancellationToken);
 
         // Assert - Verify MarketParticipantTimestamp conversion works
         Assert.NotNull(response);
@@ -168,11 +180,15 @@ public class GetTradesIntegrationTests : IntegrationTestBase
     public async Task GetTradesAsync_WithPagination_ShouldReturnNextUrl()
     {
         // Arrange
-        var optionsTicker = "O:TSLA210903C00700000";
+        var request = new GetTradesRequest
+        {
+            OptionsTicker = "O:TSLA210903C00700000",
+            Limit = 5
+        };
         var optionsService = PolygonClient.Options;
 
         // Act - Request with small limit to ensure pagination
-        var response = await optionsService.GetTradesAsync(optionsTicker, limit: 5, cancellationToken: TestContext.Current.CancellationToken);
+        var response = await optionsService.GetTradesAsync(request, TestContext.Current.CancellationToken);
 
         // Assert - Verify pagination structure exists (next_url may or may not be present depending on data)
         Assert.NotNull(response);
@@ -193,11 +209,15 @@ public class GetTradesIntegrationTests : IntegrationTestBase
     public async Task GetTradesAsync_ShouldDeserializePriceAndSize()
     {
         // Arrange
-        var optionsTicker = "O:TSLA210903C00700000";
+        var request = new GetTradesRequest
+        {
+            OptionsTicker = "O:TSLA210903C00700000",
+            Limit = 5
+        };
         var optionsService = PolygonClient.Options;
 
         // Act
-        var response = await optionsService.GetTradesAsync(optionsTicker, limit: 5, cancellationToken: TestContext.Current.CancellationToken);
+        var response = await optionsService.GetTradesAsync(request, TestContext.Current.CancellationToken);
 
         // Assert - Verify price and size are properly deserialized
         Assert.NotNull(response);

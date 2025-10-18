@@ -1,6 +1,8 @@
 // Copyright 2025 Trey Thomas
 // SPDX-License-Identifier: MPL-2.0
 
+using TreyThomasCodes.Polygon.RestClient.Requests.Options;
+
 namespace TreyThomasCodes.Polygon.IntegrationTests.Options;
 
 /// <summary>
@@ -17,12 +19,15 @@ public class GetDailyOpenCloseIntegrationTests : IntegrationTestBase
     public async Task GetDailyOpenCloseAsync_ForSPYCallOption_ShouldReturnValidResponse()
     {
         // Arrange
-        var optionsTicker = "O:SPY251219C00650000";
-        var date = "2023-01-09";
+        var request = new GetDailyOpenCloseRequest
+        {
+            OptionsTicker = "O:SPY251219C00650000",
+            Date = "2023-01-09"
+        };
         var optionsService = PolygonClient.Options;
 
         // Act
-        var response = await optionsService.GetDailyOpenCloseAsync(optionsTicker, date, TestContext.Current.CancellationToken);
+        var response = await optionsService.GetDailyOpenCloseAsync(request, TestContext.Current.CancellationToken);
 
         // Assert - Verify client successfully made the call and deserialized the response
         Assert.NotNull(response);
@@ -39,12 +44,15 @@ public class GetDailyOpenCloseIntegrationTests : IntegrationTestBase
     public async Task GetDailyOpenCloseAsync_ShouldHaveCorrectDataTypes()
     {
         // Arrange
-        var optionsTicker = "O:SPY251219C00650000";
-        var date = "2023-01-09";
+        var request = new GetDailyOpenCloseRequest
+        {
+            OptionsTicker = "O:SPY251219C00650000",
+            Date = "2023-01-09"
+        };
         var optionsService = PolygonClient.Options;
 
         // Act
-        var response = await optionsService.GetDailyOpenCloseAsync(optionsTicker, date, TestContext.Current.CancellationToken);
+        var response = await optionsService.GetDailyOpenCloseAsync(request, TestContext.Current.CancellationToken);
 
         // Assert - Verify client deserialized the response correctly
         Assert.NotNull(response);
@@ -88,12 +96,15 @@ public class GetDailyOpenCloseIntegrationTests : IntegrationTestBase
     public async Task GetDailyOpenCloseAsync_ShouldDeserializeSymbolAndDate()
     {
         // Arrange
-        var optionsTicker = "O:SPY251219C00650000";
-        var date = "2023-01-09";
+        var request = new GetDailyOpenCloseRequest
+        {
+            OptionsTicker = "O:SPY251219C00650000",
+            Date = "2023-01-09"
+        };
         var optionsService = PolygonClient.Options;
 
         // Act
-        var response = await optionsService.GetDailyOpenCloseAsync(optionsTicker, date, TestContext.Current.CancellationToken);
+        var response = await optionsService.GetDailyOpenCloseAsync(request, TestContext.Current.CancellationToken);
 
         // Assert - Verify symbol and date are properly deserialized
         Assert.NotNull(response);
@@ -108,12 +119,15 @@ public class GetDailyOpenCloseIntegrationTests : IntegrationTestBase
     public async Task GetDailyOpenCloseAsync_ShouldDeserializeOHLCPrices()
     {
         // Arrange
-        var optionsTicker = "O:SPY251219C00650000";
-        var date = "2023-01-09";
+        var request = new GetDailyOpenCloseRequest
+        {
+            OptionsTicker = "O:SPY251219C00650000",
+            Date = "2023-01-09"
+        };
         var optionsService = PolygonClient.Options;
 
         // Act
-        var response = await optionsService.GetDailyOpenCloseAsync(optionsTicker, date, TestContext.Current.CancellationToken);
+        var response = await optionsService.GetDailyOpenCloseAsync(request, TestContext.Current.CancellationToken);
 
         // Assert - Verify OHLC prices are properly deserialized
         Assert.NotNull(response);
@@ -145,12 +159,15 @@ public class GetDailyOpenCloseIntegrationTests : IntegrationTestBase
     public async Task GetDailyOpenCloseAsync_ShouldDeserializePreMarketAndAfterHours()
     {
         // Arrange
-        var optionsTicker = "O:SPY251219C00650000";
-        var date = "2023-01-09";
+        var request = new GetDailyOpenCloseRequest
+        {
+            OptionsTicker = "O:SPY251219C00650000",
+            Date = "2023-01-09"
+        };
         var optionsService = PolygonClient.Options;
 
         // Act
-        var response = await optionsService.GetDailyOpenCloseAsync(optionsTicker, date, TestContext.Current.CancellationToken);
+        var response = await optionsService.GetDailyOpenCloseAsync(request, TestContext.Current.CancellationToken);
 
         // Assert - Verify pre-market and after-hours prices are present
         Assert.NotNull(response);
@@ -177,12 +194,15 @@ public class GetDailyOpenCloseIntegrationTests : IntegrationTestBase
     public async Task GetDailyOpenCloseAsync_ShouldDeserializeVolume()
     {
         // Arrange
-        var optionsTicker = "O:SPY251219C00650000";
-        var date = "2023-01-09";
+        var request = new GetDailyOpenCloseRequest
+        {
+            OptionsTicker = "O:SPY251219C00650000",
+            Date = "2023-01-09"
+        };
         var optionsService = PolygonClient.Options;
 
         // Act
-        var response = await optionsService.GetDailyOpenCloseAsync(optionsTicker, date, TestContext.Current.CancellationToken);
+        var response = await optionsService.GetDailyOpenCloseAsync(request, TestContext.Current.CancellationToken);
 
         // Assert - Verify volume is properly deserialized
         Assert.NotNull(response);
@@ -201,34 +221,39 @@ public class GetDailyOpenCloseIntegrationTests : IntegrationTestBase
     public async Task GetDailyOpenCloseAsync_ForInvalidDate_ShouldThrowApiException()
     {
         // Arrange
-        var optionsTicker = "O:SPY251219C00650000";
-        var invalidDate = "9999-12-31"; // Future date with no data
+        var request = new GetDailyOpenCloseRequest
+        {
+            OptionsTicker = "O:SPY251219C00650000",
+            Date = "9999-12-31" // Future date with no data
+        };
         var optionsService = PolygonClient.Options;
 
         // Act & Assert - Verify client properly handles API errors
         var exception = await Assert.ThrowsAsync<Refit.ApiException>(
-            () => optionsService.GetDailyOpenCloseAsync(optionsTicker, invalidDate, TestContext.Current.CancellationToken));
+            () => optionsService.GetDailyOpenCloseAsync(request, TestContext.Current.CancellationToken));
 
         Assert.Equal(System.Net.HttpStatusCode.BadRequest, exception.StatusCode);
         Assert.Contains("400", exception.Message);
     }
 
     /// <summary>
-    /// Tests that the client correctly handles errors for invalid options tickers.
+    /// Tests that the client correctly validates options ticker format.
     /// </summary>
     [Fact]
-    public async Task GetDailyOpenCloseAsync_ForInvalidTicker_ShouldThrowApiException()
+    public async Task GetDailyOpenCloseAsync_ForInvalidTicker_ShouldThrowValidationException()
     {
         // Arrange
-        var invalidTicker = "O:INVALID000000C00000000";
-        var date = "2023-01-09";
+        var request = new GetDailyOpenCloseRequest
+        {
+            OptionsTicker = "O:INVALID000000C00000000",
+            Date = "2023-01-09"
+        };
         var optionsService = PolygonClient.Options;
 
-        // Act & Assert - Verify client properly handles API errors
-        var exception = await Assert.ThrowsAsync<Refit.ApiException>(
-            () => optionsService.GetDailyOpenCloseAsync(invalidTicker, date, TestContext.Current.CancellationToken));
+        // Act & Assert - Verify validation catches invalid OCC ticker format
+        var exception = await Assert.ThrowsAsync<FluentValidation.ValidationException>(
+            () => optionsService.GetDailyOpenCloseAsync(request, TestContext.Current.CancellationToken));
 
-        Assert.Equal(System.Net.HttpStatusCode.NotFound, exception.StatusCode);
-        Assert.Contains("404", exception.Message);
+        Assert.Contains("OptionsTicker", exception.Message);
     }
 }
