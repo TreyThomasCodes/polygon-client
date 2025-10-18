@@ -121,33 +121,40 @@ public class ComponentBasedExtensionsIntegrationTests : IntegrationTestBase
     }
 
     /// <summary>
-    /// Tests that GetSnapshotByComponentsAsync works with options contracts.
+    /// Tests that GetSnapshotByComponentsAsync works with PUT options.
     /// Note: Snapshot endpoint requires the option contract to be currently available in the market.
     /// </summary>
     [Fact]
     public async Task GetSnapshotByComponentsAsync_WithPutOption_ShouldReturnValidResponse()
     {
-        // Arrange - use the string-based method from the base tests which works
-        var underlyingAsset = "SPY";
-        var optionContract = "SPY251219C00650000"; // Use known valid contract (without "O:" prefix)
+        // Arrange - use SPY which is a heavily traded ticker with reliable snapshot data
+        var underlying = "SPY";
+        var expirationDate = new DateTime(2025, 12, 19);
+        var type = OptionType.Put;
+        var strike = 550m;
         var optionsService = PolygonClient.Options;
 
         try
         {
             // Act
-            var request = new GetSnapshotRequest
-            {
-                UnderlyingAsset = underlyingAsset,
-                OptionContract = optionContract
-            };
-            var response = await optionsService.GetSnapshotAsync(request, TestContext.Current.CancellationToken);
+            var response = await optionsService.GetSnapshotByComponentsAsync(
+                underlying,
+                expirationDate,
+                type,
+                strike,
+                TestContext.Current.CancellationToken);
 
             // Assert
             Assert.NotNull(response);
             Assert.Equal("OK", response.Status);
+            Assert.NotNull(response.RequestId);
             Assert.NotNull(response.Results);
+
+            // Verify snapshot contains expected data structures
             Assert.NotNull(response.Results.Details);
-            // Just verify we got valid data, contract type verification removed since we're using a Call
+            Assert.Equal(strike, response.Results.Details.StrikePrice);
+            Assert.Equal("put", response.Results.Details.ContractType);
+            Assert.Contains(underlying, response.Results.Details.Ticker);
         }
         catch (Refit.ApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
         {
