@@ -63,4 +63,11 @@
     <None Include="..\..\README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- Make internal types visible to test assemblies -->
+    <InternalsVisibleTo Include="TreyThomasCodes.Polygon.RestClient.Tests" />
+    <!-- Make internal types visible to Moq's dynamic proxy assembly for unit testing -->
+    <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
+  </ItemGroup>
+
 </Project>

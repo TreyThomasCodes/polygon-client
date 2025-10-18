@@ -10,7 +10,7 @@ namespace TreyThomasCodes.Polygon.RestClient.Api;
 /// <summary>
 /// Provides access to Polygon.io Stocks API endpoints for retrieving stock market data including trades, quotes, and market snapshots.
 /// </summary>
-public interface IPolygonStocksApi
+internal interface IPolygonStocksApi
 {
     /// <summary>
     /// Retrieves aggregate OHLC data for a stock ticker over a specified time range. This endpoint provides candlestick data useful for charting and technical analysis.

@@ -40,42 +40,67 @@ dotnet pack
 ## Architecture Overview
 
 ### Client Architecture
-The client uses a layered architecture:
+The client uses a layered architecture with a clear separation between internal implementation details and public API surface:
 
-1. **API Layer** (`/Api/`) - Refit interfaces defining HTTP endpoints
-   - `IPolygonStocksApi` - Stock trades, quotes, snapshots, and OHLC aggregates
-   - `IPolygonReferenceApi` - Ticker reference data and market status
-   - `IPolygonOptionsApi` - Options contract data (infrastructure ready for endpoint implementation)
+#### Internal Implementation Layers (Not Exposed to Consumers)
 
-2. **Request Layer** (`/Requests/`) - Strongly-typed request objects for API calls
+1. **API Layer** (`/Api/`) - **INTERNAL** Refit interfaces defining HTTP endpoints with primitive parameters
+   - `IPolygonStocksApi` - Low-level stock API with primitive parameters (ticker string, multiplier int, etc.)
+   - `IPolygonReferenceApi` - Low-level reference data API with primitive parameters
+   - `IPolygonOptionsApi` - Low-level options API with primitive parameters
+   - These interfaces are marked `internal` and are not part of the public API surface
+   - Used internally by service implementations to make HTTP calls via Refit
+
+#### Public API Layers (Exposed to Consumers)
+
+2. **Request Layer** (`/Requests/`) - **PUBLIC** Strongly-typed request objects for API calls
    - `/Stocks/` - Request objects for stock market data (e.g., `GetBarsRequest`, `GetTradesRequest`, `GetQuotesRequest`)
    - `/Options/` - Request objects for options data (e.g., `GetContractDetailsRequest`, `GetBarsRequest`, `GetSnapshotRequest`)
    - `/Reference/` - Request objects for reference data (e.g., `GetTickersRequest`, `GetMarketStatusRequest`)
    - Each request object encapsulates all parameters for a specific API call
+   - Provides a clean, discoverable API with IntelliSense support
 
-3. **Validation Layer** (`/Validators/`) - FluentValidation validators for request objects
+3. **Validation Layer** (`/Validators/`) - **INTERNAL** FluentValidation validators for request objects
    - `/Stocks/` - Validators for stock requests (e.g., `GetBarsRequestValidator`, `GetTradesRequestValidator`)
    - `/Options/` - Validators for options requests (e.g., `GetContractDetailsRequestValidator`, `GetBarsRequestValidator`)
    - `/Reference/` - Validators for reference data requests (e.g., `GetTickersRequestValidator`, `GetMarketStatusRequestValidator`)
    - Validators enforce parameter requirements, formats, and constraints before API calls
    - Automatically integrated into service methods via dependency injection
+   - Validation happens transparently; consumers receive `PolygonValidationException` if validation fails
 
-4. **Service Layer** (`/Services/`) - Business logic and orchestration
-   - `IPolygonClient` - Main facade providing access to all services
-   - `IStocksService`, `IReferenceDataService`, `IOptionsService` - Domain-specific services
-   - All service methods accept request objects and automatically validate them using FluentValidation
+4. **Service Layer** (`/Services/`) - **PUBLIC INTERFACES**, internal implementations
+   - `IPolygonClient` - **PUBLIC** Main facade providing access to all services
+   - `IStocksService`, `IReferenceDataService`, `IOptionsService` - **PUBLIC** Domain-specific service interfaces
+   - `StocksService`, `ReferenceDataService`, `OptionsService` - **INTERNAL** Service implementations
+   - All public service methods accept request objects and automatically validate them using FluentValidation
+   - Service implementations orchestrate validation, API calls, and exception handling
 
-5. **Extensions Layer** (`/Extensions/`) - Extension methods for enhanced usability
+5. **Extensions Layer** (`/Extensions/`) - **PUBLIC** Extension methods for enhanced usability
    - `OptionsServiceExtensions` - Extension methods for `IOptionsService` providing:
      - Component-based methods (e.g., `GetContractByComponentsAsync`, `GetSnapshotByComponentsAsync`, `GetLastTradeByComponentsAsync`, `GetBarsByComponentsAsync`)
      - OptionsTicker-based overloads for all major Options API calls
      - Discovery helpers (`GetAvailableStrikesAsync`, `GetExpirationDatesAsync`)
 
-6. **Configuration** (`/Configuration/`) - Options pattern for settings
+6. **Configuration** (`/Configuration/`) - **PUBLIC** Options pattern for settings
    - `PolygonOptions` - API key, base URL, timeout, retry settings
 
-7. **Authentication** (`/Authentication/`) - HTTP message handlers
+7. **Authentication** (`/Authentication/`) - **INTERNAL** HTTP message handlers
    - `PolygonAuthenticationHandler` - Adds API key to requests
+
+### Public API Surface
+
+Consumers of this library interact exclusively with:
+- **Request objects** in the `/Requests/` folder for specifying API parameters
+- **Service interfaces** (`IPolygonClient`, `IStocksService`, `IOptionsService`, `IReferenceDataService`) for making API calls
+- **Extension methods** in the `/Extensions/` folder for convenience methods
+- **Model classes** from the `TreyThomasCodes.Polygon.Models` package for response data
+- **Exception types** (`PolygonException`, `PolygonValidationException`, `PolygonApiException`, `PolygonHttpException`) for error handling
+
+The primitive API layer (Refit interfaces with individual parameters) is intentionally hidden to:
+- Enforce consistent validation across all API calls
+- Provide a cleaner, more discoverable API surface
+- Enable future enhancements without breaking changes
+- Encourage best practices through request objects
 
 ### Dependency Injection Setup
 Registration is handled through `ServiceCollectionExtensions.AddPolygonClient()` with multiple overloads:
