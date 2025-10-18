@@ -1,6 +1,7 @@
 // Copyright 2025 Trey Thomas
 // SPDX-License-Identifier: MPL-2.0
 
+using System.Text.Json;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -63,6 +64,11 @@ public class OptionsService : IOptionsService
             _logger.LogError(ex, "API error calling {Method} for ticker {Ticker}: {StatusCode}", nameof(GetContractDetailsAsync), request.OptionsTicker, ex.StatusCode);
             throw new PolygonApiException(ex);
         }
+        catch (JsonException ex)
+        {
+            _logger.LogError(ex, "JSON deserialization error calling {Method} for ticker {Ticker}", nameof(GetContractDetailsAsync), request.OptionsTicker);
+            throw new PolygonException("Failed to deserialize API response. The data format may be invalid.", ex);
+        }
         catch (HttpRequestException ex)
         {
             _logger.LogError(ex, "HTTP error calling {Method} for ticker {Ticker}", nameof(GetContractDetailsAsync), request.OptionsTicker);
@@ -99,6 +105,11 @@ public class OptionsService : IOptionsService
         {
             _logger.LogError(ex, "API error calling {Method} for underlying {Underlying}: {StatusCode}", nameof(GetSnapshotAsync), request.UnderlyingAsset, ex.StatusCode);
             throw new PolygonApiException(ex);
+        }
+        catch (JsonException ex)
+        {
+            _logger.LogError(ex, "JSON deserialization error calling {Method} for underlying {Underlying}", nameof(GetSnapshotAsync), request.UnderlyingAsset);
+            throw new PolygonException("Failed to deserialize API response. The data format may be invalid.", ex);
         }
         catch (HttpRequestException ex)
         {
@@ -147,6 +158,11 @@ public class OptionsService : IOptionsService
             _logger.LogError(ex, "API error calling {Method} for underlying {Underlying}: {StatusCode}", nameof(GetChainSnapshotAsync), request.UnderlyingAsset, ex.StatusCode);
             throw new PolygonApiException(ex);
         }
+        catch (JsonException ex)
+        {
+            _logger.LogError(ex, "JSON deserialization error calling {Method} for underlying {Underlying}", nameof(GetChainSnapshotAsync), request.UnderlyingAsset);
+            throw new PolygonException("Failed to deserialize API response. The data format may be invalid.", ex);
+        }
         catch (HttpRequestException ex)
         {
             _logger.LogError(ex, "HTTP error calling {Method} for underlying {Underlying}", nameof(GetChainSnapshotAsync), request.UnderlyingAsset);
@@ -183,6 +199,11 @@ public class OptionsService : IOptionsService
         {
             _logger.LogError(ex, "API error calling {Method} for ticker {Ticker}: {StatusCode}", nameof(GetLastTradeAsync), request.OptionsTicker, ex.StatusCode);
             throw new PolygonApiException(ex);
+        }
+        catch (JsonException ex)
+        {
+            _logger.LogError(ex, "JSON deserialization error calling {Method} for ticker {Ticker}", nameof(GetLastTradeAsync), request.OptionsTicker);
+            throw new PolygonException("Failed to deserialize API response. The data format may be invalid.", ex);
         }
         catch (HttpRequestException ex)
         {
@@ -232,6 +253,11 @@ public class OptionsService : IOptionsService
             _logger.LogError(ex, "API error calling {Method} for ticker {Ticker}: {StatusCode}", nameof(GetQuotesAsync), request.OptionsTicker, ex.StatusCode);
             throw new PolygonApiException(ex);
         }
+        catch (JsonException ex)
+        {
+            _logger.LogError(ex, "JSON deserialization error calling {Method} for ticker {Ticker}", nameof(GetQuotesAsync), request.OptionsTicker);
+            throw new PolygonException("Failed to deserialize API response. The data format may be invalid.", ex);
+        }
         catch (HttpRequestException ex)
         {
             _logger.LogError(ex, "HTTP error calling {Method} for ticker {Ticker}", nameof(GetQuotesAsync), request.OptionsTicker);
@@ -280,6 +306,11 @@ public class OptionsService : IOptionsService
             _logger.LogError(ex, "API error calling {Method} for ticker {Ticker}: {StatusCode}", nameof(GetTradesAsync), request.OptionsTicker, ex.StatusCode);
             throw new PolygonApiException(ex);
         }
+        catch (JsonException ex)
+        {
+            _logger.LogError(ex, "JSON deserialization error calling {Method} for ticker {Ticker}", nameof(GetTradesAsync), request.OptionsTicker);
+            throw new PolygonException("Failed to deserialize API response. The data format may be invalid.", ex);
+        }
         catch (HttpRequestException ex)
         {
             _logger.LogError(ex, "HTTP error calling {Method} for ticker {Ticker}", nameof(GetTradesAsync), request.OptionsTicker);
@@ -326,6 +357,11 @@ public class OptionsService : IOptionsService
             _logger.LogError(ex, "API error calling {Method} for ticker {Ticker}: {StatusCode}", nameof(GetBarsAsync), request.OptionsTicker, ex.StatusCode);
             throw new PolygonApiException(ex);
         }
+        catch (JsonException ex)
+        {
+            _logger.LogError(ex, "JSON deserialization error calling {Method} for ticker {Ticker}", nameof(GetBarsAsync), request.OptionsTicker);
+            throw new PolygonException("Failed to deserialize API response. The data format may be invalid.", ex);
+        }
         catch (HttpRequestException ex)
         {
             _logger.LogError(ex, "HTTP error calling {Method} for ticker {Ticker}", nameof(GetBarsAsync), request.OptionsTicker);
@@ -363,6 +399,11 @@ public class OptionsService : IOptionsService
             _logger.LogError(ex, "API error calling {Method} for ticker {Ticker}: {StatusCode}", nameof(GetDailyOpenCloseAsync), request.OptionsTicker, ex.StatusCode);
             throw new PolygonApiException(ex);
         }
+        catch (JsonException ex)
+        {
+            _logger.LogError(ex, "JSON deserialization error calling {Method} for ticker {Ticker}", nameof(GetDailyOpenCloseAsync), request.OptionsTicker);
+            throw new PolygonException("Failed to deserialize API response. The data format may be invalid.", ex);
+        }
         catch (HttpRequestException ex)
         {
             _logger.LogError(ex, "HTTP error calling {Method} for ticker {Ticker}", nameof(GetDailyOpenCloseAsync), request.OptionsTicker);
@@ -399,6 +440,11 @@ public class OptionsService : IOptionsService
         {
             _logger.LogError(ex, "API error calling {Method} for ticker {Ticker}: {StatusCode}", nameof(GetPreviousDayBarAsync), request.OptionsTicker, ex.StatusCode);
             throw new PolygonApiException(ex);
+        }
+        catch (JsonException ex)
+        {
+            _logger.LogError(ex, "JSON deserialization error calling {Method} for ticker {Ticker}", nameof(GetPreviousDayBarAsync), request.OptionsTicker);
+            throw new PolygonException("Failed to deserialize API response. The data format may be invalid.", ex);
         }
         catch (HttpRequestException ex)
         {

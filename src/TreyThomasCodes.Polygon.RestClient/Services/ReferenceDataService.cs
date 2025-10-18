@@ -1,6 +1,7 @@
 // Copyright 2025 Trey Thomas
 // SPDX-License-Identifier: MPL-2.0
 
+using System.Text.Json;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -80,6 +81,11 @@ public class ReferenceDataService : IReferenceDataService
             _logger.LogError(ex, "API error calling {Method}: {StatusCode}", nameof(GetTickersAsync), ex.StatusCode);
             throw new PolygonApiException(ex);
         }
+        catch (JsonException ex)
+        {
+            _logger.LogError(ex, "JSON deserialization error calling {Method}", nameof(GetTickersAsync));
+            throw new PolygonException("Failed to deserialize API response. The data format may be invalid.", ex);
+        }
         catch (HttpRequestException ex)
         {
             _logger.LogError(ex, "HTTP error calling {Method}", nameof(GetTickersAsync));
@@ -116,6 +122,11 @@ public class ReferenceDataService : IReferenceDataService
         {
             _logger.LogError(ex, "API error calling {Method} for ticker {Ticker}: {StatusCode}", nameof(GetTickerDetailsAsync), request.Ticker, ex.StatusCode);
             throw new PolygonApiException(ex);
+        }
+        catch (JsonException ex)
+        {
+            _logger.LogError(ex, "JSON deserialization error calling {Method} for ticker {Ticker}", nameof(GetTickerDetailsAsync), request.Ticker);
+            throw new PolygonException("Failed to deserialize API response. The data format may be invalid.", ex);
         }
         catch (HttpRequestException ex)
         {
@@ -154,6 +165,11 @@ public class ReferenceDataService : IReferenceDataService
             _logger.LogError(ex, "API error calling {Method}: {StatusCode}", nameof(GetMarketStatusAsync), ex.StatusCode);
             throw new PolygonApiException(ex);
         }
+        catch (JsonException ex)
+        {
+            _logger.LogError(ex, "JSON deserialization error calling {Method}", nameof(GetMarketStatusAsync));
+            throw new PolygonException("Failed to deserialize API response. The data format may be invalid.", ex);
+        }
         catch (HttpRequestException ex)
         {
             _logger.LogError(ex, "HTTP error calling {Method}", nameof(GetMarketStatusAsync));
@@ -190,6 +206,11 @@ public class ReferenceDataService : IReferenceDataService
         {
             _logger.LogError(ex, "API error calling {Method}: {StatusCode}", nameof(GetTickerTypesAsync), ex.StatusCode);
             throw new PolygonApiException(ex);
+        }
+        catch (JsonException ex)
+        {
+            _logger.LogError(ex, "JSON deserialization error calling {Method}", nameof(GetTickerTypesAsync));
+            throw new PolygonException("Failed to deserialize API response. The data format may be invalid.", ex);
         }
         catch (HttpRequestException ex)
         {
@@ -236,6 +257,11 @@ public class ReferenceDataService : IReferenceDataService
             _logger.LogError(ex, "API error calling {Method}: {StatusCode}", nameof(GetConditionCodesAsync), ex.StatusCode);
             throw new PolygonApiException(ex);
         }
+        catch (JsonException ex)
+        {
+            _logger.LogError(ex, "JSON deserialization error calling {Method}", nameof(GetConditionCodesAsync));
+            throw new PolygonException("Failed to deserialize API response. The data format may be invalid.", ex);
+        }
         catch (HttpRequestException ex)
         {
             _logger.LogError(ex, "HTTP error calling {Method}", nameof(GetConditionCodesAsync));
@@ -272,6 +298,11 @@ public class ReferenceDataService : IReferenceDataService
         {
             _logger.LogError(ex, "API error calling {Method}: {StatusCode}", nameof(GetExchangesAsync), ex.StatusCode);
             throw new PolygonApiException(ex);
+        }
+        catch (JsonException ex)
+        {
+            _logger.LogError(ex, "JSON deserialization error calling {Method}", nameof(GetExchangesAsync));
+            throw new PolygonException("Failed to deserialize API response. The data format may be invalid.", ex);
         }
         catch (HttpRequestException ex)
         {
