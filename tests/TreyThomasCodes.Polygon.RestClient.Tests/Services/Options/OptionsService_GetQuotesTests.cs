@@ -4,10 +4,12 @@
 using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Moq;
 using TreyThomasCodes.Polygon.Models.Common;
 using TreyThomasCodes.Polygon.Models.Options;
 using TreyThomasCodes.Polygon.RestClient.Api;
+using TreyThomasCodes.Polygon.RestClient.Exceptions;
 using TreyThomasCodes.Polygon.RestClient.Requests.Options;
 using TreyThomasCodes.Polygon.RestClient.Services;
 
@@ -22,6 +24,7 @@ public class OptionsService_GetQuotesTests
     private readonly Mock<IPolygonOptionsApi> _mockApi;
     private readonly Mock<IServiceProvider> _mockServiceProvider;
     private readonly Mock<IValidator<GetQuotesRequest>> _mockValidator;
+    private readonly Mock<ILogger<OptionsService>> _mockLogger;
     private readonly OptionsService _service;
 
     /// <summary>
@@ -33,6 +36,7 @@ public class OptionsService_GetQuotesTests
         _mockApi = new Mock<IPolygonOptionsApi>();
         _mockServiceProvider = new Mock<IServiceProvider>();
         _mockValidator = new Mock<IValidator<GetQuotesRequest>>();
+        _mockLogger = new Mock<ILogger<OptionsService>>();
 
         // Setup service provider to return the validator
         _mockServiceProvider
@@ -44,7 +48,7 @@ public class OptionsService_GetQuotesTests
             .Setup(x => x.ValidateAsync(It.IsAny<ValidationContext<GetQuotesRequest>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ValidationResult());
 
-        _service = new OptionsService(_mockApi.Object, _mockServiceProvider.Object);
+        _service = new OptionsService(_mockApi.Object, _mockServiceProvider.Object, _mockLogger.Object);
     }
 
     /// <summary>
@@ -54,7 +58,7 @@ public class OptionsService_GetQuotesTests
     public void Constructor_WhenApiIsNull_ThrowsArgumentNullException()
     {
         // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => new OptionsService(null!, _mockServiceProvider.Object));
+        Assert.Throws<ArgumentNullException>(() => new OptionsService(null!, _mockServiceProvider.Object, _mockLogger.Object));
     }
 
     /// <summary>
@@ -64,7 +68,17 @@ public class OptionsService_GetQuotesTests
     public void Constructor_WhenServiceProviderIsNull_ThrowsArgumentNullException()
     {
         // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => new OptionsService(_mockApi.Object, null!));
+        Assert.Throws<ArgumentNullException>(() => new OptionsService(_mockApi.Object, null!, _mockLogger.Object));
+    }
+
+    /// <summary>
+    /// Tests that the constructor throws ArgumentNullException when logger parameter is null.
+    /// </summary>
+    [Fact]
+    public void Constructor_WhenLoggerIsNull_ThrowsArgumentNullException()
+    {
+        // Act & Assert
+        Assert.Throws<ArgumentNullException>(() => new OptionsService(_mockApi.Object, _mockServiceProvider.Object, null!));
     }
 
     /// <summary>
@@ -401,7 +415,7 @@ public class OptionsService_GetQuotesTests
     }
 
     /// <summary>
-    /// Tests that GetQuotesAsync propagates exceptions from the API.
+    /// Tests that the service wraps API exceptions in PolygonHttpException.
     /// </summary>
     [Fact]
     public async Task GetQuotesAsync_WhenApiThrowsException_PropagatesException()
@@ -424,13 +438,14 @@ public class OptionsService_GetQuotesTests
             .ThrowsAsync(expectedException);
 
         // Act & Assert
-        var actualException = await Assert.ThrowsAsync<HttpRequestException>(
+        var actualException = await Assert.ThrowsAsync<PolygonHttpException>(
             () => _service.GetQuotesAsync(request, TestContext.Current.CancellationToken));
-        Assert.Equal(expectedException.Message, actualException.Message);
+        Assert.NotNull(actualException.InnerException);
+        Assert.Equal(expectedException.Message, actualException.InnerException.Message);
     }
 
     /// <summary>
-    /// Tests that GetQuotesAsync throws ValidationException when request is invalid.
+    /// Tests that GetQuotesAsync throws PolygonValidationException when request is invalid.
     /// </summary>
     [Fact]
     public async Task GetQuotesAsync_WithInvalidRequest_ThrowsValidationException()
@@ -443,14 +458,14 @@ public class OptionsService_GetQuotesTests
         };
         var validationResult = new ValidationResult(validationFailures);
 
-        // Reset and setup the validator to throw ValidationException directly
+        // Reset and setup the validator to throw PolygonValidationException directly
         _mockValidator.Reset();
         _mockValidator
             .Setup(x => x.ValidateAsync(It.IsAny<ValidationContext<GetQuotesRequest>>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new ValidationException(validationFailures));
 
         // Act & Assert
-        await Assert.ThrowsAsync<ValidationException>(
+        await Assert.ThrowsAsync<PolygonValidationException>(
             () => _service.GetQuotesAsync(request, TestContext.Current.CancellationToken));
 
         _mockValidator.Verify(x => x.ValidateAsync(It.Is<ValidationContext<GetQuotesRequest>>(ctx => ctx.InstanceToValidate == request), It.IsAny<CancellationToken>()), Times.Once);

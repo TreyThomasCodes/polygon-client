@@ -4,8 +4,10 @@
 using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Moq;
 using TreyThomasCodes.Polygon.RestClient.Api;
+using TreyThomasCodes.Polygon.RestClient.Exceptions;
 using TreyThomasCodes.Polygon.RestClient.Requests.Stocks;
 using TreyThomasCodes.Polygon.RestClient.Services;
 using TreyThomasCodes.Polygon.Models.Stocks;
@@ -21,6 +23,7 @@ public class StocksService_GetSnapshotTests
     private readonly Mock<IPolygonStocksApi> _mockApi;
     private readonly Mock<IServiceProvider> _mockServiceProvider;
     private readonly Mock<IValidator<GetSnapshotRequest>> _mockValidator;
+    private readonly Mock<ILogger<StocksService>> _mockLogger;
     private readonly StocksService _service;
 
     /// <summary>
@@ -32,6 +35,7 @@ public class StocksService_GetSnapshotTests
         _mockApi = new Mock<IPolygonStocksApi>();
         _mockServiceProvider = new Mock<IServiceProvider>();
         _mockValidator = new Mock<IValidator<GetSnapshotRequest>>();
+        _mockLogger = new Mock<ILogger<StocksService>>();
 
         // Setup service provider to return the validator
         _mockServiceProvider
@@ -43,7 +47,7 @@ public class StocksService_GetSnapshotTests
             .Setup(x => x.ValidateAsync(It.IsAny<ValidationContext<GetSnapshotRequest>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ValidationResult());
 
-        _service = new StocksService(_mockApi.Object, _mockServiceProvider.Object);
+        _service = new StocksService(_mockApi.Object, _mockServiceProvider.Object, _mockLogger.Object);
     }
 
     /// <summary>
@@ -53,7 +57,7 @@ public class StocksService_GetSnapshotTests
     public void Constructor_WhenApiIsNull_ThrowsArgumentNullException()
     {
         // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => new StocksService(null!, _mockServiceProvider.Object));
+        Assert.Throws<ArgumentNullException>(() => new StocksService(null!, _mockServiceProvider.Object, _mockLogger.Object));
     }
 
     /// <summary>
@@ -63,7 +67,17 @@ public class StocksService_GetSnapshotTests
     public void Constructor_WhenServiceProviderIsNull_ThrowsArgumentNullException()
     {
         // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => new StocksService(_mockApi.Object, null!));
+        Assert.Throws<ArgumentNullException>(() => new StocksService(_mockApi.Object, null!, _mockLogger.Object));
+    }
+
+    /// <summary>
+    /// Tests that the constructor throws ArgumentNullException when logger parameter is null.
+    /// </summary>
+    [Fact]
+    public void Constructor_WhenLoggerIsNull_ThrowsArgumentNullException()
+    {
+        // Act & Assert
+        Assert.Throws<ArgumentNullException>(() => new StocksService(_mockApi.Object, _mockServiceProvider.Object, null!));
     }
 
     /// <summary>
@@ -270,7 +284,7 @@ public class StocksService_GetSnapshotTests
     }
 
     /// <summary>
-    /// Tests that GetSnapshotAsync propagates exceptions from the API.
+    /// Tests that the service wraps API exceptions in PolygonHttpException.
     /// </summary>
     [Fact]
     public async Task GetSnapshotAsync_WhenApiThrowsException_PropagatesException()
@@ -285,13 +299,14 @@ public class StocksService_GetSnapshotTests
             .ThrowsAsync(expectedException);
 
         // Act & Assert
-        var actualException = await Assert.ThrowsAsync<HttpRequestException>(
+        var actualException = await Assert.ThrowsAsync<PolygonHttpException>(
             () => _service.GetSnapshotAsync(request, TestContext.Current.CancellationToken));
-        Assert.Equal(expectedException.Message, actualException.Message);
+        Assert.NotNull(actualException.InnerException);
+        Assert.Equal(expectedException.Message, actualException.InnerException.Message);
     }
 
     /// <summary>
-    /// Tests that GetSnapshotAsync throws ValidationException when request is invalid.
+    /// Tests that GetSnapshotAsync throws PolygonValidationException when request is invalid.
     /// </summary>
     [Fact]
     public async Task GetSnapshotAsync_WithInvalidRequest_ThrowsValidationException()
@@ -312,7 +327,7 @@ public class StocksService_GetSnapshotTests
             .ThrowsAsync(new ValidationException(validationFailures));
 
         // Act & Assert
-        await Assert.ThrowsAsync<ValidationException>(
+        await Assert.ThrowsAsync<PolygonValidationException>(
             () => _service.GetSnapshotAsync(request, TestContext.Current.CancellationToken));
 
         _mockValidator.Verify(x => x.ValidateAsync(It.Is<ValidationContext<GetSnapshotRequest>>(ctx => ctx.InstanceToValidate == request), It.IsAny<CancellationToken>()), Times.Once);

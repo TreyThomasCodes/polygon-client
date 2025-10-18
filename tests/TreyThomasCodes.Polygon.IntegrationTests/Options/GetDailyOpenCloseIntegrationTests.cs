@@ -1,6 +1,7 @@
 // Copyright 2025 Trey Thomas
 // SPDX-License-Identifier: MPL-2.0
 
+using TreyThomasCodes.Polygon.RestClient.Exceptions;
 using TreyThomasCodes.Polygon.RestClient.Requests.Options;
 
 namespace TreyThomasCodes.Polygon.IntegrationTests.Options;
@@ -229,7 +230,7 @@ public class GetDailyOpenCloseIntegrationTests : IntegrationTestBase
         var optionsService = PolygonClient.Options;
 
         // Act & Assert - Verify client properly handles API errors
-        var exception = await Assert.ThrowsAsync<Refit.ApiException>(
+        var exception = await Assert.ThrowsAsync<PolygonApiException>(
             () => optionsService.GetDailyOpenCloseAsync(request, TestContext.Current.CancellationToken));
 
         Assert.Equal(System.Net.HttpStatusCode.BadRequest, exception.StatusCode);
@@ -251,7 +252,7 @@ public class GetDailyOpenCloseIntegrationTests : IntegrationTestBase
         var optionsService = PolygonClient.Options;
 
         // Act & Assert - Verify validation catches invalid OCC ticker format
-        var exception = await Assert.ThrowsAsync<FluentValidation.ValidationException>(
+        var exception = await Assert.ThrowsAsync<PolygonValidationException>(
             () => optionsService.GetDailyOpenCloseAsync(request, TestContext.Current.CancellationToken));
 
         Assert.Contains("OptionsTicker", exception.Message);
