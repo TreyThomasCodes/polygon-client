@@ -87,11 +87,10 @@ public static class OptionsServiceExtensions
         ArgumentNullException.ThrowIfNull(optionsService);
 
         var ticker = new OptionsTicker(underlying, expirationDate, type, strike);
-        string optionContract = ticker.ToString().Substring(2); // Remove "O:" prefix
         var request = new GetSnapshotRequest
         {
             UnderlyingAsset = underlying,
-            OptionContract = optionContract
+            OptionContract = ticker.ToString()
         };
         return optionsService.GetSnapshotAsync(request, cancellationToken);
     }
@@ -149,7 +148,7 @@ public static class OptionsServiceExtensions
             ContractType = contractType,
             ExpirationDateGte = expirationDateGte,
             ExpirationDateLte = expirationDateLte,
-            Limit = 1000, // Get a large batch
+            Limit = 250, // Max batch size
             Sort = "strike_price",
             Order = "asc"
         };
@@ -226,7 +225,7 @@ public static class OptionsServiceExtensions
             UnderlyingAsset = underlying,
             StrikePrice = strikePrice,
             ContractType = contractType,
-            Limit = 1000, // Get a large batch
+            Limit = 250, // Max batch size
             Sort = "expiration_date",
             Order = "asc"
         };
@@ -320,11 +319,10 @@ public static class OptionsServiceExtensions
         ArgumentNullException.ThrowIfNull(optionsService);
         ArgumentNullException.ThrowIfNull(ticker);
 
-        string optionContract = ticker.ToString().Substring(2); // Remove "O:" prefix
         var request = new GetSnapshotRequest
         {
             UnderlyingAsset = ticker.Underlying,
-            OptionContract = optionContract
+            OptionContract = ticker.ToString()
         };
         return optionsService.GetSnapshotAsync(request, cancellationToken);
     }
