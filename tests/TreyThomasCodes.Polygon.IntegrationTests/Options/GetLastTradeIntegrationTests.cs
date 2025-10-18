@@ -1,6 +1,7 @@
 // Copyright 2025 Trey Thomas
 // SPDX-License-Identifier: MPL-2.0
 
+using TreyThomasCodes.Polygon.RestClient.Exceptions;
 using TreyThomasCodes.Polygon.RestClient.Requests.Options;
 
 namespace TreyThomasCodes.Polygon.IntegrationTests.Options;
@@ -100,7 +101,7 @@ public class GetLastTradeIntegrationTests : IntegrationTestBase
         var optionsService = PolygonClient.Options;
 
         // Act & Assert - Verify validation catches invalid OCC ticker format
-        var exception = await Assert.ThrowsAsync<FluentValidation.ValidationException>(
+        var exception = await Assert.ThrowsAsync<PolygonValidationException>(
             () => optionsService.GetLastTradeAsync(request, TestContext.Current.CancellationToken));
 
         Assert.Contains("OptionsTicker", exception.Message);

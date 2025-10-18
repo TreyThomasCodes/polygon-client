@@ -4,8 +4,10 @@
 using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Moq;
 using TreyThomasCodes.Polygon.RestClient.Api;
+using TreyThomasCodes.Polygon.RestClient.Exceptions;
 using TreyThomasCodes.Polygon.RestClient.Requests.Reference;
 using TreyThomasCodes.Polygon.RestClient.Services;
 using TreyThomasCodes.Polygon.Models.Reference;
@@ -22,6 +24,7 @@ public class ReferenceDataService_GetExchangesTests
     private readonly Mock<IPolygonReferenceApi> _mockApi;
     private readonly Mock<IServiceProvider> _mockServiceProvider;
     private readonly Mock<IValidator<GetExchangesRequest>> _mockValidator;
+    private readonly Mock<ILogger<ReferenceDataService>> _mockLogger;
     private readonly ReferenceDataService _service;
 
     /// <summary>
@@ -33,6 +36,7 @@ public class ReferenceDataService_GetExchangesTests
         _mockApi = new Mock<IPolygonReferenceApi>();
         _mockServiceProvider = new Mock<IServiceProvider>();
         _mockValidator = new Mock<IValidator<GetExchangesRequest>>();
+        _mockLogger = new Mock<ILogger<ReferenceDataService>>();
 
         // Setup service provider to return the validator
         _mockServiceProvider
@@ -44,7 +48,7 @@ public class ReferenceDataService_GetExchangesTests
             .Setup(x => x.ValidateAsync(It.IsAny<ValidationContext<GetExchangesRequest>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ValidationResult());
 
-        _service = new ReferenceDataService(_mockApi.Object, _mockServiceProvider.Object);
+        _service = new ReferenceDataService(_mockApi.Object, _mockServiceProvider.Object, _mockLogger.Object);
     }
 
     /// <summary>
@@ -54,7 +58,7 @@ public class ReferenceDataService_GetExchangesTests
     public void Constructor_WhenApiIsNull_ThrowsArgumentNullException()
     {
         // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => new ReferenceDataService(null!, _mockServiceProvider.Object));
+        Assert.Throws<ArgumentNullException>(() => new ReferenceDataService(null!, _mockServiceProvider.Object, _mockLogger.Object));
     }
 
     /// <summary>
@@ -64,7 +68,17 @@ public class ReferenceDataService_GetExchangesTests
     public void Constructor_WhenServiceProviderIsNull_ThrowsArgumentNullException()
     {
         // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => new ReferenceDataService(_mockApi.Object, null!));
+        Assert.Throws<ArgumentNullException>(() => new ReferenceDataService(_mockApi.Object, null!, _mockLogger.Object));
+    }
+
+    /// <summary>
+    /// Tests that the constructor throws ArgumentNullException when logger parameter is null.
+    /// </summary>
+    [Fact]
+    public void Constructor_WhenLoggerIsNull_ThrowsArgumentNullException()
+    {
+        // Act & Assert
+        Assert.Throws<ArgumentNullException>(() => new ReferenceDataService(_mockApi.Object, _mockServiceProvider.Object, null!));
     }
 
     /// <summary>
@@ -304,7 +318,7 @@ public class ReferenceDataService_GetExchangesTests
     }
 
     /// <summary>
-    /// Tests that GetExchangesAsync propagates exceptions from the API.
+    /// Tests that the service wraps API exceptions in PolygonHttpException.
     /// </summary>
     [Fact]
     public async Task GetExchangesAsync_WhenApiThrowsException_PropagatesException()
@@ -319,9 +333,10 @@ public class ReferenceDataService_GetExchangesTests
             .ThrowsAsync(expectedException);
 
         // Act & Assert
-        var actualException = await Assert.ThrowsAsync<HttpRequestException>(
+        var actualException = await Assert.ThrowsAsync<PolygonHttpException>(
             () => _service.GetExchangesAsync(request, TestContext.Current.CancellationToken));
-        Assert.Equal(expectedException.Message, actualException.Message);
+        Assert.NotNull(actualException.InnerException);
+        Assert.Equal(expectedException.Message, actualException.InnerException.Message);
     }
 
     /// <summary>

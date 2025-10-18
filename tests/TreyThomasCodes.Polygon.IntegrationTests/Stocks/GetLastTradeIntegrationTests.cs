@@ -1,6 +1,7 @@
 // Copyright 2025 Trey Thomas
 // SPDX-License-Identifier: MPL-2.0
 
+using TreyThomasCodes.Polygon.RestClient.Exceptions;
 using TreyThomasCodes.Polygon.RestClient.Requests.Stocks;
 
 namespace TreyThomasCodes.Polygon.IntegrationTests.Stocks;
@@ -105,7 +106,7 @@ public class GetLastTradeIntegrationTests : IntegrationTestBase
         };
 
         // Act & Assert - Verify validation catches invalid ticker (exceeds 10 character limit)
-        var exception = await Assert.ThrowsAsync<FluentValidation.ValidationException>(
+        var exception = await Assert.ThrowsAsync<PolygonValidationException>(
             () => stocksService.GetLastTradeAsync(request, TestContext.Current.CancellationToken));
 
         Assert.Contains("Ticker", exception.Message);

@@ -1,6 +1,7 @@
 // Copyright 2025 Trey Thomas
 // SPDX-License-Identifier: MPL-2.0
 
+using TreyThomasCodes.Polygon.RestClient.Exceptions;
 using TreyThomasCodes.Polygon.RestClient.Requests.Options;
 
 namespace TreyThomasCodes.Polygon.IntegrationTests.Options;
@@ -100,7 +101,7 @@ public class GetSnapshotIntegrationTests : IntegrationTestBase
         var optionsService = PolygonClient.Options;
 
         // Act & Assert - Verify client properly handles API errors
-        var exception = await Assert.ThrowsAsync<Refit.ApiException>(
+        var exception = await Assert.ThrowsAsync<PolygonApiException>(
             () => optionsService.GetSnapshotAsync(request, TestContext.Current.CancellationToken));
 
         Assert.Equal(System.Net.HttpStatusCode.NotFound, exception.StatusCode);

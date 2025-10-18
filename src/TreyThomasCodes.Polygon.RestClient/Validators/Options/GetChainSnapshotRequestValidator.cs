@@ -55,7 +55,9 @@ public partial class GetChainSnapshotRequestValidator : AbstractValidator<GetCha
         {
             RuleFor(x => x.Limit!.Value)
                 .GreaterThan(0)
-                .WithMessage("Limit must be greater than 0.");
+                .WithMessage("Limit must be greater than 0.")
+                .LessThanOrEqualTo(250)
+                .WithMessage("Limit must not exceed 250.");
         });
 
         When(x => !string.IsNullOrEmpty(x.Order), () =>

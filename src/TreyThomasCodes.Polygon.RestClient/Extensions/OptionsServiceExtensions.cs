@@ -3,6 +3,7 @@
 
 using TreyThomasCodes.Polygon.Models.Common;
 using TreyThomasCodes.Polygon.Models.Options;
+using TreyThomasCodes.Polygon.RestClient.Exceptions;
 using TreyThomasCodes.Polygon.RestClient.Requests.Options;
 using TreyThomasCodes.Polygon.RestClient.Services;
 
@@ -86,11 +87,10 @@ public static class OptionsServiceExtensions
         ArgumentNullException.ThrowIfNull(optionsService);
 
         var ticker = new OptionsTicker(underlying, expirationDate, type, strike);
-        string optionContract = ticker.ToString().Substring(2); // Remove "O:" prefix
         var request = new GetSnapshotRequest
         {
             UnderlyingAsset = underlying,
-            OptionContract = optionContract
+            OptionContract = ticker.ToString()
         };
         return optionsService.GetSnapshotAsync(request, cancellationToken);
     }
@@ -148,7 +148,7 @@ public static class OptionsServiceExtensions
             ContractType = contractType,
             ExpirationDateGte = expirationDateGte,
             ExpirationDateLte = expirationDateLte,
-            Limit = 1000, // Get a large batch
+            Limit = 250, // Max batch size
             Sort = "strike_price",
             Order = "asc"
         };
@@ -225,7 +225,7 @@ public static class OptionsServiceExtensions
             UnderlyingAsset = underlying,
             StrikePrice = strikePrice,
             ContractType = contractType,
-            Limit = 1000, // Get a large batch
+            Limit = 250, // Max batch size
             Sort = "expiration_date",
             Order = "asc"
         };
@@ -236,15 +236,25 @@ public static class OptionsServiceExtensions
             return new List<DateTime>();
 
         // Extract unique expiration dates and sort them
-        var dates = response.Results
-            .Select(snapshot => snapshot.Details?.ExpirationDate)
-            .Where(date => !string.IsNullOrEmpty(date))
-            .Select(date => DateTime.Parse(date!))
-            .Distinct()
-            .OrderBy(date => date)
-            .ToList();
+        var dates = new List<DateTime>();
+        foreach (var snapshot in response.Results)
+        {
+            var dateString = snapshot.Details?.ExpirationDate;
+            if (string.IsNullOrEmpty(dateString))
+                continue;
 
-        return dates;
+            if (DateTime.TryParse(dateString, out var parsedDate))
+            {
+                dates.Add(parsedDate);
+            }
+            else
+            {
+                // If the API returns an invalid date format, throw a PolygonException
+                throw new PolygonException($"Invalid date format received from Polygon.io API: '{dateString}'. Expected a valid date string.");
+            }
+        }
+
+        return dates.Distinct().OrderBy(date => date).ToList();
     }
 
     #region OptionsTicker-based extension methods
@@ -309,11 +319,10 @@ public static class OptionsServiceExtensions
         ArgumentNullException.ThrowIfNull(optionsService);
         ArgumentNullException.ThrowIfNull(ticker);
 
-        string optionContract = ticker.ToString().Substring(2); // Remove "O:" prefix
         var request = new GetSnapshotRequest
         {
             UnderlyingAsset = ticker.Underlying,
-            OptionContract = optionContract
+            OptionContract = ticker.ToString()
         };
         return optionsService.GetSnapshotAsync(request, cancellationToken);
     }
