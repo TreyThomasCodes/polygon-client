@@ -12,7 +12,7 @@ namespace TreyThomasCodes.Polygon.RestClient.Api;
 /// Provides access to Polygon.io Reference API endpoints for retrieving market metadata and reference information.
 /// Includes market status, ticker information, and other reference data endpoints.
 /// </summary>
-public interface IPolygonReferenceApi
+internal interface IPolygonReferenceApi
 {
     /// <summary>
     /// Retrieves a comprehensive list of ticker symbols supported by Polygon.io. This endpoint provides detailed company information and supports extensive filtering and searching capabilities.

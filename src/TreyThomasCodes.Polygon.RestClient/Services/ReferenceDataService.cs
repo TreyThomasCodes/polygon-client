@@ -19,7 +19,7 @@ namespace TreyThomasCodes.Polygon.RestClient.Services;
 /// Implementation of the reference data service for accessing Polygon.io reference data and market status information.
 /// Provides methods to retrieve ticker information, market metadata, trading status, and other reference information.
 /// </summary>
-public class ReferenceDataService : IReferenceDataService
+internal class ReferenceDataService : IReferenceDataService
 {
     private readonly IPolygonReferenceApi _api;
     private readonly IServiceProvider _serviceProvider;

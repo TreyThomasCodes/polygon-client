@@ -18,7 +18,7 @@ namespace TreyThomasCodes.Polygon.RestClient.Services;
 /// Implementation of the stocks service for accessing Polygon.io stocks market data.
 /// Provides methods to retrieve real-time and historical stock trades, quotes, snapshots, and OHLC aggregates.
 /// </summary>
-public class StocksService : IStocksService
+internal class StocksService : IStocksService
 {
     private readonly IPolygonStocksApi _api;
     private readonly IServiceProvider _serviceProvider;

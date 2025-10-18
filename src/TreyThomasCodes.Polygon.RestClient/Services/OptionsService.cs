@@ -19,7 +19,7 @@ namespace TreyThomasCodes.Polygon.RestClient.Services;
 /// Provides methods to retrieve options contract information, trades, quotes, snapshots, and OHLC aggregates.
 /// This service acts as a wrapper around the Polygon.io Options API, providing a convenient interface for accessing options data.
 /// </summary>
-public class OptionsService : IOptionsService
+internal class OptionsService : IOptionsService
 {
     private readonly IPolygonOptionsApi _api;
     private readonly IServiceProvider _serviceProvider;

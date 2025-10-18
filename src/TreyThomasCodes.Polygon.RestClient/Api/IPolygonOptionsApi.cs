@@ -11,7 +11,7 @@ namespace TreyThomasCodes.Polygon.RestClient.Api;
 /// Provides access to Polygon.io Options API endpoints for retrieving options contract data including trades, quotes, and market snapshots.
 /// This interface serves as a foundation for future options-related endpoint implementations.
 /// </summary>
-public interface IPolygonOptionsApi
+internal interface IPolygonOptionsApi
 {
     /// <summary>
     /// Retrieves detailed information about a specific options contract by its ticker symbol.
