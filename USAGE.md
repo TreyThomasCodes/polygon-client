@@ -1086,6 +1086,14 @@ var bars = await _client.Options.GetBarsByComponentsAsync(
     to: "2025-11-30"
 );
 
+var chainSnapshot = await _client.Options.GetChainSnapshotByComponentsAsync(
+    underlyingAsset: "SPY",
+    type: OptionType.Call,
+    expirationDateGte: new DateTime(2025, 12, 1),
+    expirationDateLte: new DateTime(2025, 12, 31),
+    limit: 100
+);
+
 // Method 2: Use OptionsTicker objects for reusability
 var ticker = OptionsTicker.Parse("O:SPY251219C00650000");
 
