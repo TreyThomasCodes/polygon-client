@@ -99,8 +99,8 @@ public class DiscoveryHelpersIntegrationTests : IntegrationTestBase
         // Arrange
         var underlying = "SPY";
         var type = OptionType.Call;
-        var expirationDateGte = "2025-12-01";
-        var expirationDateLte = "2025-12-31";
+        var expirationDateGte = new DateOnly(2025, 12, 1);
+        var expirationDateLte = new DateOnly(2025, 12, 31);
         var optionsService = PolygonClient.Options;
 
         try

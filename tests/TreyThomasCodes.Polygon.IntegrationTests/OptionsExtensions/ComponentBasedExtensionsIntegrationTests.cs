@@ -209,8 +209,8 @@ public class ComponentBasedExtensionsIntegrationTests : IntegrationTestBase
         var strike = 650m;
         var multiplier = 1;
         var timespan = AggregateInterval.Day;
-        var from = "2023-01-09";
-        var to = "2023-02-10";
+        var from = new DateOnly(2023, 1, 9);
+        var to = new DateOnly(2023, 2, 10);
         var optionsService = PolygonClient.Options;
 
         // Act
@@ -252,8 +252,8 @@ public class ComponentBasedExtensionsIntegrationTests : IntegrationTestBase
         var strike = 650m;
         var multiplier = 5;
         var timespan = AggregateInterval.Minute;
-        var from = "2023-01-09";
-        var to = "2023-01-10";
+        var from = new DateOnly(2023, 1, 9);
+        var to = new DateOnly(2023, 1, 10);
         var optionsService = PolygonClient.Options;
 
         // Act

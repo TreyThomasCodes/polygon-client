@@ -204,8 +204,8 @@ public static class OptionsServiceExtensions
         this IOptionsService optionsService,
         string underlying,
         OptionType? type = null,
-        string? expirationDateGte = null,
-        string? expirationDateLte = null,
+        DateOnly? expirationDateGte = null,
+        DateOnly? expirationDateLte = null,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(optionsService);
@@ -222,8 +222,8 @@ public static class OptionsServiceExtensions
         {
             UnderlyingAsset = underlying,
             ContractType = contractType,
-            ExpirationDateGte = expirationDateGte,
-            ExpirationDateLte = expirationDateLte,
+            ExpirationDateGte = expirationDateGte?.ToString("yyyy-MM-dd"),
+            ExpirationDateLte = expirationDateLte?.ToString("yyyy-MM-dd"),
             Limit = 250, // Max batch size
             Sort = "strike_price",
             Order = "asc"
@@ -565,8 +565,8 @@ public static class OptionsServiceExtensions
     /// <param name="ticker">The options ticker object containing the contract details.</param>
     /// <param name="multiplier">The number of timespan units to aggregate (e.g., 1 for 1 day, 5 for 5 minutes).</param>
     /// <param name="timespan">The size of the time window for each aggregate (e.g., minute, hour, day).</param>
-    /// <param name="from">Start date for the aggregate window in YYYY-MM-DD format.</param>
-    /// <param name="to">End date for the aggregate window in YYYY-MM-DD format.</param>
+    /// <param name="from">Start date for the aggregate window.</param>
+    /// <param name="to">End date for the aggregate window.</param>
     /// <param name="adjusted">Whether to adjust for splits. Defaults to true if not specified.</param>
     /// <param name="sort">Sort order for results (asc for ascending, desc for descending by timestamp).</param>
     /// <param name="limit">Limit the number of aggregate results returned.</param>
@@ -585,8 +585,8 @@ public static class OptionsServiceExtensions
     ///     ticker,
     ///     multiplier: 1,
     ///     timespan: AggregateInterval.Day,
-    ///     from: "2025-11-01",
-    ///     to: "2025-11-30"
+    ///     from: new DateOnly(2025, 11, 1),
+    ///     to: new DateOnly(2025, 11, 30)
     /// );
     /// </code>
     /// </example>
@@ -595,8 +595,8 @@ public static class OptionsServiceExtensions
         OptionsTicker ticker,
         int multiplier,
         AggregateInterval timespan,
-        string from,
-        string to,
+        DateOnly from,
+        DateOnly to,
         bool? adjusted = null,
         SortOrder? sort = null,
         int? limit = null,
@@ -610,8 +610,8 @@ public static class OptionsServiceExtensions
             OptionsTicker = ticker.ToString(),
             Multiplier = multiplier,
             Timespan = timespan,
-            From = from,
-            To = to,
+            From = from.ToString("yyyy-MM-dd"),
+            To = to.ToString("yyyy-MM-dd"),
             Adjusted = adjusted,
             Sort = sort,
             Limit = limit
@@ -738,8 +738,8 @@ public static class OptionsServiceExtensions
     /// <param name="strike">The strike price of the options contract.</param>
     /// <param name="multiplier">The number of timespan units to aggregate (e.g., 1 for 1 day, 5 for 5 minutes).</param>
     /// <param name="timespan">The size of the time window for each aggregate (e.g., minute, hour, day).</param>
-    /// <param name="from">Start date for the aggregate window in YYYY-MM-DD format.</param>
-    /// <param name="to">End date for the aggregate window in YYYY-MM-DD format.</param>
+    /// <param name="from">Start date for the aggregate window.</param>
+    /// <param name="to">End date for the aggregate window.</param>
     /// <param name="adjusted">Whether to adjust for splits. Defaults to true if not specified.</param>
     /// <param name="sort">Sort order for results (asc for ascending, desc for descending by timestamp).</param>
     /// <param name="limit">Limit the number of aggregate results returned.</param>
@@ -756,8 +756,8 @@ public static class OptionsServiceExtensions
     ///     650m,
     ///     multiplier: 1,
     ///     timespan: AggregateInterval.Day,
-    ///     from: "2025-11-01",
-    ///     to: "2025-11-30"
+    ///     from: new DateOnly(2025, 11, 1),
+    ///     to: new DateOnly(2025, 11, 30)
     /// );
     /// </code>
     /// </example>
@@ -769,8 +769,8 @@ public static class OptionsServiceExtensions
         decimal strike,
         int multiplier,
         AggregateInterval timespan,
-        string from,
-        string to,
+        DateOnly from,
+        DateOnly to,
         bool? adjusted = null,
         SortOrder? sort = null,
         int? limit = null,
@@ -784,8 +784,8 @@ public static class OptionsServiceExtensions
             OptionsTicker = ticker,
             Multiplier = multiplier,
             Timespan = timespan,
-            From = from,
-            To = to,
+            From = from.ToString("yyyy-MM-dd"),
+            To = to.ToString("yyyy-MM-dd"),
             Adjusted = adjusted,
             Sort = sort,
             Limit = limit
