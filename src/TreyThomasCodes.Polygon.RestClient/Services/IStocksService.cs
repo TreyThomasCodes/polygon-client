@@ -102,6 +102,18 @@ public interface IStocksService
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Retrieves snapshot data for a specific stock ticker.
+    /// Returns current market data including last trade, quote, and daily aggregate information.
+    /// This is a convenience overload that accepts the ticker symbol directly.
+    /// </summary>
+    /// <param name="ticker">The stock ticker symbol (e.g., "AAPL", "MSFT").</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>A task that represents the asynchronous operation, containing the ticker snapshot.</returns>
+    Task<StockSnapshotResponse> GetSnapshotAsync(
+        string ticker,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Retrieves the most recent trade for a specific stock ticker.
     /// Returns detailed information about the last executed trade including price, size, exchange, and timing data.
     /// </summary>
@@ -113,6 +125,18 @@ public interface IStocksService
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Retrieves the most recent trade for a specific stock ticker.
+    /// Returns detailed information about the last executed trade including price, size, exchange, and timing data.
+    /// This is a convenience overload that accepts the ticker symbol directly.
+    /// </summary>
+    /// <param name="ticker">The stock ticker symbol (e.g., "AAPL", "MSFT").</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>A task that represents the asynchronous operation, containing the most recent trade data.</returns>
+    Task<PolygonResponse<StockTrade>> GetLastTradeAsync(
+        string ticker,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Retrieves the most recent National Best Bid and Offer (NBBO) quote for a specific stock ticker.
     /// Returns the current best bid and ask prices along with exchange and timing information.
     /// </summary>
@@ -121,5 +145,17 @@ public interface IStocksService
     /// <returns>A task that represents the asynchronous operation, containing the most recent NBBO quote data.</returns>
     Task<PolygonResponse<LastQuoteResult>> GetLastQuoteAsync(
         GetLastQuoteRequest request,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Retrieves the most recent National Best Bid and Offer (NBBO) quote for a specific stock ticker.
+    /// Returns the current best bid and ask prices along with exchange and timing information.
+    /// This is a convenience overload that accepts the ticker symbol directly.
+    /// </summary>
+    /// <param name="ticker">The stock ticker symbol (e.g., "AAPL", "MSFT").</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>A task that represents the asynchronous operation, containing the most recent NBBO quote data.</returns>
+    Task<PolygonResponse<LastQuoteResult>> GetLastQuoteAsync(
+        string ticker,
         CancellationToken cancellationToken = default);
 }

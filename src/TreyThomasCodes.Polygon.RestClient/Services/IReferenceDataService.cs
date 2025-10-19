@@ -38,6 +38,18 @@ public interface IReferenceDataService
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Retrieves detailed information for a specific ticker symbol.
+    /// Returns comprehensive ticker metadata including company information, exchange details, and identifiers.
+    /// This is a convenience overload that accepts the ticker symbol directly.
+    /// </summary>
+    /// <param name="ticker">The ticker symbol to retrieve details for (e.g., "AAPL", "MSFT").</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>A task that represents the asynchronous operation, containing detailed ticker information.</returns>
+    Task<PolygonResponse<StockTicker>> GetTickerDetailsAsync(
+        string ticker,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Retrieves the current trading status for various exchanges and overall financial markets.
     /// Returns real-time information about market hours, pre-market and after-hours sessions,
     /// and the status of individual exchanges and index groups.

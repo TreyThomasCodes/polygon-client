@@ -144,6 +144,18 @@ internal class ReferenceDataService : IReferenceDataService
     /// <exception cref="PolygonValidationException">Thrown when the request parameters fail validation.</exception>
     /// <exception cref="PolygonApiException">Thrown when the Polygon.io API returns an error response.</exception>
     /// <exception cref="PolygonHttpException">Thrown when a network or HTTP transport error occurs.</exception>
+    public Task<PolygonResponse<StockTicker>> GetTickerDetailsAsync(
+        string ticker,
+        CancellationToken cancellationToken = default)
+    {
+        var request = new GetTickerDetailsRequest { Ticker = ticker };
+        return GetTickerDetailsAsync(request, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    /// <exception cref="PolygonValidationException">Thrown when the request parameters fail validation.</exception>
+    /// <exception cref="PolygonApiException">Thrown when the Polygon.io API returns an error response.</exception>
+    /// <exception cref="PolygonHttpException">Thrown when a network or HTTP transport error occurs.</exception>
     public async Task<MarketStatus> GetMarketStatusAsync(
         GetMarketStatusRequest request,
         CancellationToken cancellationToken = default)
