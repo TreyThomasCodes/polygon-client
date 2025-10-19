@@ -242,6 +242,14 @@ var bars = await _polygonClient.Options.GetBarsByComponentsAsync(
     to: "2025-11-30"
 );
 
+var chainSnapshot = await _polygonClient.Options.GetChainSnapshotByComponentsAsync(
+    underlyingAsset: "SPY",
+    type: OptionType.Call,
+    expirationDateGte: new DateTime(2025, 12, 1),
+    expirationDateLte: new DateTime(2025, 12, 31),
+    limit: 100
+);
+
 // Method 2: Use OptionsTicker objects for reusability
 var ticker = OptionsTicker.Parse("O:SPY251219C00650000");
 var contractDetails = await _polygonClient.Options.GetContractDetailsAsync(ticker);

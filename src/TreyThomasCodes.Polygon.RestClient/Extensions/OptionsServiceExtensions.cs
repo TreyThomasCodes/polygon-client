@@ -96,6 +96,82 @@ public static class OptionsServiceExtensions
     }
 
     /// <summary>
+    /// Retrieves a snapshot of current market data for all options contracts for a given underlying asset using component parameters.
+    /// This is a convenience method that constructs the request from strongly-typed parameters instead of requiring a request object.
+    /// Returns comprehensive market information for each contract including break-even price, daily data, contract details, Greeks, implied volatility, and open interest.
+    /// Supports pagination and filtering by expiration date, strike price, and contract type.
+    /// </summary>
+    /// <param name="optionsService">The options service instance.</param>
+    /// <param name="underlyingAsset">The ticker symbol of the underlying asset (e.g., "SPY", "AAPL", "MSTR").</param>
+    /// <param name="strikePrice">Optional filter to only return contracts with this exact strike price.</param>
+    /// <param name="type">Optional filter for option type (Call or Put). If null, returns both types.</param>
+    /// <param name="expirationDateGte">Optional minimum expiration date. Only returns contracts expiring on or after this date.</param>
+    /// <param name="expirationDateLte">Optional maximum expiration date. Only returns contracts expiring on or before this date.</param>
+    /// <param name="limit">Optional limit on the number of results to return. Maximum value varies by plan.</param>
+    /// <param name="order">Optional sort order for results. Use "asc" for ascending or "desc" for descending.</param>
+    /// <param name="sort">Optional field to sort by (e.g., "ticker", "strike_price", "expiration_date").</param>
+    /// <param name="cursor">Optional cursor for pagination. Use the next_url from the previous response to get the next page of results.</param>
+    /// <param name="cancellationToken">A cancellation token to cancel the operation.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains a response with a list of option snapshots for all contracts matching the specified criteria. The response includes a next_url for pagination if more results are available.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when optionsService is null.</exception>
+    /// <example>
+    /// <code>
+    /// // Get all call options for SPY expiring in December 2025
+    /// var snapshots = await client.Options.GetChainSnapshotByComponentsAsync(
+    ///     "SPY",
+    ///     type: OptionType.Call,
+    ///     expirationDateGte: new DateTime(2025, 12, 1),
+    ///     expirationDateLte: new DateTime(2025, 12, 31),
+    ///     limit: 100
+    /// );
+    ///
+    /// // Get all options at a specific strike price
+    /// var strikePriceSnapshots = await client.Options.GetChainSnapshotByComponentsAsync(
+    ///     "AAPL",
+    ///     strikePrice: 150m,
+    ///     limit: 50
+    /// );
+    /// </code>
+    /// </example>
+    public static Task<PolygonResponse<List<OptionSnapshot>>> GetChainSnapshotByComponentsAsync(
+        this IOptionsService optionsService,
+        string underlyingAsset,
+        decimal? strikePrice = null,
+        OptionType? type = null,
+        DateTime? expirationDateGte = null,
+        DateTime? expirationDateLte = null,
+        int? limit = null,
+        string? order = null,
+        string? sort = null,
+        string? cursor = null,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(optionsService);
+
+        string? contractType = type switch
+        {
+            OptionType.Call => "call",
+            OptionType.Put => "put",
+            null => null,
+            _ => null
+        };
+
+        var request = new GetChainSnapshotRequest
+        {
+            UnderlyingAsset = underlyingAsset,
+            StrikePrice = strikePrice,
+            ContractType = contractType,
+            ExpirationDateGte = expirationDateGte?.ToString("yyyy-MM-dd"),
+            ExpirationDateLte = expirationDateLte?.ToString("yyyy-MM-dd"),
+            Limit = limit,
+            Order = order,
+            Sort = sort,
+            Cursor = cursor
+        };
+        return optionsService.GetChainSnapshotAsync(request, cancellationToken);
+    }
+
+    /// <summary>
     /// Discovers available strike prices for options on a given underlying asset.
     /// This method queries the options chain and returns a sorted list of unique strike prices.
     /// Optionally filters by expiration date range and option type.

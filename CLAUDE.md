@@ -77,7 +77,7 @@ The client uses a layered architecture with a clear separation between internal 
 
 5. **Extensions Layer** (`/Extensions/`) - **PUBLIC** Extension methods for enhanced usability
    - `OptionsServiceExtensions` - Extension methods for `IOptionsService` providing:
-     - Component-based methods (e.g., `GetContractByComponentsAsync`, `GetSnapshotByComponentsAsync`, `GetLastTradeByComponentsAsync`, `GetBarsByComponentsAsync`)
+     - Component-based methods (e.g., `GetContractByComponentsAsync`, `GetSnapshotByComponentsAsync`, `GetChainSnapshotByComponentsAsync`, `GetLastTradeByComponentsAsync`, `GetBarsByComponentsAsync`)
      - OptionsTicker-based overloads for all major Options API calls
      - Discovery helpers (`GetAvailableStrikesAsync`, `GetExpirationDatesAsync`)
 

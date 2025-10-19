@@ -273,4 +273,186 @@ public class ComponentBasedExtensionsIntegrationTests : IntegrationTestBase
         Assert.Equal("OK", response.Status);
         Assert.NotNull(response.RequestId);
     }
+
+    /// <summary>
+    /// Tests that GetChainSnapshotByComponentsAsync returns a list of option snapshots for the underlying asset.
+    /// </summary>
+    [Fact]
+    public async Task GetChainSnapshotByComponentsAsync_WithValidUnderlying_ShouldReturnValidResponse()
+    {
+        // Arrange
+        var underlying = "SPY";
+        var optionsService = PolygonClient.Options;
+
+        // Act
+        var response = await optionsService.GetChainSnapshotByComponentsAsync(
+            underlying,
+            limit: 10,
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // Assert
+        Assert.NotNull(response);
+        Assert.Equal("OK", response.Status);
+        Assert.NotNull(response.RequestId);
+        Assert.NotEmpty(response.RequestId);
+        Assert.NotNull(response.Results);
+        Assert.NotEmpty(response.Results);
+
+        // Verify all results are for the correct underlying
+        foreach (var snapshot in response.Results)
+        {
+            Assert.NotNull(snapshot.Details);
+            Assert.Contains(underlying, snapshot.Details.Ticker);
+        }
+    }
+
+    /// <summary>
+    /// Tests that GetChainSnapshotByComponentsAsync correctly filters by option type.
+    /// </summary>
+    [Fact]
+    public async Task GetChainSnapshotByComponentsAsync_WithOptionTypeFilter_ShouldReturnOnlyMatchingType()
+    {
+        // Arrange
+        var underlying = "SPY";
+        var type = OptionType.Call;
+        var optionsService = PolygonClient.Options;
+
+        // Act
+        var response = await optionsService.GetChainSnapshotByComponentsAsync(
+            underlying,
+            type: type,
+            limit: 10,
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // Assert
+        Assert.NotNull(response);
+        Assert.Equal("OK", response.Status);
+        Assert.NotNull(response.Results);
+        Assert.NotEmpty(response.Results);
+
+        // Verify all results are call options
+        foreach (var snapshot in response.Results)
+        {
+            Assert.NotNull(snapshot.Details);
+            Assert.Equal("call", snapshot.Details.ContractType);
+        }
+    }
+
+    /// <summary>
+    /// Tests that GetChainSnapshotByComponentsAsync correctly filters by expiration date range.
+    /// </summary>
+    [Fact]
+    public async Task GetChainSnapshotByComponentsAsync_WithExpirationDateRange_ShouldReturnMatchingContracts()
+    {
+        // Arrange
+        var underlying = "SPY";
+        var expirationDateGte = new DateTime(2025, 12, 1);
+        var expirationDateLte = new DateTime(2025, 12, 31);
+        var optionsService = PolygonClient.Options;
+
+        // Act
+        var response = await optionsService.GetChainSnapshotByComponentsAsync(
+            underlying,
+            expirationDateGte: expirationDateGte,
+            expirationDateLte: expirationDateLte,
+            limit: 10,
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // Assert
+        Assert.NotNull(response);
+        Assert.Equal("OK", response.Status);
+        Assert.NotNull(response.Results);
+
+        if (response.Results.Count > 0)
+        {
+            // Verify expiration dates are within the specified range
+            foreach (var snapshot in response.Results)
+            {
+                Assert.NotNull(snapshot.Details);
+                Assert.NotNull(snapshot.Details.ExpirationDate);
+
+                var expirationDate = DateTime.Parse(snapshot.Details.ExpirationDate);
+                Assert.True(expirationDate >= expirationDateGte, $"Expiration date {expirationDate} should be >= {expirationDateGte}");
+                Assert.True(expirationDate <= expirationDateLte, $"Expiration date {expirationDate} should be <= {expirationDateLte}");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Tests that GetChainSnapshotByComponentsAsync correctly filters by strike price.
+    /// </summary>
+    [Fact]
+    public async Task GetChainSnapshotByComponentsAsync_WithStrikePriceFilter_ShouldReturnOnlyMatchingStrike()
+    {
+        // Arrange
+        var underlying = "SPY";
+        var strikePrice = 650m;
+        var optionsService = PolygonClient.Options;
+
+        // Act
+        var response = await optionsService.GetChainSnapshotByComponentsAsync(
+            underlying,
+            strikePrice: strikePrice,
+            limit: 10,
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // Assert
+        Assert.NotNull(response);
+        Assert.Equal("OK", response.Status);
+        Assert.NotNull(response.Results);
+
+        if (response.Results.Count > 0)
+        {
+            // Verify all results have the specified strike price
+            foreach (var snapshot in response.Results)
+            {
+                Assert.NotNull(snapshot.Details);
+                Assert.Equal(strikePrice, snapshot.Details.StrikePrice);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Tests that GetChainSnapshotByComponentsAsync works with multiple filters combined.
+    /// </summary>
+    [Fact]
+    public async Task GetChainSnapshotByComponentsAsync_WithMultipleFilters_ShouldReturnMatchingContracts()
+    {
+        // Arrange
+        var underlying = "SPY";
+        var type = OptionType.Put;
+        var expirationDateGte = new DateTime(2025, 12, 1);
+        var expirationDateLte = new DateTime(2025, 12, 31);
+        var optionsService = PolygonClient.Options;
+
+        // Act
+        var response = await optionsService.GetChainSnapshotByComponentsAsync(
+            underlying,
+            type: type,
+            expirationDateGte: expirationDateGte,
+            expirationDateLte: expirationDateLte,
+            limit: 10,
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // Assert
+        Assert.NotNull(response);
+        Assert.Equal("OK", response.Status);
+        Assert.NotNull(response.Results);
+
+        if (response.Results.Count > 0)
+        {
+            // Verify all results match all filters
+            foreach (var snapshot in response.Results)
+            {
+                Assert.NotNull(snapshot.Details);
+                Assert.Equal("put", snapshot.Details.ContractType);
+                Assert.Contains(underlying, snapshot.Details.Ticker);
+                Assert.NotNull(snapshot.Details.ExpirationDate);
+
+                var expirationDate = DateTime.Parse(snapshot.Details.ExpirationDate);
+                Assert.True(expirationDate >= expirationDateGte);
+                Assert.True(expirationDate <= expirationDateLte);
+            }
+        }
+    }
 }
