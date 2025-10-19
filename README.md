@@ -202,10 +202,9 @@ var ticker = new OptionsTickerBuilder()
 // Returns: "O:SPY251219C00650000"
 ```
 
-**Extension Methods** - Convenience methods for common operations:
+**Convenience Methods** - Simplified methods for common operations:
 
 ```csharp
-using TreyThomasCodes.Polygon.RestClient.Extensions;
 using TreyThomasCodes.Polygon.Models.Options;
 using TreyThomasCodes.Polygon.Models.Common;
 

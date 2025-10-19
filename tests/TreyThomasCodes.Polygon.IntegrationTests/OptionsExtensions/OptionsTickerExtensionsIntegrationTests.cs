@@ -3,13 +3,12 @@
 
 using TreyThomasCodes.Polygon.Models.Common;
 using TreyThomasCodes.Polygon.Models.Options;
-using TreyThomasCodes.Polygon.RestClient.Extensions;
 
 namespace TreyThomasCodes.Polygon.IntegrationTests.OptionsExtensions;
 
 /// <summary>
-/// Integration tests for OptionsTicker-based extension methods in OptionsServiceExtensions.
-/// These tests verify that extension methods accepting OptionsTicker objects properly
+/// Integration tests for OptionsTicker-based overload methods in IOptionsService.
+/// These tests verify that methods accepting OptionsTicker objects properly
 /// delegate to the underlying API calls.
 /// </summary>
 public class OptionsTickerExtensionsIntegrationTests : IntegrationTestBase

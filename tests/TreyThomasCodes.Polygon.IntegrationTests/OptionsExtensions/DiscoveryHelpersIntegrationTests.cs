@@ -2,12 +2,11 @@
 // SPDX-License-Identifier: MPL-2.0
 
 using TreyThomasCodes.Polygon.Models.Options;
-using TreyThomasCodes.Polygon.RestClient.Extensions;
 
 namespace TreyThomasCodes.Polygon.IntegrationTests.OptionsExtensions;
 
 /// <summary>
-/// Integration tests for discovery helper extension methods in OptionsServiceExtensions.
+/// Integration tests for discovery helper methods in IOptionsService.
 /// These tests verify that helper methods for discovering available strikes and expiration dates
 /// work correctly with the chain snapshot endpoint.
 /// </summary>
