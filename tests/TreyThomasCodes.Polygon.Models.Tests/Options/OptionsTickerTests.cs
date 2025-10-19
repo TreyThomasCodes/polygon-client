@@ -16,14 +16,14 @@ public class OptionsTickerTests
     public void Constructor_WithValidParameters_CreatesInstance()
     {
         var underlying = "UBER";
-        var expirationDate = new DateTime(2022, 1, 21);
+        var expirationDate = new DateOnly(2022, 1, 21);
         var type = OptionType.Call;
         var strike = 50m;
 
         var ticker = new OptionsTicker(underlying, expirationDate, type, strike);
 
         Assert.Equal("UBER", ticker.Underlying);
-        Assert.Equal(new DateTime(2022, 1, 21), ticker.ExpirationDate);
+        Assert.Equal(new DateOnly(2022, 1, 21), ticker.ExpirationDate);
         Assert.Equal(OptionType.Call, ticker.Type);
         Assert.Equal(50m, ticker.Strike);
     }
@@ -31,7 +31,7 @@ public class OptionsTickerTests
     [Fact]
     public void Constructor_WithLowercaseUnderlying_ConvertsToUppercase()
     {
-        var ticker = new OptionsTicker("uber", new DateTime(2022, 1, 21), OptionType.Call, 50m);
+        var ticker = new OptionsTicker("uber", new DateOnly(2022, 1, 21), OptionType.Call, 50m);
 
         Assert.Equal("UBER", ticker.Underlying);
     }
@@ -40,35 +40,35 @@ public class OptionsTickerTests
     public void Constructor_WithNullUnderlying_ThrowsArgumentNullException()
     {
         Assert.Throws<ArgumentNullException>(() =>
-            new OptionsTicker(null!, new DateTime(2022, 1, 21), OptionType.Call, 50m));
+            new OptionsTicker(null!, new DateOnly(2022, 1, 21), OptionType.Call, 50m));
     }
 
     [Fact]
     public void Constructor_WithEmptyUnderlying_ThrowsArgumentNullException()
     {
         Assert.Throws<ArgumentNullException>(() =>
-            new OptionsTicker("", new DateTime(2022, 1, 21), OptionType.Call, 50m));
+            new OptionsTicker("", new DateOnly(2022, 1, 21), OptionType.Call, 50m));
     }
 
     [Fact]
     public void Constructor_WithWhitespaceUnderlying_ThrowsArgumentNullException()
     {
         Assert.Throws<ArgumentNullException>(() =>
-            new OptionsTicker("   ", new DateTime(2022, 1, 21), OptionType.Call, 50m));
+            new OptionsTicker("   ", new DateOnly(2022, 1, 21), OptionType.Call, 50m));
     }
 
     [Fact]
     public void Constructor_WithInvalidCharactersInUnderlying_ThrowsArgumentException()
     {
         Assert.Throws<ArgumentException>(() =>
-            new OptionsTicker("UBER123", new DateTime(2022, 1, 21), OptionType.Call, 50m));
+            new OptionsTicker("UBER123", new DateOnly(2022, 1, 21), OptionType.Call, 50m));
     }
 
     [Fact]
     public void Constructor_WithNegativeStrike_ThrowsArgumentException()
     {
         Assert.Throws<ArgumentException>(() =>
-            new OptionsTicker("UBER", new DateTime(2022, 1, 21), OptionType.Call, -10m));
+            new OptionsTicker("UBER", new DateOnly(2022, 1, 21), OptionType.Call, -10m));
     }
 
     #endregion
@@ -78,7 +78,7 @@ public class OptionsTickerTests
     [Fact]
     public void Create_WithValidParameters_ReturnsCorrectlyFormattedTicker()
     {
-        var ticker = OptionsTicker.Create("UBER", new DateTime(2022, 1, 21), OptionType.Call, 50m);
+        var ticker = OptionsTicker.Create("UBER", new DateOnly(2022, 1, 21), OptionType.Call, 50m);
 
         Assert.Equal("O:UBER220121C00050000", ticker);
     }
@@ -86,7 +86,7 @@ public class OptionsTickerTests
     [Fact]
     public void Create_WithPutOption_ReturnsCorrectlyFormattedTicker()
     {
-        var ticker = OptionsTicker.Create("F", new DateTime(2021, 11, 19), OptionType.Put, 14m);
+        var ticker = OptionsTicker.Create("F", new DateOnly(2021, 11, 19), OptionType.Put, 14m);
 
         Assert.Equal("O:F211119P00014000", ticker);
     }
@@ -94,7 +94,7 @@ public class OptionsTickerTests
     [Fact]
     public void Create_WithSingleCharacterUnderlying_ReturnsCorrectlyFormattedTicker()
     {
-        var ticker = OptionsTicker.Create("F", new DateTime(2021, 11, 19), OptionType.Call, 15.50m);
+        var ticker = OptionsTicker.Create("F", new DateOnly(2021, 11, 19), OptionType.Call, 15.50m);
 
         Assert.Equal("O:F211119C00015500", ticker);
     }
@@ -102,7 +102,7 @@ public class OptionsTickerTests
     [Fact]
     public void Create_WithHighStrikePrice_ReturnsCorrectlyFormattedTicker()
     {
-        var ticker = OptionsTicker.Create("SPY", new DateTime(2025, 12, 19), OptionType.Call, 650m);
+        var ticker = OptionsTicker.Create("SPY", new DateOnly(2025, 12, 19), OptionType.Call, 650m);
 
         Assert.Equal("O:SPY251219C00650000", ticker);
     }
@@ -110,7 +110,7 @@ public class OptionsTickerTests
     [Fact]
     public void Create_WithDecimalStrikePrice_ReturnsCorrectlyFormattedTicker()
     {
-        var ticker = OptionsTicker.Create("TSLA", new DateTime(2026, 3, 20), OptionType.Put, 700.50m);
+        var ticker = OptionsTicker.Create("TSLA", new DateOnly(2026, 3, 20), OptionType.Put, 700.50m);
 
         Assert.Equal("O:TSLA260320P00700500", ticker);
     }
@@ -118,7 +118,7 @@ public class OptionsTickerTests
     [Fact]
     public void Create_WithLowercaseUnderlying_ConvertsToUppercase()
     {
-        var ticker = OptionsTicker.Create("uber", new DateTime(2022, 1, 21), OptionType.Call, 50m);
+        var ticker = OptionsTicker.Create("uber", new DateOnly(2022, 1, 21), OptionType.Call, 50m);
 
         Assert.Equal("O:UBER220121C00050000", ticker);
     }
@@ -133,7 +133,7 @@ public class OptionsTickerTests
         var ticker = OptionsTicker.Parse("O:UBER220121C00050000");
 
         Assert.Equal("UBER", ticker.Underlying);
-        Assert.Equal(new DateTime(2022, 1, 21), ticker.ExpirationDate);
+        Assert.Equal(new DateOnly(2022, 1, 21), ticker.ExpirationDate);
         Assert.Equal(OptionType.Call, ticker.Type);
         Assert.Equal(50m, ticker.Strike);
     }
@@ -144,7 +144,7 @@ public class OptionsTickerTests
         var ticker = OptionsTicker.Parse("O:F211119P00014000");
 
         Assert.Equal("F", ticker.Underlying);
-        Assert.Equal(new DateTime(2021, 11, 19), ticker.ExpirationDate);
+        Assert.Equal(new DateOnly(2021, 11, 19), ticker.ExpirationDate);
         Assert.Equal(OptionType.Put, ticker.Type);
         Assert.Equal(14m, ticker.Strike);
     }
@@ -155,7 +155,7 @@ public class OptionsTickerTests
         var ticker = OptionsTicker.Parse("O:SPY251219C00650500");
 
         Assert.Equal("SPY", ticker.Underlying);
-        Assert.Equal(new DateTime(2025, 12, 19), ticker.ExpirationDate);
+        Assert.Equal(new DateOnly(2025, 12, 19), ticker.ExpirationDate);
         Assert.Equal(OptionType.Call, ticker.Type);
         Assert.Equal(650.50m, ticker.Strike);
     }
@@ -196,7 +196,7 @@ public class OptionsTickerTests
         Assert.True(success);
         Assert.NotNull(ticker);
         Assert.Equal("UBER", ticker.Underlying);
-        Assert.Equal(new DateTime(2022, 1, 21), ticker.ExpirationDate);
+        Assert.Equal(new DateOnly(2022, 1, 21), ticker.ExpirationDate);
         Assert.Equal(OptionType.Call, ticker.Type);
         Assert.Equal(50m, ticker.Strike);
     }
@@ -255,7 +255,7 @@ public class OptionsTickerTests
     [Fact]
     public void ToString_WithCallOption_ReturnsCorrectFormat()
     {
-        var ticker = new OptionsTicker("UBER", new DateTime(2022, 1, 21), OptionType.Call, 50m);
+        var ticker = new OptionsTicker("UBER", new DateOnly(2022, 1, 21), OptionType.Call, 50m);
 
         Assert.Equal("O:UBER220121C00050000", ticker.ToString());
     }
@@ -263,7 +263,7 @@ public class OptionsTickerTests
     [Fact]
     public void ToString_WithPutOption_ReturnsCorrectFormat()
     {
-        var ticker = new OptionsTicker("F", new DateTime(2021, 11, 19), OptionType.Put, 14m);
+        var ticker = new OptionsTicker("F", new DateOnly(2021, 11, 19), OptionType.Put, 14m);
 
         Assert.Equal("O:F211119P00014000", ticker.ToString());
     }
@@ -271,7 +271,7 @@ public class OptionsTickerTests
     [Fact]
     public void ToString_WithDecimalStrike_ReturnsCorrectFormat()
     {
-        var ticker = new OptionsTicker("SPY", new DateTime(2025, 12, 19), OptionType.Call, 650.50m);
+        var ticker = new OptionsTicker("SPY", new DateOnly(2025, 12, 19), OptionType.Call, 650.50m);
 
         Assert.Equal("O:SPY251219C00650500", ticker.ToString());
     }
@@ -302,7 +302,7 @@ public class OptionsTickerTests
     public void RoundTrip_CreateAndParse_ReturnsSameComponents(
         string underlying, int year, int month, int day, OptionType type, decimal strike)
     {
-        var expirationDate = new DateTime(year, month, day);
+        var expirationDate = new DateOnly(year, month, day);
         var ticker = OptionsTicker.Create(underlying, expirationDate, type, strike);
         var parsed = OptionsTicker.Parse(ticker);
 
@@ -319,8 +319,8 @@ public class OptionsTickerTests
     [Fact]
     public void Equals_WithIdenticalTickers_ReturnsTrue()
     {
-        var ticker1 = new OptionsTicker("UBER", new DateTime(2022, 1, 21), OptionType.Call, 50m);
-        var ticker2 = new OptionsTicker("UBER", new DateTime(2022, 1, 21), OptionType.Call, 50m);
+        var ticker1 = new OptionsTicker("UBER", new DateOnly(2022, 1, 21), OptionType.Call, 50m);
+        var ticker2 = new OptionsTicker("UBER", new DateOnly(2022, 1, 21), OptionType.Call, 50m);
 
         Assert.True(ticker1.Equals(ticker2));
     }
@@ -328,8 +328,8 @@ public class OptionsTickerTests
     [Fact]
     public void Equals_WithDifferentUnderlying_ReturnsFalse()
     {
-        var ticker1 = new OptionsTicker("UBER", new DateTime(2022, 1, 21), OptionType.Call, 50m);
-        var ticker2 = new OptionsTicker("LYFT", new DateTime(2022, 1, 21), OptionType.Call, 50m);
+        var ticker1 = new OptionsTicker("UBER", new DateOnly(2022, 1, 21), OptionType.Call, 50m);
+        var ticker2 = new OptionsTicker("LYFT", new DateOnly(2022, 1, 21), OptionType.Call, 50m);
 
         Assert.False(ticker1.Equals(ticker2));
     }
@@ -337,8 +337,8 @@ public class OptionsTickerTests
     [Fact]
     public void Equals_WithDifferentExpiration_ReturnsFalse()
     {
-        var ticker1 = new OptionsTicker("UBER", new DateTime(2022, 1, 21), OptionType.Call, 50m);
-        var ticker2 = new OptionsTicker("UBER", new DateTime(2022, 1, 28), OptionType.Call, 50m);
+        var ticker1 = new OptionsTicker("UBER", new DateOnly(2022, 1, 21), OptionType.Call, 50m);
+        var ticker2 = new OptionsTicker("UBER", new DateOnly(2022, 1, 28), OptionType.Call, 50m);
 
         Assert.False(ticker1.Equals(ticker2));
     }
@@ -346,8 +346,8 @@ public class OptionsTickerTests
     [Fact]
     public void Equals_WithDifferentType_ReturnsFalse()
     {
-        var ticker1 = new OptionsTicker("UBER", new DateTime(2022, 1, 21), OptionType.Call, 50m);
-        var ticker2 = new OptionsTicker("UBER", new DateTime(2022, 1, 21), OptionType.Put, 50m);
+        var ticker1 = new OptionsTicker("UBER", new DateOnly(2022, 1, 21), OptionType.Call, 50m);
+        var ticker2 = new OptionsTicker("UBER", new DateOnly(2022, 1, 21), OptionType.Put, 50m);
 
         Assert.False(ticker1.Equals(ticker2));
     }
@@ -355,8 +355,8 @@ public class OptionsTickerTests
     [Fact]
     public void Equals_WithDifferentStrike_ReturnsFalse()
     {
-        var ticker1 = new OptionsTicker("UBER", new DateTime(2022, 1, 21), OptionType.Call, 50m);
-        var ticker2 = new OptionsTicker("UBER", new DateTime(2022, 1, 21), OptionType.Call, 55m);
+        var ticker1 = new OptionsTicker("UBER", new DateOnly(2022, 1, 21), OptionType.Call, 50m);
+        var ticker2 = new OptionsTicker("UBER", new DateOnly(2022, 1, 21), OptionType.Call, 55m);
 
         Assert.False(ticker1.Equals(ticker2));
     }
@@ -364,7 +364,7 @@ public class OptionsTickerTests
     [Fact]
     public void Equals_WithNull_ReturnsFalse()
     {
-        var ticker1 = new OptionsTicker("UBER", new DateTime(2022, 1, 21), OptionType.Call, 50m);
+        var ticker1 = new OptionsTicker("UBER", new DateOnly(2022, 1, 21), OptionType.Call, 50m);
 
         Assert.False(ticker1.Equals(null));
     }
@@ -372,8 +372,8 @@ public class OptionsTickerTests
     [Fact]
     public void GetHashCode_WithIdenticalTickers_ReturnsSameHashCode()
     {
-        var ticker1 = new OptionsTicker("UBER", new DateTime(2022, 1, 21), OptionType.Call, 50m);
-        var ticker2 = new OptionsTicker("UBER", new DateTime(2022, 1, 21), OptionType.Call, 50m);
+        var ticker1 = new OptionsTicker("UBER", new DateOnly(2022, 1, 21), OptionType.Call, 50m);
+        var ticker2 = new OptionsTicker("UBER", new DateOnly(2022, 1, 21), OptionType.Call, 50m);
 
         Assert.Equal(ticker1.GetHashCode(), ticker2.GetHashCode());
     }
@@ -381,8 +381,8 @@ public class OptionsTickerTests
     [Fact]
     public void GetHashCode_WithDifferentTickers_ReturnsDifferentHashCode()
     {
-        var ticker1 = new OptionsTicker("UBER", new DateTime(2022, 1, 21), OptionType.Call, 50m);
-        var ticker2 = new OptionsTicker("LYFT", new DateTime(2022, 1, 21), OptionType.Call, 50m);
+        var ticker1 = new OptionsTicker("UBER", new DateOnly(2022, 1, 21), OptionType.Call, 50m);
+        var ticker2 = new OptionsTicker("LYFT", new DateOnly(2022, 1, 21), OptionType.Call, 50m);
 
         Assert.NotEqual(ticker1.GetHashCode(), ticker2.GetHashCode());
     }

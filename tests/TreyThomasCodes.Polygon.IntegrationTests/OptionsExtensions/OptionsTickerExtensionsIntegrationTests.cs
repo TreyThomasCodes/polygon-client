@@ -70,7 +70,7 @@ public class OptionsTickerExtensionsIntegrationTests : IntegrationTestBase
     public async Task GetSnapshotAsync_WithOptionsTicker_ShouldReturnValidResponse()
     {
         // Arrange
-        var ticker = new OptionsTicker("SPY", new DateTime(2025, 12, 19), OptionType.Call, 650m);
+        var ticker = new OptionsTicker("SPY", new DateOnly(2025, 12, 19), OptionType.Call, 650m);
         var optionsService = PolygonClient.Options;
 
         try
@@ -141,7 +141,7 @@ public class OptionsTickerExtensionsIntegrationTests : IntegrationTestBase
     public async Task GetQuotesAsync_WithOptionsTickerAndTimestamp_ShouldReturnValidResponse()
     {
         // Arrange
-        var ticker = new OptionsTicker("SPY", new DateTime(2024, 12, 20), OptionType.Put, 720m);
+        var ticker = new OptionsTicker("SPY", new DateOnly(2024, 12, 20), OptionType.Put, 720m);
         var timestamp = "2024-12-01";
         var optionsService = PolygonClient.Options;
 
@@ -164,7 +164,7 @@ public class OptionsTickerExtensionsIntegrationTests : IntegrationTestBase
     public async Task GetTradesAsync_WithOptionsTicker_ShouldReturnValidResponse()
     {
         // Arrange
-        var ticker = new OptionsTicker("TSLA", new DateTime(2021, 9, 3), OptionType.Call, 700m);
+        var ticker = new OptionsTicker("TSLA", new DateOnly(2021, 9, 3), OptionType.Call, 700m);
         var optionsService = PolygonClient.Options;
 
         // Act
@@ -239,7 +239,7 @@ public class OptionsTickerExtensionsIntegrationTests : IntegrationTestBase
     public async Task GetBarsAsync_WithOptionsTickerAndOptionalParams_ShouldReturnValidResponse()
     {
         // Arrange
-        var ticker = new OptionsTicker("SPY", new DateTime(2025, 12, 19), OptionType.Call, 650m);
+        var ticker = new OptionsTicker("SPY", new DateOnly(2025, 12, 19), OptionType.Call, 650m);
         var optionsService = PolygonClient.Options;
 
         // Act
@@ -294,7 +294,7 @@ public class OptionsTickerExtensionsIntegrationTests : IntegrationTestBase
     public async Task GetPreviousDayBarAsync_WithOptionsTicker_ShouldReturnValidResponse()
     {
         // Arrange
-        var ticker = new OptionsTicker("SPY", new DateTime(2025, 12, 19), OptionType.Call, 650m);
+        var ticker = new OptionsTicker("SPY", new DateOnly(2025, 12, 19), OptionType.Call, 650m);
         var optionsService = PolygonClient.Options;
 
         // Act

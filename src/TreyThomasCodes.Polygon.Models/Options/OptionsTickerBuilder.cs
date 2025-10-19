@@ -21,7 +21,7 @@ namespace TreyThomasCodes.Polygon.Models.Options;
 public class OptionsTickerBuilder
 {
     private string? _underlying;
-    private DateTime? _expirationDate;
+    private DateOnly? _expirationDate;
     private OptionType? _type;
     private decimal? _strike;
 
@@ -45,7 +45,7 @@ public class OptionsTickerBuilder
     /// </summary>
     /// <param name="expirationDate">The expiration date.</param>
     /// <returns>The current builder instance for method chaining.</returns>
-    public OptionsTickerBuilder WithExpiration(DateTime expirationDate)
+    public OptionsTickerBuilder WithExpiration(DateOnly expirationDate)
     {
         _expirationDate = expirationDate;
         return this;
@@ -61,7 +61,7 @@ public class OptionsTickerBuilder
     /// <exception cref="ArgumentOutOfRangeException">Thrown when the date components are invalid.</exception>
     public OptionsTickerBuilder WithExpiration(int year, int month, int day)
     {
-        _expirationDate = new DateTime(year, month, day);
+        _expirationDate = new DateOnly(year, month, day);
         return this;
     }
 
@@ -132,7 +132,7 @@ public class OptionsTickerBuilder
     /// // Build a Put option ticker
     /// var putTicker = new OptionsTickerBuilder()
     ///     .WithUnderlying("TSLA")
-    ///     .WithExpiration(new DateTime(2026, 3, 20))
+    ///     .WithExpiration(new DateOnly(2026, 3, 20))
     ///     .AsPut()
     ///     .WithStrike(700m)
     ///     .Build();

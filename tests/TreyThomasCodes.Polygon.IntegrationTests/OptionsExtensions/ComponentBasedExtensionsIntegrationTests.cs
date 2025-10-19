@@ -24,7 +24,7 @@ public class ComponentBasedExtensionsIntegrationTests : IntegrationTestBase
     {
         // Arrange
         var underlying = "TSLA";
-        var expirationDate = new DateTime(2026, 3, 20);
+        var expirationDate = new DateOnly(2026, 3, 20);
         var type = OptionType.Call;
         var strike = 700m;
         var optionsService = PolygonClient.Options;
@@ -58,7 +58,7 @@ public class ComponentBasedExtensionsIntegrationTests : IntegrationTestBase
     {
         // Arrange
         var underlying = "SPY";
-        var expirationDate = new DateTime(2025, 12, 19);
+        var expirationDate = new DateOnly(2025, 12, 19);
         var type = OptionType.Call;
         var strike = 650m;
         var expectedTicker = "O:SPY251219C00650000";
@@ -87,7 +87,7 @@ public class ComponentBasedExtensionsIntegrationTests : IntegrationTestBase
     {
         // Arrange - use SPY which is a heavily traded ticker with reliable snapshot data
         var underlying = "SPY";
-        var expirationDate = new DateTime(2025, 12, 19);
+        var expirationDate = new DateOnly(2025, 12, 19);
         var type = OptionType.Call;
         var strike = 650m;
         var optionsService = PolygonClient.Options;
@@ -129,7 +129,7 @@ public class ComponentBasedExtensionsIntegrationTests : IntegrationTestBase
     {
         // Arrange - use SPY which is a heavily traded ticker with reliable snapshot data
         var underlying = "SPY";
-        var expirationDate = new DateTime(2025, 12, 19);
+        var expirationDate = new DateOnly(2025, 12, 19);
         var type = OptionType.Put;
         var strike = 550m;
         var optionsService = PolygonClient.Options;
@@ -171,7 +171,7 @@ public class ComponentBasedExtensionsIntegrationTests : IntegrationTestBase
     {
         // Arrange
         var underlying = "TSLA";
-        var expirationDate = new DateTime(2026, 3, 20);
+        var expirationDate = new DateOnly(2026, 3, 20);
         var type = OptionType.Call;
         var strike = 700m;
         var optionsService = PolygonClient.Options;
@@ -204,7 +204,7 @@ public class ComponentBasedExtensionsIntegrationTests : IntegrationTestBase
     {
         // Arrange
         var underlying = "SPY";
-        var expirationDate = new DateTime(2025, 12, 19);
+        var expirationDate = new DateOnly(2025, 12, 19);
         var type = OptionType.Call;
         var strike = 650m;
         var multiplier = 1;
@@ -247,7 +247,7 @@ public class ComponentBasedExtensionsIntegrationTests : IntegrationTestBase
     {
         // Arrange
         var underlying = "SPY";
-        var expirationDate = new DateTime(2025, 12, 19);
+        var expirationDate = new DateOnly(2025, 12, 19);
         var type = OptionType.Call;
         var strike = 650m;
         var multiplier = 5;
@@ -346,8 +346,8 @@ public class ComponentBasedExtensionsIntegrationTests : IntegrationTestBase
     {
         // Arrange
         var underlying = "SPY";
-        var expirationDateGte = new DateTime(2025, 12, 1);
-        var expirationDateLte = new DateTime(2025, 12, 31);
+        var expirationDateGte = new DateOnly(2025, 12, 1);
+        var expirationDateLte = new DateOnly(2025, 12, 31);
         var optionsService = PolygonClient.Options;
 
         // Act
@@ -371,7 +371,7 @@ public class ComponentBasedExtensionsIntegrationTests : IntegrationTestBase
                 Assert.NotNull(snapshot.Details);
                 Assert.NotNull(snapshot.Details.ExpirationDate);
 
-                var expirationDate = DateTime.Parse(snapshot.Details.ExpirationDate);
+                var expirationDate = DateOnly.Parse(snapshot.Details.ExpirationDate);
                 Assert.True(expirationDate >= expirationDateGte, $"Expiration date {expirationDate} should be >= {expirationDateGte}");
                 Assert.True(expirationDate <= expirationDateLte, $"Expiration date {expirationDate} should be <= {expirationDateLte}");
             }
@@ -421,8 +421,8 @@ public class ComponentBasedExtensionsIntegrationTests : IntegrationTestBase
         // Arrange
         var underlying = "SPY";
         var type = OptionType.Put;
-        var expirationDateGte = new DateTime(2025, 12, 1);
-        var expirationDateLte = new DateTime(2025, 12, 31);
+        var expirationDateGte = new DateOnly(2025, 12, 1);
+        var expirationDateLte = new DateOnly(2025, 12, 31);
         var optionsService = PolygonClient.Options;
 
         // Act
@@ -449,7 +449,7 @@ public class ComponentBasedExtensionsIntegrationTests : IntegrationTestBase
                 Assert.Contains(underlying, snapshot.Details.Ticker);
                 Assert.NotNull(snapshot.Details.ExpirationDate);
 
-                var expirationDate = DateTime.Parse(snapshot.Details.ExpirationDate);
+                var expirationDate = DateOnly.Parse(snapshot.Details.ExpirationDate);
                 Assert.True(expirationDate >= expirationDateGte);
                 Assert.True(expirationDate <= expirationDateLte);
             }
