@@ -32,7 +32,7 @@ public static class OptionsServiceExtensions
     /// // Get contract details for UBER January 21, 2022 $50 Call
     /// var contract = await client.Options.GetContractByComponentsAsync(
     ///     "UBER",
-    ///     new DateTime(2022, 1, 21),
+    ///     new DateOnly(2022, 1, 21),
     ///     OptionType.Call,
     ///     50m
     /// );
@@ -41,7 +41,7 @@ public static class OptionsServiceExtensions
     public static Task<PolygonResponse<OptionsContract>> GetContractByComponentsAsync(
         this IOptionsService optionsService,
         string underlying,
-        DateTime expirationDate,
+        DateOnly expirationDate,
         OptionType type,
         decimal strike,
         CancellationToken cancellationToken = default)
@@ -70,7 +70,7 @@ public static class OptionsServiceExtensions
     /// // Get snapshot for SPY December 19, 2025 $650 Call
     /// var snapshot = await client.Options.GetSnapshotByComponentsAsync(
     ///     "SPY",
-    ///     new DateTime(2025, 12, 19),
+    ///     new DateOnly(2025, 12, 19),
     ///     OptionType.Call,
     ///     650m
     /// );
@@ -79,7 +79,7 @@ public static class OptionsServiceExtensions
     public static Task<PolygonResponse<OptionSnapshot>> GetSnapshotByComponentsAsync(
         this IOptionsService optionsService,
         string underlying,
-        DateTime expirationDate,
+        DateOnly expirationDate,
         OptionType type,
         decimal strike,
         CancellationToken cancellationToken = default)
@@ -120,8 +120,8 @@ public static class OptionsServiceExtensions
     /// var snapshots = await client.Options.GetChainSnapshotByComponentsAsync(
     ///     "SPY",
     ///     type: OptionType.Call,
-    ///     expirationDateGte: new DateTime(2025, 12, 1),
-    ///     expirationDateLte: new DateTime(2025, 12, 31),
+    ///     expirationDateGte: new DateOnly(2025, 12, 1),
+    ///     expirationDateLte: new DateOnly(2025, 12, 31),
     ///     limit: 100
     /// );
     ///
@@ -138,8 +138,8 @@ public static class OptionsServiceExtensions
         string underlyingAsset,
         decimal? strikePrice = null,
         OptionType? type = null,
-        DateTime? expirationDateGte = null,
-        DateTime? expirationDateLte = null,
+        DateOnly? expirationDateGte = null,
+        DateOnly? expirationDateLte = null,
         int? limit = null,
         string? order = null,
         string? sort = null,
@@ -279,7 +279,7 @@ public static class OptionsServiceExtensions
     /// );
     /// </code>
     /// </example>
-    public static async Task<List<DateTime>> GetExpirationDatesAsync(
+    public static async Task<List<DateOnly>> GetExpirationDatesAsync(
         this IOptionsService optionsService,
         string underlying,
         OptionType? type = null,
@@ -309,17 +309,17 @@ public static class OptionsServiceExtensions
         var response = await optionsService.GetChainSnapshotAsync(request, cancellationToken);
 
         if (response.Results == null || response.Results.Count == 0)
-            return new List<DateTime>();
+            return new List<DateOnly>();
 
         // Extract unique expiration dates and sort them
-        var dates = new List<DateTime>();
+        var dates = new List<DateOnly>();
         foreach (var snapshot in response.Results)
         {
             var dateString = snapshot.Details?.ExpirationDate;
             if (string.IsNullOrEmpty(dateString))
                 continue;
 
-            if (DateTime.TryParse(dateString, out var parsedDate))
+            if (DateOnly.TryParse(dateString, out var parsedDate))
             {
                 dates.Add(parsedDate);
             }
@@ -383,7 +383,7 @@ public static class OptionsServiceExtensions
     /// <exception cref="ArgumentNullException">Thrown when optionsService or ticker is null.</exception>
     /// <example>
     /// <code>
-    /// var ticker = new OptionsTicker("SPY", new DateTime(2025, 12, 19), OptionType.Call, 650m);
+    /// var ticker = new OptionsTicker("SPY", new DateOnly(2025, 12, 19), OptionType.Call, 650m);
     /// var snapshot = await client.Options.GetSnapshotAsync(ticker);
     /// </code>
     /// </example>
@@ -515,7 +515,7 @@ public static class OptionsServiceExtensions
     /// <exception cref="ArgumentNullException">Thrown when optionsService or ticker is null.</exception>
     /// <example>
     /// <code>
-    /// var ticker = new OptionsTicker("TSLA", new DateTime(2021, 9, 3), OptionType.Call, 700m);
+    /// var ticker = new OptionsTicker("TSLA", new DateOnly(2021, 9, 3), OptionType.Call, 700m);
     /// var trades = await client.Options.GetTradesAsync(
     ///     ticker,
     ///     timestamp: "2021-09-03",
@@ -666,7 +666,7 @@ public static class OptionsServiceExtensions
     /// <exception cref="ArgumentNullException">Thrown when optionsService or ticker is null.</exception>
     /// <example>
     /// <code>
-    /// var ticker = new OptionsTicker("SPY", new DateTime(2025, 12, 19), OptionType.Call, 650m);
+    /// var ticker = new OptionsTicker("SPY", new DateOnly(2025, 12, 19), OptionType.Call, 650m);
     /// var previousDay = await client.Options.GetPreviousDayBarAsync(ticker);
     /// </code>
     /// </example>
@@ -706,7 +706,7 @@ public static class OptionsServiceExtensions
     /// // Get last trade for TSLA March 20, 2026 $700 Call
     /// var trade = await client.Options.GetLastTradeByComponentsAsync(
     ///     "TSLA",
-    ///     new DateTime(2026, 3, 20),
+    ///     new DateOnly(2026, 3, 20),
     ///     OptionType.Call,
     ///     700m
     /// );
@@ -715,7 +715,7 @@ public static class OptionsServiceExtensions
     public static Task<PolygonResponse<OptionTrade>> GetLastTradeByComponentsAsync(
         this IOptionsService optionsService,
         string underlying,
-        DateTime expirationDate,
+        DateOnly expirationDate,
         OptionType type,
         decimal strike,
         CancellationToken cancellationToken = default)
@@ -751,7 +751,7 @@ public static class OptionsServiceExtensions
     /// // Get daily bars for SPY December 19, 2025 $650 Call
     /// var bars = await client.Options.GetBarsByComponentsAsync(
     ///     "SPY",
-    ///     new DateTime(2025, 12, 19),
+    ///     new DateOnly(2025, 12, 19),
     ///     OptionType.Call,
     ///     650m,
     ///     multiplier: 1,
@@ -764,7 +764,7 @@ public static class OptionsServiceExtensions
     public static Task<PolygonResponse<List<OptionBar>>> GetBarsByComponentsAsync(
         this IOptionsService optionsService,
         string underlying,
-        DateTime expirationDate,
+        DateOnly expirationDate,
         OptionType type,
         decimal strike,
         int multiplier,

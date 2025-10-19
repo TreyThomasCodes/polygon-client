@@ -26,7 +26,7 @@ public class OptionsTicker
     /// <summary>
     /// Gets the expiration date of the options contract.
     /// </summary>
-    public DateTime ExpirationDate { get; }
+    public DateOnly ExpirationDate { get; }
 
     /// <summary>
     /// Gets the type of the options contract (Call or Put).
@@ -47,7 +47,7 @@ public class OptionsTicker
     /// <param name="strike">The strike price of the options contract.</param>
     /// <exception cref="ArgumentNullException">Thrown when underlying is null or whitespace.</exception>
     /// <exception cref="ArgumentException">Thrown when underlying contains invalid characters or strike price is negative.</exception>
-    public OptionsTicker(string underlying, DateTime expirationDate, OptionType type, decimal strike)
+    public OptionsTicker(string underlying, DateOnly expirationDate, OptionType type, decimal strike)
     {
         if (string.IsNullOrWhiteSpace(underlying))
             throw new ArgumentNullException(nameof(underlying), "Underlying ticker symbol cannot be null or empty.");
@@ -59,7 +59,7 @@ public class OptionsTicker
             throw new ArgumentException("Strike price cannot be negative.", nameof(strike));
 
         Underlying = underlying.ToUpperInvariant();
-        ExpirationDate = expirationDate.Date;
+        ExpirationDate = expirationDate;
         Type = type;
         Strike = strike;
     }
@@ -77,15 +77,15 @@ public class OptionsTicker
     /// <example>
     /// <code>
     /// // Create a Call option ticker for UBER expiring January 21, 2022 with $50 strike
-    /// string ticker = OptionsTicker.Create("UBER", new DateTime(2022, 1, 21), OptionType.Call, 50m);
+    /// string ticker = OptionsTicker.Create("UBER", new DateOnly(2022, 1, 21), OptionType.Call, 50m);
     /// // Returns: "O:UBER220121C00050000"
     ///
     /// // Create a Put option ticker for Ford (F) expiring November 19, 2021 with $14 strike
-    /// string ticker = OptionsTicker.Create("F", new DateTime(2021, 11, 19), OptionType.Put, 14m);
+    /// string ticker = OptionsTicker.Create("F", new DateOnly(2021, 11, 19), OptionType.Put, 14m);
     /// // Returns: "O:F211119P00014000"
     /// </code>
     /// </example>
-    public static string Create(string underlying, DateTime expirationDate, OptionType type, decimal strike)
+    public static string Create(string underlying, DateOnly expirationDate, OptionType type, decimal strike)
     {
         var ticker = new OptionsTicker(underlying, expirationDate, type, strike);
         return ticker.ToString();
@@ -158,7 +158,7 @@ public class OptionsTicker
             int year = int.Parse(dateStr.Substring(0, 2), CultureInfo.InvariantCulture) + 2000;
             int month = int.Parse(dateStr.Substring(2, 2), CultureInfo.InvariantCulture);
             int day = int.Parse(dateStr.Substring(4, 2), CultureInfo.InvariantCulture);
-            var expirationDate = new DateTime(year, month, day);
+            var expirationDate = new DateOnly(year, month, day);
 
             // Parse type
             var type = typeChar == 'C' ? OptionType.Call : OptionType.Put;

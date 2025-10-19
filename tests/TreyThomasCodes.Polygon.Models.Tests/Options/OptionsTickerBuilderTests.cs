@@ -18,7 +18,7 @@ public class OptionsTickerBuilderTests
         var builder = new OptionsTickerBuilder();
         var ticker = builder
             .WithUnderlying("UBER")
-            .WithExpiration(new DateTime(2022, 1, 21))
+            .WithExpiration(new DateOnly(2022, 1, 21))
             .AsCall()
             .WithStrike(50m)
             .Build();
@@ -116,14 +116,14 @@ public class OptionsTickerBuilderTests
         var builder = new OptionsTickerBuilder();
         var ticker = builder
             .WithUnderlying("UBER")
-            .WithExpiration(new DateTime(2022, 1, 21))
+            .WithExpiration(new DateOnly(2022, 1, 21))
             .AsCall()
             .WithStrike(50m)
             .BuildTicker();
 
         Assert.NotNull(ticker);
         Assert.Equal("UBER", ticker.Underlying);
-        Assert.Equal(new DateTime(2022, 1, 21), ticker.ExpirationDate);
+        Assert.Equal(new DateOnly(2022, 1, 21), ticker.ExpirationDate);
         Assert.Equal(OptionType.Call, ticker.Type);
         Assert.Equal(50m, ticker.Strike);
     }
@@ -228,7 +228,7 @@ public class OptionsTickerBuilderTests
     [Fact]
     public void WithExpiration_WithDateTime_SetsExpiration()
     {
-        var expirationDate = new DateTime(2025, 6, 20);
+        var expirationDate = new DateOnly(2025, 6, 20);
         var builder = new OptionsTickerBuilder();
         var ticker = builder
             .WithUnderlying("MSFT")
@@ -435,7 +435,7 @@ public class OptionsTickerBuilderTests
     public void Build_ComparedWithOptionsTicker_ProducesSameResult()
     {
         var underlying = "AAPL";
-        var expiration = new DateTime(2024, 12, 20);
+        var expiration = new DateOnly(2024, 12, 20);
         var type = OptionType.Call;
         var strike = 150m;
 

@@ -257,7 +257,7 @@ public class DiscoveryHelpersIntegrationTests : IntegrationTestBase
             if (expirations.Count > 0)
             {
                 // Verify all dates are in the future or recent past
-                var oldestAllowedDate = DateTime.Now.AddYears(-5);
+                var oldestAllowedDate = DateOnly.FromDateTime(DateTime.Now.AddYears(-5));
                 Assert.All(expirations, date => Assert.True(date >= oldestAllowedDate));
             }
         }
