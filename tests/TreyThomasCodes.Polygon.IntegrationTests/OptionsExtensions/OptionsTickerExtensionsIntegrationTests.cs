@@ -220,10 +220,10 @@ public class OptionsTickerExtensionsIntegrationTests : IntegrationTestBase
         // Act
         var response = await optionsService.GetBarsAsync(
             ticker,
-            multiplier: 1,
-            timespan: AggregateInterval.Day,
-            from: "2023-01-09",
-            to: "2023-02-10",
+            1,
+            AggregateInterval.Day,
+            new DateOnly(2023, 1, 9),
+            new DateOnly(2023, 2, 10),
             cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
@@ -245,10 +245,10 @@ public class OptionsTickerExtensionsIntegrationTests : IntegrationTestBase
         // Act
         var response = await optionsService.GetBarsAsync(
             ticker,
-            multiplier: 1,
-            timespan: AggregateInterval.Day,
-            from: "2023-01-09",
-            to: "2023-02-10",
+            1,
+            AggregateInterval.Day,
+            new DateOnly(2023, 1, 9),
+            new DateOnly(2023, 2, 10),
             adjusted: true,
             sort: SortOrder.Ascending,
             limit: 10,
