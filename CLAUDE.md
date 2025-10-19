@@ -85,11 +85,42 @@ The client uses a layered architecture with a clear separation between internal 
 6. **Authentication** (`/Authentication/`) - **INTERNAL** HTTP message handlers
    - `PolygonAuthenticationHandler` - Adds API key to requests
 
+7. **Fluent API Layer** (`/Fluent/`) - **PUBLIC** Optional fluent query builders for expressive API usage
+   - **Extension Methods** (`*ServiceFluentExtensions.cs`) - Extension methods on service interfaces
+     - `StocksServiceFluentExtensions` - Entry points for Stocks fluent builders
+     - `OptionsServiceFluentExtensions` - Entry points for Options fluent builders
+     - `ReferenceDataServiceFluentExtensions` - Entry points for Reference fluent builders
+   - **Query Builders** (`/Builders/`) - Progressive fluent builders for each API endpoint
+     - `/Builders/Stocks/` - 10 builders for stocks API (BarsQueryBuilder, TradesQueryBuilder, QuotesQueryBuilder, etc.)
+     - `/Builders/Options/` - 9 builders for options API (OptionBarsQueryBuilder, ChainSnapshotQueryBuilder, etc.)
+     - `/Builders/Reference/` - 6 builders for reference API (TickersQueryBuilder, ConditionCodesQueryBuilder, etc.)
+   - Accessed via separate namespace: `using TreyThomasCodes.Polygon.RestClient.Fluent;`
+   - Opt-in design prevents IntelliSense pollution for users who prefer request objects
+   - All builders delegate to existing request-based methods for validation consistency
+
 ### Public API Surface
 
-Consumers of this library interact exclusively with:
+Consumers of this library can use **three different patterns** for making API calls:
+
+#### Pattern 1: Request Objects (Primary Pattern)
 - **Request objects** in the `/Requests/` folder for specifying API parameters
 - **Service interfaces** (`IPolygonClient`, `IStocksService`, `IOptionsService`, `IReferenceDataService`) for making API calls
+- Most explicit and discoverable via IntelliSense
+- All validation rules are enforced before API calls
+
+#### Pattern 2: Simple Parameter Overloads (Convenience Pattern)
+- Selected simple methods with direct parameter passing (e.g., `GetSnapshotAsync(string ticker)`)
+- Available for the most common single-parameter operations
+- Internally creates request objects and delegates to Pattern 1
+
+#### Pattern 3: Fluent API (Optional Pattern)
+- **Fluent query builders** in the `/Fluent/` namespace
+- Progressive building with method chaining
+- Requires `using TreyThomasCodes.Polygon.RestClient.Fluent;` to opt-in
+- Example: `_client.Stocks.Bars("AAPL").From("2025-01-01").To("2025-01-31").Daily().ExecuteAsync()`
+- Internally creates request objects and delegates to Pattern 1
+
+All patterns share:
 - **Model classes** from the `TreyThomasCodes.Polygon.Models` package for response data
 - **Exception types** (`PolygonException`, `PolygonValidationException`, `PolygonApiException`, `PolygonHttpException`) for error handling
 
@@ -152,6 +183,98 @@ var request = new GetBarsRequest
 var bars = await _client.Stocks.GetBarsAsync(request);
 ```
 
+### Fluent API Patterns
+The library provides an optional fluent API for more expressive query construction. This is a **Tier 3** API that sits on top of the request object pattern.
+
+**Accessing the Fluent API:**
+```csharp
+// Add the fluent namespace to opt-in
+using TreyThomasCodes.Polygon.RestClient.Fluent;
+
+// Now fluent extension methods are available on service interfaces
+var bars = await _client.Stocks
+    .Bars("AAPL")
+    .From("2025-01-01")
+    .To("2025-01-31")
+    .Daily()
+    .Adjusted()
+    .Limit(100)
+    .ExecuteAsync();
+```
+
+**Key Characteristics:**
+- **Opt-in via namespace** - Prevents IntelliSense clutter for users who prefer request objects
+- **Progressive building** - Parameters set via fluent methods, validated at execution time
+- **Verb-first naming** - Extension methods use verb-first names (e.g., `Bars()`, `Tickers()`, `OptionSnapshot()`)
+- **Async-only execution** - All builders terminate with `.ExecuteAsync()`
+- **Validation consistency** - All builders delegate to request-based methods for consistent validation
+- **Interval helpers** - Convenient methods for time intervals (e.g., `Daily()`, `Hourly(4)`, `Minutely(15)`)
+- **Filter helpers** - Semantic filtering methods (e.g., `AtStrike()`, `CallsOnly()`, `ExpiringBetween()`)
+
+**Available Fluent Builders:**
+
+**Stocks Service (10 builders):**
+- `Bars()` - OHLC aggregates with interval helpers
+- `Trades()` - Historical trade data with timestamp filters
+- `Quotes()` - Historical quote data with timestamp filters
+- `Snapshot()` - Ticker snapshot
+- `LastTrade()` - Most recent trade
+- `LastQuote()` - Most recent quote
+- `PreviousClose()` - Previous day's close
+- `GroupedDaily()` - All tickers for a date
+- `DailyOpenClose()` - Daily open/close for a ticker and date
+- `MarketSnapshot()` - Snapshot of all tickers
+
+**Options Service (9 builders):**
+- `ContractDetails()` - Contract details by ticker
+- `OptionSnapshot()` - Option contract snapshot with smart ticker parsing
+- `ChainSnapshot()` - Full options chain with extensive filtering
+- `OptionBars()` - OHLC data with interval helpers
+- `OptionTrades()` - Historical trade data
+- `OptionQuotes()` - Historical quote data
+- `OptionLastTrade()` - Most recent trade
+- `OptionDailyOpenClose()` - Daily open/close data
+- `OptionPreviousDayBar()` - Previous day bar
+
+**Reference Service (6 builders):**
+- `Tickers()` - Search/filter tickers with 15+ options
+- `TickerDetails()` - Ticker details with optional date
+- `MarketStatus()` - Current market status
+- `TickerTypes()` - All ticker types
+- `ConditionCodes()` - Condition codes with filters
+- `Exchanges()` - Exchanges with asset class/locale filters
+
+**Example Comparisons:**
+
+Request Object Pattern:
+```csharp
+var request = new GetBarsRequest
+{
+    Ticker = "AAPL",
+    Multiplier = 1,
+    Timespan = AggregateInterval.Day,
+    From = "2025-01-01",
+    To = "2025-01-31",
+    Adjusted = true,
+    Limit = 100
+};
+var bars = await _client.Stocks.GetBarsAsync(request);
+```
+
+Fluent API Pattern:
+```csharp
+using TreyThomasCodes.Polygon.RestClient.Fluent;
+
+var bars = await _client.Stocks
+    .Bars("AAPL")
+    .From("2025-01-01")
+    .To("2025-01-31")
+    .Daily()
+    .Adjusted()
+    .Limit(100)
+    .ExecuteAsync();
+```
+
 ### Models Project
 - Contains strongly-typed models for all API responses
 - Uses `PolygonResponse<T>` as generic wrapper
@@ -175,7 +298,8 @@ var bars = await _client.Stocks.GetBarsAsync(request);
   - `/Authentication/` - Authentication handler tests
   - `/Services/Options/` - Options service tests split by method (GetBars, GetChainSnapshot, GetContractDetails, GetDailyOpenClose, GetLastTrade, GetPreviousDayBar, GetQuotes, GetSnapshot, GetTrades)
   - `/Services/ReferenceData/` - Reference data service tests split by method (GetConditionCodes, GetExchanges, GetMarketStatus, GetTickerTypes)
-  - `/Services/Stocks/` - Stocks service tests split by method (GetLastQuote, GetLastTrade, GetSnapshot)
+  - `/Services/Stocks/` - Stocks service tests split by method (GetLastQuote, GetLastTrade, GetSnapshot, SimpleOverloads)
+  - `/Fluent/` - Fluent API query builder tests (BarsQueryBuilder, OptionBarsQueryBuilder, TickersQueryBuilder)
 - **TreyThomasCodes.Polygon.IntegrationTests** - Integration tests for complete API workflows, organized by service area
   - `IntegrationTestBase.cs` - Base class providing DI setup, Polygon client configuration, and resource disposal for all integration tests
   - `/Options/` - Integration tests for Options API methods (GetBars, GetChainSnapshot, GetContractDetails, GetDailyOpenClose, GetLastTrade, GetPreviousDayBar, GetQuotes, GetSnapshot, GetTrades)

@@ -107,6 +107,89 @@ public class StockDataService
 }
 ```
 
+## API Usage Patterns
+
+This library provides **three different patterns** for making API calls. Choose the one that best fits your coding style:
+
+### Pattern 1: Request Objects (Primary Pattern)
+
+The most explicit pattern using strongly-typed request objects:
+
+```csharp
+using TreyThomasCodes.Polygon.RestClient.Requests.Stocks;
+
+var request = new GetBarsRequest
+{
+    Ticker = "AAPL",
+    Multiplier = 1,
+    Timespan = AggregateInterval.Day,
+    From = "2025-01-01",
+    To = "2025-01-31",
+    Adjusted = true
+};
+var bars = await _polygonClient.Stocks.GetBarsAsync(request);
+```
+
+### Pattern 2: Simple Parameter Overloads (Convenience Pattern)
+
+For simple, single-parameter operations:
+
+```csharp
+// Get snapshot with just the ticker
+var snapshot = await _polygonClient.Stocks.GetSnapshotAsync("AAPL");
+
+// Get last trade with just the ticker
+var lastTrade = await _polygonClient.Stocks.GetLastTradeAsync("MSFT");
+
+// Get ticker details with just the ticker
+var details = await _polygonClient.ReferenceData.GetTickerDetailsAsync("TSLA");
+```
+
+### Pattern 3: Fluent API (Optional Pattern)
+
+For expressive, chainable queries (requires `using TreyThomasCodes.Polygon.RestClient.Fluent;`):
+
+```csharp
+using TreyThomasCodes.Polygon.RestClient.Fluent;
+
+// Get stock bars with a fluent, progressive builder
+var bars = await _polygonClient.Stocks
+    .Bars("AAPL")
+    .From("2025-01-01")
+    .To("2025-01-31")
+    .Daily()
+    .Adjusted()
+    .Limit(100)
+    .ExecuteAsync();
+
+// Search tickers with fluent filters
+var tickers = await _polygonClient.ReferenceData
+    .Tickers()
+    .Search("Apple")
+    .ActiveOnly()
+    .OfType("CS")
+    .Limit(10)
+    .ExecuteAsync();
+
+// Get options chain with fluent filtering
+var chain = await _polygonClient.Options
+    .ChainSnapshot("SPY")
+    .CallsOnly()
+    .ExpiringBetween("2025-12-01", "2025-12-31")
+    .AtStrike(650m)
+    .Limit(100)
+    .ExecuteAsync();
+```
+
+The fluent API provides:
+- **25 query builders** (10 for Stocks, 9 for Options, 6 for Reference Data)
+- **Interval helpers** like `Daily()`, `Hourly(4)`, `Minutely(15)`
+- **Semantic filters** like `CallsOnly()`, `ExpiringBetween()`, `ActiveOnly()`
+- **Progressive building** - set parameters step by step
+- **Same validation** - delegates to request objects internally
+
+All patterns produce the same results and use the same validation. Choose based on your preference!
+
 ## Available Services
 
 The `IPolygonClient` provides access to the following services:

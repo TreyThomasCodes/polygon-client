@@ -405,6 +405,18 @@ internal class StocksService : IStocksService
     /// <exception cref="PolygonValidationException">Thrown when the request parameters fail validation.</exception>
     /// <exception cref="PolygonApiException">Thrown when the Polygon.io API returns an error response.</exception>
     /// <exception cref="PolygonHttpException">Thrown when a network or HTTP transport error occurs.</exception>
+    public Task<StockSnapshotResponse> GetSnapshotAsync(
+        string ticker,
+        CancellationToken cancellationToken = default)
+    {
+        var request = new GetSnapshotRequest { Ticker = ticker };
+        return GetSnapshotAsync(request, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    /// <exception cref="PolygonValidationException">Thrown when the request parameters fail validation.</exception>
+    /// <exception cref="PolygonApiException">Thrown when the Polygon.io API returns an error response.</exception>
+    /// <exception cref="PolygonHttpException">Thrown when a network or HTTP transport error occurs.</exception>
     public async Task<PolygonResponse<StockTrade>> GetLastTradeAsync(
         GetLastTradeRequest request,
         CancellationToken cancellationToken = default)
@@ -447,6 +459,18 @@ internal class StocksService : IStocksService
     /// <exception cref="PolygonValidationException">Thrown when the request parameters fail validation.</exception>
     /// <exception cref="PolygonApiException">Thrown when the Polygon.io API returns an error response.</exception>
     /// <exception cref="PolygonHttpException">Thrown when a network or HTTP transport error occurs.</exception>
+    public Task<PolygonResponse<StockTrade>> GetLastTradeAsync(
+        string ticker,
+        CancellationToken cancellationToken = default)
+    {
+        var request = new GetLastTradeRequest { Ticker = ticker };
+        return GetLastTradeAsync(request, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    /// <exception cref="PolygonValidationException">Thrown when the request parameters fail validation.</exception>
+    /// <exception cref="PolygonApiException">Thrown when the Polygon.io API returns an error response.</exception>
+    /// <exception cref="PolygonHttpException">Thrown when a network or HTTP transport error occurs.</exception>
     public async Task<PolygonResponse<LastQuoteResult>> GetLastQuoteAsync(
         GetLastQuoteRequest request,
         CancellationToken cancellationToken = default)
@@ -483,5 +507,17 @@ internal class StocksService : IStocksService
             _logger.LogError(ex, "Timeout calling {Method} for ticker {Ticker}", nameof(GetLastQuoteAsync), request.Ticker);
             throw PolygonHttpException.FromTimeout(ex);
         }
+    }
+
+    /// <inheritdoc />
+    /// <exception cref="PolygonValidationException">Thrown when the request parameters fail validation.</exception>
+    /// <exception cref="PolygonApiException">Thrown when the Polygon.io API returns an error response.</exception>
+    /// <exception cref="PolygonHttpException">Thrown when a network or HTTP transport error occurs.</exception>
+    public Task<PolygonResponse<LastQuoteResult>> GetLastQuoteAsync(
+        string ticker,
+        CancellationToken cancellationToken = default)
+    {
+        var request = new GetLastQuoteRequest { Ticker = ticker };
+        return GetLastQuoteAsync(request, cancellationToken);
     }
 }

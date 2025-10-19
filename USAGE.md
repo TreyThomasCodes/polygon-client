@@ -5,6 +5,10 @@ This guide provides comprehensive examples for every API call implemented in the
 ## Table of Contents
 
 - [Setup](#setup)
+- [API Usage Patterns](#api-usage-patterns)
+  - [Pattern 1: Request Objects](#pattern-1-request-objects)
+  - [Pattern 2: Simple Overloads](#pattern-2-simple-overloads)
+  - [Pattern 3: Fluent API](#pattern-3-fluent-api)
 - [Stocks Service](#stocks-service)
   - [Aggregates (OHLC Bars)](#aggregates-ohlc-bars)
   - [Trades](#trades)
@@ -56,6 +60,123 @@ public class MyService
     }
 }
 ```
+
+## API Usage Patterns
+
+This library provides three different patterns for making API calls. All patterns use the same underlying validation and produce identical results. Choose the pattern that best fits your coding style and use case.
+
+### Pattern 1: Request Objects
+
+The primary pattern using strongly-typed request objects. This is the most explicit and discoverable approach via IntelliSense.
+
+```csharp
+using TreyThomasCodes.Polygon.Models.Common;
+using TreyThomasCodes.Polygon.RestClient.Requests.Stocks;
+
+var request = new GetBarsRequest
+{
+    Ticker = "AAPL",
+    Multiplier = 1,
+    Timespan = AggregateInterval.Day,
+    From = "2025-01-01",
+    To = "2025-01-31",
+    Adjusted = true,
+    Sort = SortOrder.Ascending,
+    Limit = 100
+};
+var bars = await _client.Stocks.GetBarsAsync(request);
+```
+
+**Best for:**
+- When you need to see all available parameters clearly
+- When you want maximum type safety and compile-time checking
+- When you're building complex queries with many optional parameters
+
+### Pattern 2: Simple Overloads
+
+Convenience methods that accept the most common parameters directly, without creating a request object.
+
+```csharp
+// Get snapshot with just the ticker
+var snapshot = await _client.Stocks.GetSnapshotAsync("AAPL");
+
+// Get last trade with just the ticker
+var lastTrade = await _client.Stocks.GetLastTradeAsync("MSFT");
+
+// Get last quote with just the ticker
+var lastQuote = await _client.Stocks.GetLastQuoteAsync("TSLA");
+
+// Get ticker details with just the ticker
+var details = await _client.ReferenceData.GetTickerDetailsAsync("AAPL");
+```
+
+**Best for:**
+- Simple, single-parameter operations
+- When you want concise, readable code for common operations
+- When you don't need optional parameters
+
+### Pattern 3: Fluent API
+
+An optional fluent API that provides progressive building with method chaining. Requires adding `using TreyThomasCodes.Polygon.RestClient.Fluent;` to opt-in.
+
+```csharp
+using TreyThomasCodes.Polygon.RestClient.Fluent;
+
+// Get stock bars with fluent chaining
+var bars = await _client.Stocks
+    .Bars("AAPL")
+    .From("2025-01-01")
+    .To("2025-01-31")
+    .Daily()
+    .Adjusted()
+    .Limit(100)
+    .ExecuteAsync();
+
+// Search tickers with fluent filters
+var tickers = await _client.ReferenceData
+    .Tickers()
+    .Search("Apple")
+    .ActiveOnly()
+    .OfType("CS")
+    .Limit(10)
+    .ExecuteAsync();
+
+// Get options chain with fluent filtering
+var chain = await _client.Options
+    .ChainSnapshot("SPY")
+    .CallsOnly()
+    .ExpiringBetween("2025-12-01", "2025-12-31")
+    .AtStrike(650m)
+    .ExecuteAsync();
+```
+
+**Features:**
+- **25 fluent builders** covering all major API calls
+- **Interval helpers** like `Daily()`, `Hourly(4)`, `Minutely(15)`
+- **Semantic filters** like `CallsOnly()`, `ExpiringBetween()`, `ActiveOnly()`
+- **Progressive building** - add parameters step by step
+- **Opt-in design** - only visible when you add the `Fluent` namespace
+
+**Best for:**
+- When you prefer expressive, chainable query construction
+- When you want semantic method names that read like English
+- When you want to build queries incrementally
+
+**Comparison Example:**
+
+All three patterns produce the same result:
+
+```csharp
+// Pattern 1: Request Object
+var request = new GetBarsRequest { Ticker = "AAPL", Multiplier = 1, Timespan = AggregateInterval.Day, From = "2025-01-01", To = "2025-01-31" };
+var bars1 = await _client.Stocks.GetBarsAsync(request);
+
+// Pattern 3: Fluent API (no Pattern 2 for GetBars as it requires multiple parameters)
+using TreyThomasCodes.Polygon.RestClient.Fluent;
+var bars3 = await _client.Stocks.Bars("AAPL").From("2025-01-01").To("2025-01-31").Daily().ExecuteAsync();
+```
+
+Throughout this guide, we'll show examples using all applicable patterns. Use whichever feels most natural for your code!
 
 ## Stocks Service
 
@@ -135,6 +256,58 @@ var monthlyBarsRequest = new GetBarsRequest
 };
 var monthlyBars = await _client.Stocks.GetBarsAsync(monthlyBarsRequest);
 ```
+
+**Fluent API Alternative:**
+
+```csharp
+using TreyThomasCodes.Polygon.RestClient.Fluent;
+
+// Get daily bars with fluent API
+var dailyBars = await _client.Stocks
+    .Bars("AAPL")
+    .From("2025-09-01")
+    .To("2025-09-30")
+    .Daily()
+    .Adjusted()
+    .Ascending()
+    .Limit(5000)
+    .ExecuteAsync();
+
+// Get 5-minute intraday bars
+var intradayBars = await _client.Stocks
+    .Bars("TSLA")
+    .From("2025-09-15")
+    .To("2025-09-15")
+    .Minutely(5)
+    .Adjusted()
+    .ExecuteAsync();
+
+// Get hourly bars
+var hourlyBars = await _client.Stocks
+    .Bars("MSFT")
+    .From("2025-09-01")
+    .To("2025-09-30")
+    .Hourly()
+    .ExecuteAsync();
+
+// Get weekly bars
+var weeklyBars = await _client.Stocks
+    .Bars("GOOGL")
+    .From("2025-01-01")
+    .To("2025-09-30")
+    .Weekly()
+    .ExecuteAsync();
+
+// Get monthly bars
+var monthlyBars = await _client.Stocks
+    .Bars("SPY")
+    .From("2020-01-01")
+    .To("2025-09-30")
+    .Monthly()
+    .ExecuteAsync();
+```
+
+The fluent API provides convenient interval helpers: `Minutely(n)`, `Hourly(n)`, `Daily(n)`, `Weekly(n)`, `Monthly(n)`, `Quarterly(n)`, `Yearly(n)`.
 
 #### GetPreviousCloseAsync - Get Previous Day's Close
 
