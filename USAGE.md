@@ -942,7 +942,7 @@ if (optionContract.Results != null && stockSnapshot.Ticker?.LastTrade?.Price != 
 
 ### Options Ticker Construction Helpers
 
-Working with OCC format options tickers can be complex and error-prone. The library provides helper classes and extension methods to simplify ticker construction and API calls.
+Working with OCC format options tickers can be complex and error-prone. The library provides helper classes and convenience methods to simplify ticker construction and API calls.
 
 #### OptionsTicker Class - Create and Parse Tickers
 
@@ -1044,12 +1044,11 @@ var ticker2 = builder
     .Build();
 ```
 
-#### Extension Methods - Simplified API Calls
+#### Convenience Methods - Simplified API Calls
 
-The library provides extension methods that accept components or `OptionsTicker` objects directly, eliminating the need to manually construct ticker strings.
+The `IOptionsService` interface provides convenience methods that accept components or `OptionsTicker` objects directly, eliminating the need to manually construct ticker strings.
 
 ```csharp
-using TreyThomasCodes.Polygon.RestClient.Extensions;
 using TreyThomasCodes.Polygon.Models.Options;
 using TreyThomasCodes.Polygon.Models.Common;
 

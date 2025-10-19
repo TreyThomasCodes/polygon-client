@@ -74,17 +74,15 @@ The client uses a layered architecture with a clear separation between internal 
    - `StocksService`, `ReferenceDataService`, `OptionsService` - **INTERNAL** Service implementations
    - All public service methods accept request objects and automatically validate them using FluentValidation
    - Service implementations orchestrate validation, API calls, and exception handling
-
-5. **Extensions Layer** (`/Extensions/`) - **PUBLIC** Extension methods for enhanced usability
-   - `OptionsServiceExtensions` - Extension methods for `IOptionsService` providing:
+   - `IOptionsService` includes convenience methods for enhanced usability:
      - Component-based methods (e.g., `GetContractByComponentsAsync`, `GetSnapshotByComponentsAsync`, `GetChainSnapshotByComponentsAsync`, `GetLastTradeByComponentsAsync`, `GetBarsByComponentsAsync`)
      - OptionsTicker-based overloads for all major Options API calls
      - Discovery helpers (`GetAvailableStrikesAsync`, `GetExpirationDatesAsync`)
 
-6. **Configuration** (`/Configuration/`) - **PUBLIC** Options pattern for settings
+5. **Configuration** (`/Configuration/`) - **PUBLIC** Options pattern for settings
    - `PolygonOptions` - API key, base URL, timeout, retry settings
 
-7. **Authentication** (`/Authentication/`) - **INTERNAL** HTTP message handlers
+6. **Authentication** (`/Authentication/`) - **INTERNAL** HTTP message handlers
    - `PolygonAuthenticationHandler` - Adds API key to requests
 
 ### Public API Surface
@@ -92,7 +90,6 @@ The client uses a layered architecture with a clear separation between internal 
 Consumers of this library interact exclusively with:
 - **Request objects** in the `/Requests/` folder for specifying API parameters
 - **Service interfaces** (`IPolygonClient`, `IStocksService`, `IOptionsService`, `IReferenceDataService`) for making API calls
-- **Extension methods** in the `/Extensions/` folder for convenience methods
 - **Model classes** from the `TreyThomasCodes.Polygon.Models` package for response data
 - **Exception types** (`PolygonException`, `PolygonValidationException`, `PolygonApiException`, `PolygonHttpException`) for error handling
 
@@ -182,7 +179,7 @@ var bars = await _client.Stocks.GetBarsAsync(request);
 - **TreyThomasCodes.Polygon.IntegrationTests** - Integration tests for complete API workflows, organized by service area
   - `IntegrationTestBase.cs` - Base class providing DI setup, Polygon client configuration, and resource disposal for all integration tests
   - `/Options/` - Integration tests for Options API methods (GetBars, GetChainSnapshot, GetContractDetails, GetDailyOpenClose, GetLastTrade, GetPreviousDayBar, GetQuotes, GetSnapshot, GetTrades)
-  - `/OptionsExtensions/` - Integration tests for Options extension methods (ComponentBasedExtensions, OptionsTickerExtensions, DiscoveryHelpers)
+  - `/OptionsExtensions/` - Integration tests for Options convenience methods (ComponentBasedMethods, OptionsTickerOverloads, DiscoveryHelpers)
   - `/Stocks/` - Integration tests for Stocks API methods (GetBars, GetLastQuote, GetLastTrade, GetSnapshot)
   - `/ReferenceData/` - Integration tests for Reference Data API methods (GetConditionCodes, GetExchanges, GetMarketStatus, GetTickerTypes)
 - **TreyThomasCodes.Polygon.TestApp** - Console application for manual testing and development

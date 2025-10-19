@@ -3,14 +3,13 @@
 
 using TreyThomasCodes.Polygon.Models.Common;
 using TreyThomasCodes.Polygon.Models.Options;
-using TreyThomasCodes.Polygon.RestClient.Extensions;
 using TreyThomasCodes.Polygon.RestClient.Requests.Options;
 
 namespace TreyThomasCodes.Polygon.IntegrationTests.OptionsExtensions;
 
 /// <summary>
-/// Integration tests for component-based extension methods in OptionsServiceExtensions.
-/// These tests verify that extension methods accepting individual components (underlying, expiration, type, strike)
+/// Integration tests for component-based convenience methods in IOptionsService.
+/// These tests verify that methods accepting individual components (underlying, expiration, type, strike)
 /// properly delegate to the underlying API and construct valid options tickers.
 /// </summary>
 public class ComponentBasedExtensionsIntegrationTests : IntegrationTestBase
