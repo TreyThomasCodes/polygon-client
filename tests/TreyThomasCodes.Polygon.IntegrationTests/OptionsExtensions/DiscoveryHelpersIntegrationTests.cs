@@ -108,8 +108,8 @@ public class DiscoveryHelpersIntegrationTests : IntegrationTestBase
             var strikes = await optionsService.GetAvailableStrikesAsync(
                 underlying,
                 type: type,
-                expirationDateGte: expirationDateGte,
-                expirationDateLte: expirationDateLte,
+                expirationDateGte: expirationDateGte.ToString("yyyy-MM-dd"),
+                expirationDateLte: expirationDateLte.ToString("yyyy-MM-dd"),
                 cancellationToken: TestContext.Current.CancellationToken);
 
             // Assert

@@ -221,8 +221,8 @@ public class OptionsTickerExtensionsIntegrationTests : IntegrationTestBase
             ticker,
             1,
             AggregateInterval.Day,
-            new DateOnly(2023, 1, 9),
-            new DateOnly(2023, 2, 10),
+            new DateOnly(2023, 1, 9).ToString("yyyy-MM-dd"),
+            new DateOnly(2023, 2, 10).ToString("yyyy-MM-dd"),
             cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
@@ -246,8 +246,8 @@ public class OptionsTickerExtensionsIntegrationTests : IntegrationTestBase
             ticker,
             1,
             AggregateInterval.Day,
-            new DateOnly(2023, 1, 9),
-            new DateOnly(2023, 2, 10),
+            new DateOnly(2023, 1, 9).ToString("yyyy-MM-dd"),
+            new DateOnly(2023, 2, 10).ToString("yyyy-MM-dd"),
             adjusted: true,
             sort: SortOrder.Ascending,
             limit: 10,

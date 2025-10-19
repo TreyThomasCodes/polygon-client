@@ -220,8 +220,8 @@ public class ComponentBasedExtensionsIntegrationTests : IntegrationTestBase
             strike,
             multiplier,
             timespan,
-            from,
-            to,
+            from.ToString("yyyy-MM-dd"),
+            to.ToString("yyyy-MM-dd"),
             cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
@@ -263,8 +263,8 @@ public class ComponentBasedExtensionsIntegrationTests : IntegrationTestBase
             strike,
             multiplier,
             timespan,
-            from,
-            to,
+            from.ToString("yyyy-MM-dd"),
+            to.ToString("yyyy-MM-dd"),
             cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
