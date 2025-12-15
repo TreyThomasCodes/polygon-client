@@ -40,7 +40,7 @@ jobs:
     - run: dotnet pack --output ${{ env.NuGetDirectory }}
   
     # Publish the NuGet package as an artifact, so they can be used in subsequent jobs
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v6
       with:
         name: nuget
         if-no-files-found: error
