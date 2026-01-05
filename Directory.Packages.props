@@ -12,7 +12,7 @@
     <PackageVersion Include="Microsoft.Extensions.Http" Version="9.0.9" />
     <PackageVersion Include="Microsoft.Extensions.Options" Version="9.0.9" />
     <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="9.0.9" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.9" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.1" />
     <!-- Application Dependencies -->
     <PackageVersion Include="Microsoft.Extensions.Configuration" Version="9.0.10" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.UserSecrets" Version="9.0.10" />
