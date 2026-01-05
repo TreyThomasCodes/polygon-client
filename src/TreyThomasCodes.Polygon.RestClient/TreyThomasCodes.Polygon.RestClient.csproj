@@ -65,6 +65,7 @@
 
   <ItemGroup>
     <!-- Make internal types visible to test assemblies -->
+    <PackageReference Include="Microsoft.Extensions.Configuration" VersionOverride="10.0.1" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" VersionOverride="10.0.1" />
     <InternalsVisibleTo Include="TreyThomasCodes.Polygon.RestClient.Tests" />
     <!-- Make internal types visible to Moq's dynamic proxy assembly for unit testing -->
