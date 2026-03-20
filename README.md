@@ -1,3 +1,7 @@
+# NOTICE - ARCHIVED
+
+I have moved away from Polygon/Massive and will not be working on this going forward. Feel free to fork and continue development!
+
 # TreyThomasCodes.Polygon - .NET Client Library for Polygon.io
 
 A reusable .NET 8+ library for connecting to and retrieving data from the Polygon.io API.
